@@ -153,6 +153,70 @@ Supabase Auth is built on GoTrue, an open-source auth server. It supports email/
 
 ---
 
+---
+
+## 4. Push Notifications
+
+### Context
+
+Fieldify requires push notifications for two user types across multiple events:
+
+- **Clients** — notified when a professional accepts their request, when the professional is on their way, when the job is marked complete, and when a cancellation occurs.
+- **Professionals** — notified when a new job request matching their trade is submitted nearby, and when a client cancels.
+
+Notifications must be delivered even when the app is closed or running in the background. Supabase does not provide a native push notification service, so a dedicated provider is required.
+
+### Options Considered
+
+#### Firebase Cloud Messaging (FCM)
+
+FCM is Google's cross-platform push notification transport. It handles delivery to Android via its own messaging infrastructure and to iOS via Apple Push Notification Service (APNs). FCM is free with no usage limits on notification sends.
+
+**Pros:**
+- Free with no message volume limits.
+- Delivers to both Android and iOS via a single API.
+- Excellent Flutter SDK (`firebase_messaging`).
+- Well-documented integration pattern with Supabase: store FCM device tokens in the Supabase database, then trigger notifications via a Supabase Edge Function that calls the FCM HTTP v1 API. This pattern is production-tested and widely documented.
+- FCM is a pure transport layer — no additional Firebase services (Firestore, Firebase Auth, etc.) need to be used alongside it, avoiding any vendor coupling with the rest of the stack.
+
+**Cons:**
+- Requires creating a Firebase project and configuring a service account key for the Supabase Edge Function to use.
+- iOS requires uploading an APNs Authentication Key (`.p8`) into the Firebase console — a step that fails silently if skipped.
+- Adds a Firebase project to the team's tooling, even if only used as a delivery pipe.
+
+#### OneSignal
+
+OneSignal is a dedicated omnichannel customer engagement platform supporting push, in-app messages, SMS, and email. It abstracts over FCM and APNs and provides a dashboard for managing campaigns and segmentation.
+
+**Pros:**
+- Simpler initial setup — OneSignal handles device registration automatically without storing tokens manually.
+- Built-in dashboard for sending notifications without backend code.
+- Analytics, delivery confirmation, and A/B testing included.
+- Free plan supports up to 10,000 monthly active users.
+
+**Cons:**
+- Free plan caps at 10,000 MAUs — fine for the academic deadline but a real limit for early growth.
+- Adds a third-party platform with its own SDK, dashboard, and account to manage.
+- The marketing and campaign features are irrelevant to Fieldify's use case — notifications are purely transactional (job state changes), not marketing messages.
+- Less direct integration with Supabase; same Edge Function trigger pattern still required but via OneSignal's REST API instead.
+- Paid plans start at $9/month when the MAU cap is exceeded.
+
+### Decision: Firebase Cloud Messaging (FCM) ✅
+
+**Rationale:** Fieldify's notifications are entirely transactional — they are triggered by job state changes in the database, not by marketing campaigns. OneSignal's primary advantages (campaign builder, segmentation, A/B testing) are irrelevant to this use case. FCM is free with no volume limits, has a well-established integration path with Supabase via Edge Functions, and requires no additional ongoing cost or account management overhead beyond an initial Firebase project setup.
+
+**Implementation pattern:**
+
+1. On app launch, the Flutter app requests an FCM device token via `firebase_messaging`.
+2. The token is stored in the `profiles` table in Supabase alongside the user's record.
+3. When a job state change occurs (e.g. a professional accepts a request), a Supabase database webhook triggers an Edge Function.
+4. The Edge Function reads the recipient's FCM token from the database and calls the FCM HTTP v1 API using a server-side Firebase service account key stored as a Supabase secret.
+5. FCM delivers the notification to the device via Android's FCM infrastructure or iOS's APNs.
+
+**Important note for iOS:** APNs configuration requires uploading a valid `.p8` authentication key into the Firebase console. Without this, iOS devices will generate FCM tokens but silently never receive notifications. This must be configured before any iOS testing.
+
+---
+
 ## Summary
 
 | Concern | Decision | Rationale |
@@ -160,5 +224,6 @@ Supabase Auth is built on GoTrue, an open-source auth server. It supports email/
 | Real-time sync | Supabase Realtime | SQL-filtered subscriptions match Fieldify's relational job-matching flow |
 | File storage | Supabase Storage | Unified RLS with database; S3-compatible for future migration |
 | Authentication | Supabase Auth | Single auth context across database, storage, and real-time via RLS |
+| Push notifications | Firebase Cloud Messaging | Free, no volume limits, transactional use case; well-documented Supabase integration |
 
-All three concerns are handled by **Supabase** as a single platform. This reduces the number of SDKs, accounts, dashboards, and access control systems the team must manage. The Supabase free tier is sufficient for the academic deadline and early post-launch stage.
+The core backend runs entirely on **Supabase** (auth, database, real-time, storage). **FCM** is added as a delivery-only transport for push notifications — it is the one Firebase service used, strictly as infrastructure, with no Firebase database or auth coupling. This keeps the stack cohesive while covering the one capability Supabase does not provide natively.

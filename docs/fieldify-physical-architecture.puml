@@ -1,0 +1,76 @@
+@startuml Fieldify Physical Architecture
+
+skinparam linetype ortho
+skinparam padding 6
+skinparam node {
+  BackgroundColor #EAF3DE
+  BorderColor #639922
+  FontColor #27500A
+  FontSize 13
+  FontStyle bold
+}
+skinparam artifact {
+  BackgroundColor #FFFFFF
+  BorderColor #639922
+  FontColor #111111
+  FontSize 12
+}
+skinparam database {
+  BackgroundColor #FFFFFF
+  BorderColor #639922
+  FontColor #111111
+  FontSize 12
+}
+skinparam arrow {
+  Color #3B6D11
+  FontColor #3B6D11
+  FontSize 11
+}
+
+node "Mobile Device\n(iOS / Android)" as mobile {
+  artifact "Flutter App" as flutter
+  artifact "Google Maps SDK" as maps
+}
+
+node "Supabase Cloud" as supabase {
+  artifact "Supabase Auth\n(GoTrue · JWT)" as auth
+  database "Postgres DB\n(RLS policies)" as db
+  artifact "Supabase Realtime\n(WAL · WebSocket)" as realtime
+  artifact "Supabase Storage\n(S3-compatible · RLS)" as storage
+  artifact "Edge Functions\n(Deno · TypeScript)" as edge
+}
+
+node "Stripe" as stripe {
+  artifact "Payments API" as stripeapi
+}
+
+node "Firebase" as firebase {
+  artifact "FCM\n(Push delivery)" as fcm
+}
+
+node "Google Maps Platform" as gmaps {
+  artifact "Maps & Geocoding API" as mapsapi
+}
+
+node "SMTP Provider" as smtp {
+  artifact "Transactional Email" as email
+}
+
+flutter --> auth       : HTTPS
+flutter --> db         : HTTPS (PostgREST)
+flutter --> realtime   : WebSocket (WSS)
+flutter --> storage    : HTTPS
+flutter --> edge       : HTTPS
+flutter --> mapsapi    : HTTPS
+
+edge --> stripeapi     : HTTPS
+edge --> fcm           : HTTPS
+edge --> email         : HTTPS
+
+stripeapi --> edge     : Webhook (HTTPS)
+fcm --> flutter        : Push notification
+
+db --> realtime        : WAL replication
+db --> edge            : DB trigger → webhook
+
+@enduml

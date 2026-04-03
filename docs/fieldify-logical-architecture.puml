@@ -1,0 +1,87 @@
+@startuml Fieldify Logical Architecture
+
+skinparam linetype ortho
+skinparam padding 6
+skinparam packageStyle rectangle
+skinparam package {
+  BackgroundColor #EAF3DE
+  BorderColor #639922
+  FontColor #27500A
+  FontSize 13
+  FontStyle bold
+}
+skinparam component {
+  BackgroundColor #FFFFFF
+  BorderColor #639922
+  FontColor #111111
+  FontSize 12
+}
+skinparam arrow {
+  Color #3B6D11
+  FontColor #3B6D11
+  FontSize 11
+}
+
+package "Presentation Layer" {
+  [Client UI]
+  [Professional UI]
+}
+
+package "Application Services Layer" {
+  [User Management]
+  [Job Orchestration]
+  [Matching]
+  [Payment Processing]
+  [Messaging]
+  [Notification Service]
+  [Verification]
+  [Review & Rating]
+  [File Management]
+}
+
+package "Data Layer" {
+  [Persistence]
+  [File Storage]
+  [Identity]
+}
+
+package "External Services" {
+  [Payment Gateway]
+  [Push Notifications]
+  [Mapping]
+  [Email / SMS]
+}
+
+[Client UI] ..> [User Management]
+[Client UI] ..> [Job Orchestration]
+[Client UI] ..> [Messaging]
+[Client UI] ..> [Notification Service]
+[Client UI] ..> [Review & Rating]
+[Client UI] ..> [Payment Processing]
+
+[Professional UI] ..> [User Management]
+[Professional UI] ..> [Job Orchestration]
+[Professional UI] ..> [Matching]
+[Professional UI] ..> [Messaging]
+[Professional UI] ..> [Notification Service]
+[Professional UI] ..> [Verification]
+
+[User Management] ..> [Persistence]
+[User Management] ..> [Identity]
+[Job Orchestration] ..> [Persistence]
+[Job Orchestration] ..> [Matching]
+[Job Orchestration] ..> [Notification Service]
+[Job Orchestration] ..> [Payment Processing]
+[Matching] ..> [Persistence]
+[Payment Processing] ..> [Persistence]
+[Payment Processing] ..> [Payment Gateway]
+[Messaging] ..> [Persistence]
+[Notification Service] ..> [Push Notifications]
+[Notification Service] ..> [Email / SMS]
+[Verification] ..> [Persistence]
+[Verification] ..> [File Storage]
+[Review & Rating] ..> [Persistence]
+[File Management] ..> [File Storage]
+[Mapping] ..> [Persistence]
+
+@enduml

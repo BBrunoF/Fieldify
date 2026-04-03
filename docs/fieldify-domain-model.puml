@@ -1,0 +1,153 @@
+@startuml Fieldify Domain Model
+
+skinparam linetype ortho
+skinparam classAttributeIconSize 0
+skinparam class {
+  BackgroundColor #EAF3DE
+  BorderColor #639922
+  HeaderBackgroundColor #27500A
+  HeaderFontColor #FFFFFF
+  FontColor #111111
+  ArrowColor #3B6D11
+}
+
+entity User {
+  * id : UUID <<PK>>
+  --
+  * name : String
+  * email : String
+  * phone : String
+  * role : Enum <<client | professional | admin>>
+  * created_at : Timestamp
+}
+
+entity ProfessionalProfile {
+  * id : UUID <<PK>>
+  --
+  * user_id : UUID <<FK>>
+  * nif : String
+  * trade : String
+  * hourly_rate : Decimal
+  * bio : String
+  * location : Point
+  * verification_status : Enum <<pending | verified | rejected>>
+  * avg_rating : Float
+  * verified_at : Timestamp
+}
+
+entity Credential {
+  * id : UUID <<PK>>
+  --
+  * professional_id : UUID <<FK>>
+  * document_type : String
+  * storage_path : String
+  * status : Enum <<pending | approved | rejected>>
+  * uploaded_at : Timestamp
+}
+
+entity Job {
+  * id : UUID <<PK>>
+  --
+  * client_id : UUID <<FK>>
+  o professional_id : UUID <<FK, nullable>>
+  * trade : String
+  * description : String
+  * location : Point
+  * status : Enum <<pending | accepted | on_my_way\n         | in_progress | completed | cancelled>>
+  * hourly_rate : Decimal
+  o scheduled_at : Timestamp
+  * created_at : Timestamp
+  o accepted_at : Timestamp
+  o started_at : Timestamp
+  o completed_at : Timestamp
+  o duration_minutes : Integer
+  o amount_charged : Decimal
+}
+
+entity JobPhoto {
+  * id : UUID <<PK>>
+  --
+  * job_id : UUID <<FK>>
+  * storage_path : String
+  * uploaded_at : Timestamp
+}
+
+entity Message {
+  * id : UUID <<PK>>
+  --
+  * job_id : UUID <<FK>>
+  * sender_id : UUID <<FK>>
+  * content : String
+  * sent_at : Timestamp
+}
+
+entity Payment {
+  * id : UUID <<PK>>
+  --
+  * job_id : UUID <<FK>>
+  * stripe_payment_intent_id : String
+  o stripe_charge_id : String
+  * subtotal : Decimal
+  * platform_fee : Decimal
+  * total : Decimal
+  * status : Enum <<authorised | captured | refunded>>
+  * authorised_at : Timestamp
+  o captured_at : Timestamp
+  o payout_at : Timestamp
+}
+
+entity Review {
+  * id : UUID <<PK>>
+  --
+  * job_id : UUID <<FK, unique>>
+  * professional_id : UUID <<FK>>
+  * client_id : UUID <<FK>>
+  * rating : Integer <<1-5>>
+  o comment : String
+  * created_at : Timestamp
+}
+
+User ||--o| ProfessionalProfile : "has"
+ProfessionalProfile ||--o{ Credential : "submits"
+User ||--o{ Job : "requests (as client)"
+ProfessionalProfile ||--o{ Job : "accepts"
+Job ||--o{ JobPhoto : "has"
+Job ||--o{ Message : "has"
+User ||--o{ Message : "sends"
+Job ||--|| Payment : "generates"
+Job ||--o| Review : "receives"
+User ||--o{ Review : "writes"
+ProfessionalProfile ||--o{ Review : "reviewed in"
+
+note bottom of Job
+  Fields marked <<nullable>> populated
+  as the job progresses through its
+  lifecycle. professional_id is null
+  while status = pending.
+  scheduled_at is optional — set by
+  client on submission or updated
+  via reschedule agreed over chat.
+end note
+
+note right of Message
+  Scoped to a Job — job_id is the
+  conversation context. No separate
+  thread entity needed.
+  Write access blocked by app logic
+  when Job status = completed.
+end note
+
+note right of Review
+  UNIQUE constraint on job_id
+  enforces one review per job.
+  professional_id denormalised for
+  efficient pro profile queries.
+end note
+
+note right of ProfessionalProfile
+  avg_rating denormalised —
+  updated by DB trigger on
+  Review insert/update.
+end note
+
+@enduml

@@ -1,34 +1,23 @@
 import 'package:flutter/material.dart';
+import 'screens/auth/login_screen.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(const FieldifyApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class FieldifyApp extends StatelessWidget {
+  const FieldifyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Fieldify',
       debugShowCheckedModeBanner: false,
-      home: const HomePage(),
-    );
-  }
-}
-
-class HomePage extends StatelessWidget {
-  const HomePage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(
-        child: Text(
-          'Hello World',
-          style: TextStyle(fontSize: 24),
-        ),
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF27500A)),
+        splashFactory: NoSplash.splashFactory,
       ),
+      home: const LoginScreen(),
     );
   }
 }

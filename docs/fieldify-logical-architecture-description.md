@@ -22,9 +22,9 @@ The application services layer contains all domain logic and orchestration. It i
 
 `Notification Service` is responsible for all outbound alerts — push notifications for job status changes, new messages, and payment events, as well as transactional emails for account events. It delegates delivery to the `Push Notifications` and `Email / SMS` external services.
 
-`Verification` manages the professional onboarding workflow: credential document upload and approval or rejection of individual documents. It stores document metadata in `Persistence` and the actual files in `File Storage`. In the MVP, verification decisions are made manually outside the platform; the service layer is structured to support an in-platform admin review workflow post-MVP.
+`Verification` manages the professional onboarding workflow: credential document upload and approval or rejection of submissions. It stores file paths in `Persistence` as part of the professional profile and the actual files in `File Storage`. In the MVP, verification decisions are made manually outside the platform; the service layer is structured to support an in-platform admin review workflow post-MVP.
 
-`Review & Rating` handles post-job feedback. It writes reviews to `Persistence` and triggers the update of the denormalised average rating on the professional's profile.
+`Review & Rating` handles post-job feedback. It writes reviews to `Persistence`. Professional ratings are not stored as a denormalised field — they are computed on demand via a database view that aggregates across all reviews for a given professional, keeping the data model normalised and eliminating any trigger-based maintenance.
 
 `File Management` is a thin service responsible for coordinating uploads and access to files stored in `File Storage` — job photos, credential documents, and profile pictures.
 

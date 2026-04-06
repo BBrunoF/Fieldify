@@ -1,153 +1,199 @@
-@startuml Fieldify Domain Model
+@startuml Fieldify ERD
+
+hide methods
+hide stereotypes
 
 skinparam linetype ortho
-skinparam classAttributeIconSize 0
-skinparam class {
-  BackgroundColor #EAF3DE
-  BorderColor #639922
+skinparam ranksep 80
+skinparam nodesep 60
+
+skinparam entity {
+  BackgroundColor #FFFFFF
+  BorderColor #27500A
+  FontSize 12
+  FontColor #111111
   HeaderBackgroundColor #27500A
   HeaderFontColor #FFFFFF
-  FontColor #111111
-  ArrowColor #3B6D11
+  HeaderFontSize 13
+  HeaderFontStyle bold
 }
 
-entity User {
-  * id : UUID <<PK>>
+skinparam arrow {
+  Color #3B6D11
+  FontSize 11
+  FontColor #444444
+}
+
+' ─── Core identity ───────────────────────────────────────────
+entity profiles {
+  * id : uuid <<PK>>
   --
-  * name : String
-  * email : String
-  * phone : String
-  * role : Enum <<client | professional | admin>>
-  * created_at : Timestamp
+  * role : text
+  * full_name : text
+  phone : text
+  avatar_url : text
+  stripe_customer_id : text
+  * created_at : timestamptz
+  * updated_at : timestamptz
 }
 
-entity ProfessionalProfile {
-  * id : UUID <<PK>>
+entity trades {
+  * id : serial <<PK>>
   --
-  * user_id : UUID <<FK>>
-  * nif : String
-  * trade : String
-  * hourly_rate : Decimal
-  * bio : String
-  * location : Point
-  * verification_status : Enum <<pending | verified | rejected>>
-  * avg_rating : Float
-  * verified_at : Timestamp
+  * slug : text
+  * display_name : text
+  * standard_rate : numeric(6,2)
+  * created_at : timestamptz
 }
 
-entity Credential {
-  * id : UUID <<PK>>
+' ─── Professional side ───────────────────────────────────────
+entity professional_profiles {
+  * id : uuid <<PK>>
   --
-  * professional_id : UUID <<FK>>
-  * document_type : String
-  * storage_path : String
-  * status : Enum <<pending | approved | rejected>>
-  * uploaded_at : Timestamp
+  * profile_id : uuid <<FK>>
+  * trade_id : integer <<FK>>
+  * nif : text
+  * verification_status : text
+  rejection_reason : text
+  * credential_urls : text[]
+  bio : text
+  * is_available : boolean
+  * service_radius_km : integer
+  base_location : geography(point,4326)
+  verified_at : timestamptz
+  * created_at : timestamptz
+  * updated_at : timestamptz
 }
 
-entity Job {
-  * id : UUID <<PK>>
+entity availability_schedules {
+  * id : uuid <<PK>>
   --
-  * client_id : UUID <<FK>>
-  o professional_id : UUID <<FK, nullable>>
-  * trade : String
-  * description : String
-  * location : Point
-  * status : Enum <<pending | accepted | on_my_way\n         | in_progress | completed | cancelled>>
-  * hourly_rate : Decimal
-  o scheduled_at : Timestamp
-  * created_at : Timestamp
-  o accepted_at : Timestamp
-  o started_at : Timestamp
-  o completed_at : Timestamp
-  o duration_minutes : Integer
-  o amount_charged : Decimal
+  * pro_id : uuid <<FK>>
+  * day_of_week : smallint
+  * start_time : time
+  * end_time : time
+  * created_at : timestamptz
 }
 
-entity JobPhoto {
-  * id : UUID <<PK>>
+' ─── Job lifecycle ───────────────────────────────────────────
+entity service_requests {
+  * id : uuid <<PK>>
   --
-  * job_id : UUID <<FK>>
-  * storage_path : String
-  * uploaded_at : Timestamp
+  * client_id : uuid <<FK>>
+  * trade_id : integer <<FK>>
+  pro_id : uuid <<FK>>
+  * title : text
+  * description : text
+  * photo_urls : text[]
+  * location : geography(point,4326)
+  * address_text : text
+  * status : text
+  scheduled_at : timestamptz
+  accepted_at : timestamptz
+  on_my_way_at : timestamptz
+  started_at : timestamptz
+  completed_at : timestamptz
+  cancelled_at : timestamptz
+  cancel_reason : text
+  * created_at : timestamptz
+  * updated_at : timestamptz
 }
 
-entity Message {
-  * id : UUID <<PK>>
+' ─── Payments ────────────────────────────────────────────────
+entity payment_methods {
+  * id : uuid <<PK>>
   --
-  * job_id : UUID <<FK>>
-  * sender_id : UUID <<FK>>
-  * content : String
-  * sent_at : Timestamp
+  * profile_id : uuid <<FK>>
+  * stripe_payment_method_id : text
+  card_brand : text
+  card_last4 : text
+  * is_default : boolean
+  * created_at : timestamptz
 }
 
-entity Payment {
-  * id : UUID <<PK>>
+entity payments {
+  * id : uuid <<PK>>
   --
-  * job_id : UUID <<FK>>
-  * stripe_payment_intent_id : String
-  o stripe_charge_id : String
-  * subtotal : Decimal
-  * platform_fee : Decimal
-  * total : Decimal
-  * status : Enum <<authorised | captured | refunded>>
-  * authorised_at : Timestamp
-  o captured_at : Timestamp
-  o payout_at : Timestamp
+  * request_id : uuid <<FK>>
+  * client_id : uuid <<FK>>
+  * pro_id : uuid <<FK>>
+  * payment_method_id : uuid <<FK>>
+  * stripe_payment_intent_id : text
+  * amount_authorised : numeric(8,2)
+  amount_charged : numeric(8,2)
+  platform_fee : numeric(8,2)
+  * currency : text
+  * status : text
+  authorised_at : timestamptz
+  captured_at : timestamptz
+  payout_at : timestamptz
+  * created_at : timestamptz
+  * updated_at : timestamptz
 }
 
-entity Review {
-  * id : UUID <<PK>>
+' ─── Social ──────────────────────────────────────────────────
+entity reviews {
+  * id : uuid <<PK>>
   --
-  * job_id : UUID <<FK, unique>>
-  * professional_id : UUID <<FK>>
-  * client_id : UUID <<FK>>
-  * rating : Integer <<1-5>>
-  o comment : String
-  * created_at : Timestamp
+  * request_id : uuid <<FK>>
+  * client_id : uuid <<FK>>
+  * pro_id : uuid <<FK>>
+  * rating : smallint
+  comment : text
+  * created_at : timestamptz
 }
 
-User ||--o| ProfessionalProfile : "has"
-ProfessionalProfile ||--o{ Credential : "submits"
-User ||--o{ Job : "requests (as client)"
-ProfessionalProfile ||--o{ Job : "accepts"
-Job ||--o{ JobPhoto : "has"
-Job ||--o{ Message : "has"
-User ||--o{ Message : "sends"
-Job ||--|| Payment : "generates"
-Job ||--o| Review : "receives"
-User ||--o{ Review : "writes"
-ProfessionalProfile ||--o{ Review : "reviewed in"
+entity messages {
+  * id : uuid <<PK>>
+  --
+  * request_id : uuid <<FK>>
+  * sender_id : uuid <<FK>>
+  * content : text
+  read_at : timestamptz
+  * created_at : timestamptz
+}
 
-note bottom of Job
-  Fields marked <<nullable>> populated
-  as the job progresses through its
-  lifecycle. professional_id is null
-  while status = pending.
-  scheduled_at is optional — set by
-  client on submission or updated
-  via reschedule agreed over chat.
-end note
+' ─── Layout hints ────────────────────────────────────────────
+together {
+  entity profiles
+  entity trades
+}
 
-note right of Message
-  Scoped to a Job — job_id is the
-  conversation context. No separate
-  thread entity needed.
-  Write access blocked by app logic
-  when Job status = completed.
-end note
+together {
+  entity professional_profiles
+  entity availability_schedules
+}
 
-note right of Review
-  UNIQUE constraint on job_id
-  enforces one review per job.
-  professional_id denormalised for
-  efficient pro profile queries.
-end note
+together {
+  entity payment_methods
+  entity payments
+}
 
-note right of ProfessionalProfile
-  avg_rating denormalised —
-  updated by DB trigger on
-  Review insert/update.
-end note
+together {
+  entity reviews
+  entity messages
+}
+
+' ─── Relationships ───────────────────────────────────────────
+
+' Identity layer
+profiles                ||--o|   professional_profiles  : "extends"
+trades                  ||--o{   professional_profiles  : "categorises"
+professional_profiles   ||--o{   availability_schedules : "has"
+
+' Job layer
+profiles                ||--o{   service_requests       : "client"
+profiles                ||--o{   service_requests       : "pro"
+trades                  ||--o{   service_requests       : "trade"
+
+' Payment layer
+profiles                ||--o{   payment_methods        : "has"
+payment_methods         ||--o{   payments               : "charged to"
+service_requests        ||--o|   payments               : "billed via"
+
+' Social layer
+service_requests        ||--o|   reviews                : "reviewed in"
+service_requests        ||--o{   messages               : "has"
+profiles                ||--o{   messages               : "sends"
 
 @enduml

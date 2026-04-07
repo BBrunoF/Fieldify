@@ -229,15 +229,9 @@ The `Payment Gateway` (Stripe) handles all financial operations. It is called ex
 
 `Email / SMS` covers transactional email for account verification and significant platform events, dispatched through the `Notification Service` via an SMTP provider.
 
-<!--
-The purpose of this subsection is to document the high-level logical structure of the code (Logical View), using a UML diagram with logical packages, without the worry of allocating to components, processes or machines.
 
-It can be beneficial to present the system in a horizontal decomposition, defining layers and implementation concepts, such as the user interface, business logic and concepts.
+<img width="466" height="216" alt="image" src="https://github.com/user-attachments/assets/0cef3f7e-b7f8-42ca-8383-7f629444afd9" />
 
-Example of _UML package diagram_ showing a _logical view_ of the Eletronic Ticketing System (to be accompanied by a short description of each package):
-
-![LogicalView](https://user-images.githubusercontent.com/9655877/160585416-b1278ad7-18d7-463c-b8c6-afa4f7ac7639.png)
--->
 
 
 ### Physical architecture

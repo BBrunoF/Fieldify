@@ -230,7 +230,9 @@ The `Payment Gateway` (Stripe) handles all financial operations. It is called ex
 `Email / SMS` covers transactional email for account verification and significant platform events, dispatched through the `Notification Service` via an SMTP provider.
 
 
-<img width="466" height="216" alt="image" src="https://github.com/user-attachments/assets/0cef3f7e-b7f8-42ca-8383-7f629444afd9" />
+ <p align="center" justify="center">
+  <img width="466" height="216" alt="image" src="https://github.com/user-attachments/assets/0cef3f7e-b7f8-42ca-8383-7f629444afd9" />
+</p>
 
 
 
@@ -268,7 +270,10 @@ The Google Maps Platform provides geocoding and map tile rendering. As noted abo
 
 An SMTP provider handles transactional email — account verification messages and significant platform events. Email dispatch is triggered through the Notification Service via Edge Functions.
 
-<img width="466" height="310" alt="image" src="https://github.com/user-attachments/assets/f5c76eb2-28b3-4746-b450-46b22988e19f" />
+
+ <p align="center" justify="center">
+  <img width="466" height="310" alt="image" src="https://github.com/user-attachments/assets/f5c76eb2-28b3-4746-b450-46b22988e19f" />
+</p>
 
 
 

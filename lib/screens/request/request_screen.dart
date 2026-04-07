@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../auth/auth_shared.dart';
 import '../../shared/fieldify_painters.dart';
 
@@ -22,6 +23,9 @@ const _cats = [
   _Cat('Other',      'Anything else',               35, ServiceIconType.other),
 ];
 
+// trade_id matches seed order in public.trades
+const _tradeIds = [1, 2, 3, 4, 5, 6];
+
 const _stepLabels   = ['Category', 'Details', 'Location', 'Confirm'];
 const _btnLabels    = ['Continue', 'Continue', 'Continue', 'Submit request'];
 
@@ -38,6 +42,8 @@ class _RequestScreenState extends State<RequestScreen> {
   int _step = 1;
   int _cat  = 0;
   bool _scheduled = false;
+  bool _loading = false;
+  String? _error;
 
   final _titleCtrl   = TextEditingController(text: 'Leaking pipe under kitchen sink');
   final _descCtrl    = TextEditingController(text: 'Water dripping from pipe joint for 2 days. Slowly pooling in the cabinet below.');
@@ -56,7 +62,50 @@ class _RequestScreenState extends State<RequestScreen> {
     super.dispose();
   }
 
-  void _next() => setState(() => _step < 4 ? _step++ : _step = 5);
+  void _next() {
+    if (_step < 4) {
+      setState(() => _step++);
+    } else {
+      _submit();
+    }
+  }
+
+  Future<void> _submit() async {
+    setState(() { _loading = true; _error = null; });
+    try {
+      final user = Supabase.instance.client.auth.currentUser!;
+
+      // Build scheduled_at if user picked a specific time
+      DateTime? scheduledAt;
+      if (_scheduled) {
+        scheduledAt = DateTime(
+          _date.year, _date.month, _date.day,
+          _time.hour, _time.minute,
+        ).toUtc();
+      }
+
+      // Hardcoded Porto coords until Google Maps geocoding is wired up
+      const lat = 41.1579;
+      const lng = -8.6291;
+
+      await Supabase.instance.client.from('service_requests').insert({
+        'client_id':    user.id,
+        'trade_id':     _tradeIds[_cat],
+        'title':        _titleCtrl.text.trim(),
+        'description':  _descCtrl.text.trim(),
+        'address_text': _addressCtrl.text.trim(),
+        'location':     'POINT($lng $lat)',
+        'scheduled_at': scheduledAt?.toIso8601String(),
+        'photo_urls':   [],
+      });
+
+      if (mounted) setState(() => _step = 5);
+    } on PostgrestException catch (e) {
+      setState(() => _error = e.message);
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
 
   void _back() {
     if (_step > 1) {
@@ -207,22 +256,40 @@ class _RequestScreenState extends State<RequestScreen> {
         color: Colors.white,
         border: Border(top: BorderSide(color: Color(0x14000000))),
       ),
-      child: ElevatedButton(
-        onPressed: _next,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: FieldifyColors.g800,
-          foregroundColor: FieldifyColors.g100,
-          minimumSize: const Size.fromHeight(50),
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(14)),
-          elevation: 0,
-        ),
-        child: Text(
-          _btnLabels[_step - 1],
-          style: GoogleFonts.dmSans(
-              fontSize: 15, fontWeight: FontWeight.w500, color: FieldifyColors.g100),
-        ),
-      ),
+      child: _loading
+          ? const Center(child: CircularProgressIndicator())
+          : Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (_error != null) ...[
+                  Text(
+                    _error!,
+                    style: GoogleFonts.dmSans(
+                        fontSize: 13, color: const Color(0xFFC0392B)),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 10),
+                ],
+                ElevatedButton(
+                  onPressed: _next,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: FieldifyColors.g800,
+                    foregroundColor: FieldifyColors.g100,
+                    minimumSize: const Size.fromHeight(50),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14)),
+                    elevation: 0,
+                  ),
+                  child: Text(
+                    _btnLabels[_step - 1],
+                    style: GoogleFonts.dmSans(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w500,
+                        color: FieldifyColors.g100),
+                  ),
+                ),
+              ],
+            ),
     );
   }
 
@@ -276,7 +343,6 @@ class _RequestScreenState extends State<RequestScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        // Icon box
                         Container(
                           width: 40,
                           height: 40,
@@ -298,7 +364,6 @@ class _RequestScreenState extends State<RequestScreen> {
                             ),
                           ),
                         ),
-                        // Checkmark circle
                         Container(
                           width: 18,
                           height: 18,
@@ -438,7 +503,6 @@ class _RequestScreenState extends State<RequestScreen> {
       children: [
         _StepTitle('Where is the job?',
             'We\'ll match you with professionals nearby.'),
-        // Mini map
         ClipRRect(
           borderRadius: BorderRadius.circular(14),
           child: SizedBox(
@@ -495,7 +559,6 @@ class _RequestScreenState extends State<RequestScreen> {
           label: 'When?',
           child: Column(
             children: [
-              // Toggle
               Container(
                 padding: const EdgeInsets.all(4),
                 decoration: BoxDecoration(
@@ -512,7 +575,6 @@ class _RequestScreenState extends State<RequestScreen> {
                   ],
                 ),
               ),
-              // Expandable date/time fields
               AnimatedCrossFade(
                 duration: const Duration(milliseconds: 250),
                 crossFadeState: _scheduled
@@ -615,7 +677,6 @@ class _RequestScreenState extends State<RequestScreen> {
       children: [
         _StepTitle('Review & submit',
             'Your card won\'t be charged until the professional is on their way.'),
-        // Job details card
         _ConfirmCard(
           heading: 'Job details',
           rows: [
@@ -626,13 +687,10 @@ class _RequestScreenState extends State<RequestScreen> {
           ],
         ),
         const SizedBox(height: 12),
-        // Payment card
         _buildPaymentCard(),
         const SizedBox(height: 12),
-        // Price breakdown
         _buildPriceBreak(cat.rate),
         const SizedBox(height: 12),
-        // Warning notice
         _Notice(
           type: _NoticeType.warn,
           text: 'Cancellations after the professional marks "On my way" will incur a cancellation fee.',
@@ -650,7 +708,6 @@ class _RequestScreenState extends State<RequestScreen> {
       ),
       child: Column(
         children: [
-          // Header
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: const BoxDecoration(
@@ -678,7 +735,6 @@ class _RequestScreenState extends State<RequestScreen> {
               ],
             ),
           ),
-          // Card display
           Container(
             margin: const EdgeInsets.all(14),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -712,15 +768,12 @@ class _RequestScreenState extends State<RequestScreen> {
               ],
             ),
           ),
-          // Note
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
             child: Text.rich(
               TextSpan(
                 style: GoogleFonts.dmSans(
-                    fontSize: 11,
-                    color: FieldifyColors.ink3,
-                    height: 1.6),
+                    fontSize: 11, color: FieldifyColors.ink3, height: 1.6),
                 children: const [
                   TextSpan(text: 'Your card will be '),
                   TextSpan(
@@ -774,7 +827,6 @@ class _RequestScreenState extends State<RequestScreen> {
       backgroundColor: FieldifyColors.surface,
       body: Column(
         children: [
-          // Green header
           Container(
             color: FieldifyColors.g800,
             child: SafeArea(
@@ -815,7 +867,6 @@ class _RequestScreenState extends State<RequestScreen> {
               ),
             ),
           ),
-          // Curved transition
           Container(
             height: 18,
             color: FieldifyColors.g800,
@@ -826,7 +877,6 @@ class _RequestScreenState extends State<RequestScreen> {
               ),
             ),
           ),
-          // Timeline
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(20),
@@ -850,7 +900,6 @@ class _RequestScreenState extends State<RequestScreen> {
               ),
             ),
           ),
-          // Actions
           Container(
             padding: EdgeInsets.fromLTRB(20, 16, 20, 28 + bottom),
             decoration: const BoxDecoration(
@@ -1085,8 +1134,8 @@ class _PriceRow extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(label,
-              style:
-                  GoogleFonts.dmSans(fontSize: 13, color: FieldifyColors.ink3)),
+              style: GoogleFonts.dmSans(
+                  fontSize: 13, color: FieldifyColors.ink3)),
           Text(value,
               style: GoogleFonts.dmMono(
                   fontSize: 13,
@@ -1128,7 +1177,9 @@ class _Notice extends StatelessWidget {
               text,
               style: GoogleFonts.dmSans(
                   fontSize: 12,
-                  color: isInfo ? FieldifyColors.g800 : const Color(0xFF854F0B),
+                  color: isInfo
+                      ? FieldifyColors.g800
+                      : const Color(0xFF854F0B),
                   height: 1.5),
             ),
           ),
@@ -1176,7 +1227,6 @@ class _Timeline extends StatelessWidget {
         return Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Left: dot + line
             SizedBox(
               width: 28,
               child: Column(
@@ -1194,7 +1244,6 @@ class _Timeline extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 14),
-            // Right: label + sub
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.only(top: 4, bottom: 20),
@@ -1269,5 +1318,5 @@ class _Timeline extends StatelessWidget {
 
 // ── Shared text style ─────────────────────────────────────────────────────────
 
-final _inputTextStyle = GoogleFonts.dmSans(
-    fontSize: 15, color: FieldifyColors.ink);
+final _inputTextStyle =
+    GoogleFonts.dmSans(fontSize: 15, color: FieldifyColors.ink);

@@ -304,6 +304,7 @@ class _HomeScreenState extends State<HomeScreen> {
           const _SectionHeader(title: 'Quick request'),
           const SizedBox(height: 12),
           _RequestCard(
+            key: Key('goToRequestButton'),
             icon: ServiceIconType.plumbing,
             title: 'Plumbing',
             subtitle: 'Leaks, pipes, installations',
@@ -601,6 +602,7 @@ class _RequestCard extends StatelessWidget {
   final bool filled;
 
   const _RequestCard({
+    super.key,
     required this.icon,
     required this.title,
     required this.subtitle,
@@ -691,6 +693,7 @@ class _RequestCard extends StatelessWidget {
           const SizedBox(width: 8),
           // Button
           GestureDetector(
+            key: const Key('goToRequestButton'),
             onTap: () => Navigator.of(context).push(
               MaterialPageRoute(builder: (_) => const RequestScreen()),
             ),

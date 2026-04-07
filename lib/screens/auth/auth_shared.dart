@@ -167,25 +167,36 @@ InputDecoration authInputDecoration({required String hint, Widget? suffix}) {
 class PrimaryButton extends StatelessWidget {
   final String label;
   final VoidCallback onPressed;
-  const PrimaryButton({super.key, required this.label, required this.onPressed});
+  final Key? buttonKey; // NOVO
+
+  const PrimaryButton({
+    super.key,
+    required this.label,
+    required this.onPressed,
+    this.buttonKey, // NOVO
+  });
 
   @override
   Widget build(BuildContext context) {
     return ElevatedButton(
+      key: buttonKey, 
       onPressed: onPressed,
       style: ElevatedButton.styleFrom(
         backgroundColor: FieldifyColors.g800,
         foregroundColor: FieldifyColors.g100,
         padding: const EdgeInsets.symmetric(vertical: 15),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
+        ),
         elevation: 0,
       ),
       child: Text(
         label,
         style: GoogleFonts.dmSans(
-            fontSize: 15,
-            fontWeight: FontWeight.w500,
-            color: FieldifyColors.g100),
+          fontSize: 15,
+          fontWeight: FontWeight.w500,
+          color: FieldifyColors.g100,
+        ),
       ),
     );
   }

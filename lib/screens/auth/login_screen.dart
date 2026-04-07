@@ -70,6 +70,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       const FieldLabel('Email'),
                       const SizedBox(height: 6),
                       TextFormField(
+                        key: const Key('emailField'),
                         controller: _emailCtrl,
                         keyboardType: TextInputType.emailAddress,
                         style: GoogleFonts.dmSans(
@@ -82,6 +83,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       const FieldLabel('Password'),
                       const SizedBox(height: 6),
                       TextFormField(
+                        key: const Key('passwordField'),
                         controller: _pwCtrl,
                         obscureText: _obscure,
                         style: GoogleFonts.dmSans(
@@ -145,6 +147,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           : PrimaryButton(
                               label: 'Sign in',
                               onPressed: _signIn,
+                              buttonKey: const Key('loginButton'),
                             ),
                       const SizedBox(height: 18),
 

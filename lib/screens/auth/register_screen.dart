@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'auth_shared.dart';
+import '../../services/auth_service.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -12,6 +14,8 @@ class RegisterScreen extends StatefulWidget {
 
 class _RegisterScreenState extends State<RegisterScreen> {
   bool _obscure = true;
+  bool _loading = false;
+  String? _error;
 
   final _firstCtrl = TextEditingController();
   final _lastCtrl  = TextEditingController();
@@ -27,6 +31,24 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _phoneCtrl.dispose();
     _pwCtrl.dispose();
     super.dispose();
+  }
+
+  Future<void> _signUp() async {
+    setState(() { _loading = true; _error = null; });
+    try {
+      await AuthService().signUp(
+        email: _emailCtrl.text.trim(),
+        password: _pwCtrl.text,
+        firstName: _firstCtrl.text.trim(),
+        lastName: _lastCtrl.text.trim(),
+        phone: _phoneCtrl.text.trim(),
+      );
+      // AuthGate handles navigation via stream
+    } on AuthException catch (e) {
+      setState(() => _error = e.message);
+    } finally {
+      setState(() => _loading = false);
+    }
   }
 
   @override
@@ -52,7 +74,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // ── First + Last name (lado a lado) ─────────────────
+                      // ── First + Last name ─────────────────────────────────
                       Row(
                         children: [
                           Expanded(
@@ -64,8 +86,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 TextFormField(
                                   controller: _firstCtrl,
                                   style: GoogleFonts.dmSans(
-                                      fontSize: 15,
-                                      color: FieldifyColors.ink),
+                                      fontSize: 15, color: FieldifyColors.ink),
                                   decoration:
                                       authInputDecoration(hint: 'Bruno'),
                                 ),
@@ -82,8 +103,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 TextFormField(
                                   controller: _lastCtrl,
                                   style: GoogleFonts.dmSans(
-                                      fontSize: 15,
-                                      color: FieldifyColors.ink),
+                                      fontSize: 15, color: FieldifyColors.ink),
                                   decoration:
                                       authInputDecoration(hint: 'Silva'),
                                 ),
@@ -94,7 +114,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                       const SizedBox(height: 14),
 
-                      // ── Email ────────────────────────────────────────────
+                      // ── Email ─────────────────────────────────────────────
                       const FieldLabel('Email'),
                       const SizedBox(height: 6),
                       TextFormField(
@@ -107,7 +127,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                       const SizedBox(height: 14),
 
-                      // ── Phone ────────────────────────────────────────────
+                      // ── Phone ─────────────────────────────────────────────
                       const FieldLabel('Phone'),
                       const SizedBox(height: 6),
                       TextFormField(
@@ -115,12 +135,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         keyboardType: TextInputType.phone,
                         style: GoogleFonts.dmSans(
                             fontSize: 15, color: FieldifyColors.ink),
-                        decoration: authInputDecoration(
-                            hint: '+351 912 345 678'),
+                        decoration:
+                            authInputDecoration(hint: '+351 912 345 678'),
                       ),
                       const SizedBox(height: 14),
 
-                      // ── Password ─────────────────────────────────────────
+                      // ── Password ──────────────────────────────────────────
                       const FieldLabel('Password'),
                       const SizedBox(height: 6),
                       TextFormField(
@@ -147,9 +167,26 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                       const SizedBox(height: 20),
 
+                      // ── Error message ─────────────────────────────────────
+                      if (_error != null) ...[
+                        Text(
+                          _error!,
+                          style: GoogleFonts.dmSans(
+                            fontSize: 13,
+                            color: const Color(0xFFC0392B),
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 10),
+                      ],
+
                       // ── Create account button ─────────────────────────────
-                      PrimaryButton(
-                          label: 'Create account', onPressed: () {}),
+                      _loading
+                          ? const Center(child: CircularProgressIndicator())
+                          : PrimaryButton(
+                              label: 'Create account',
+                              onPressed: _signUp,
+                            ),
                       const SizedBox(height: 18),
 
                       // ── OR divider ────────────────────────────────────────
@@ -179,13 +216,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             style: GoogleFonts.dmSans(
                                 fontSize: 13, color: FieldifyColors.ink3),
                             children: [
-                              const TextSpan(
-                                  text: 'Already have an account? '),
+                              const TextSpan(text: 'Already have an account? '),
                               WidgetSpan(
                                 alignment: PlaceholderAlignment.middle,
                                 child: GestureDetector(
-                                  onTap: () =>
-                                      Navigator.of(context).pop(),
+                                  onTap: () => Navigator.of(context).pop(),
                                   child: Text(
                                     'Sign in',
                                     style: GoogleFonts.dmSans(

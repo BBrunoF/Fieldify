@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'auth_shared.dart';
 import 'register_screen.dart';
-import '../home/home_screen.dart';
+import '../../services/auth_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -14,6 +15,9 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   bool _obscure = true;
+  bool _loading = false;
+  String? _error;
+
   final _emailCtrl = TextEditingController();
   final _pwCtrl    = TextEditingController();
 
@@ -22,6 +26,21 @@ class _LoginScreenState extends State<LoginScreen> {
     _emailCtrl.dispose();
     _pwCtrl.dispose();
     super.dispose();
+  }
+
+  Future<void> _signIn() async {
+    setState(() { _loading = true; _error = null; });
+    try {
+      await AuthService().signIn(
+        email: _emailCtrl.text.trim(),
+        password: _pwCtrl.text,
+      );
+      // AuthGate handles navigation via stream
+    } on AuthException catch (e) {
+      setState(() => _error = e.message);
+    } finally {
+      setState(() => _loading = false);
+    }
   }
 
   @override
@@ -47,7 +66,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // ── Email ───────────────────────────────────────────
+                      // ── Email ─────────────────────────────────────────────
                       const FieldLabel('Email'),
                       const SizedBox(height: 6),
                       TextFormField(
@@ -55,12 +74,11 @@ class _LoginScreenState extends State<LoginScreen> {
                         keyboardType: TextInputType.emailAddress,
                         style: GoogleFonts.dmSans(
                             fontSize: 15, color: FieldifyColors.ink),
-                        decoration:
-                            authInputDecoration(hint: 'you@email.com'),
+                        decoration: authInputDecoration(hint: 'you@email.com'),
                       ),
                       const SizedBox(height: 14),
 
-                      // ── Password ─────────────────────────────────────────
+                      // ── Password ──────────────────────────────────────────
                       const FieldLabel('Password'),
                       const SizedBox(height: 6),
                       TextFormField(
@@ -108,14 +126,26 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       const SizedBox(height: 4),
 
-                      // ── Sign in button ────────────────────────────────────
-                      PrimaryButton(
-                        label: 'Sign in',
-                        onPressed: () => Navigator.of(context).pushReplacement(
-                          MaterialPageRoute(
-                              builder: (_) => const HomeScreen()),
+                      // ── Error message ─────────────────────────────────────
+                      if (_error != null) ...[
+                        Text(
+                          _error!,
+                          style: GoogleFonts.dmSans(
+                            fontSize: 13,
+                            color: const Color(0xFFC0392B),
+                          ),
+                          textAlign: TextAlign.center,
                         ),
-                      ),
+                        const SizedBox(height: 10),
+                      ],
+
+                      // ── Sign in button ────────────────────────────────────
+                      _loading
+                          ? const Center(child: CircularProgressIndicator())
+                          : PrimaryButton(
+                              label: 'Sign in',
+                              onPressed: _signIn,
+                            ),
                       const SizedBox(height: 18),
 
                       // ── OR divider ────────────────────────────────────────
@@ -133,15 +163,13 @@ class _LoginScreenState extends State<LoginScreen> {
                             style: GoogleFonts.dmSans(
                                 fontSize: 13, color: FieldifyColors.ink3),
                             children: [
-                              const TextSpan(
-                                  text: "Don't have an account? "),
+                              const TextSpan(text: "Don't have an account? "),
                               WidgetSpan(
                                 alignment: PlaceholderAlignment.middle,
                                 child: GestureDetector(
                                   onTap: () => Navigator.of(context).push(
                                     MaterialPageRoute(
-                                      builder: (_) =>
-                                          const RegisterScreen(),
+                                      builder: (_) => const RegisterScreen(),
                                     ),
                                   ),
                                   child: Text(

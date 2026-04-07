@@ -153,13 +153,12 @@ Professionals submit credential documents during the verification process, repre
 
 `Review` is written by the client after job completion and references both the `Job` and the `ProfessionalProfile`. The foreign key to `Job` carries a unique constraint, enforcing one review per job. The foreign key to `ProfessionalProfile` is a deliberate denormalisation — it allows efficient retrieval of all reviews for a given professional without joining through the `Job` table, which would be required on every profile view.
 
-<!-- 
-To better understand the context of the software system, it is useful to have a simple UML class diagram with all and only the key concepts (names, attributes) and relationships involved of the problem domain addressed by your app. 
-Also provide a short textual description of each concept (domain class). 
 
-Example:
  <p align="center" justify="center">
-  <img src="https://github.com/FEUP-LEIC-ES-2022-23/templates/blob/main/images/DomainModel.png"/>
+  <img width="466" height="406" alt="image" src="https://github.com/user-attachments/assets/1a9ea36a-b281-4299-bad0-9ea464e40c23" />
+  ![Uploading image.png…]()
+
+
 </p>
 -->
 ### User interfaces

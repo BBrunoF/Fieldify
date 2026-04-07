@@ -156,11 +156,7 @@ Professionals submit credential documents during the verification process, repre
 
  <p align="center" justify="center">
   <img width="466" height="406" alt="image" src="https://github.com/user-attachments/assets/1a9ea36a-b281-4299-bad0-9ea464e40c23" />
-  ![Uploading image.png…]()
-
-
 </p>
--->
 ### User interfaces
 
 

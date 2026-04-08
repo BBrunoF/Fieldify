@@ -82,7 +82,6 @@ To learn more about how to write a good product vision, please read:
 * Multi-Tenant Workspaces – Separate isolated environments for each freelancer or company.
 * Analytics Dashboard – Overview of job volume, completion rates, and performance metrics.
 
----
 
 #### Initial Assumptions
 
@@ -173,7 +172,7 @@ Optionally, indicate an initial/tentative list of assumptions that you are doing
 * **Story:** As a client, I want to update my profile information to keep details current.
 </details>
 
----
+
 
 #### Freelancer 
 

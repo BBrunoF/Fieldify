@@ -165,8 +165,7 @@ Professionals submit credential documents during the verification process, repre
 #### Authentication and General
 
 * **fieldify-auth.html**
-
-![Authentication Screen](fieldify-auth.png)
+<img width="439" height="877" alt="image" src="https://github.com/user-attachments/assets/f85ee78f-6cb1-4983-bad8-89a8926b7fde" />
 
 * **fieldify-all-mockups.html**
 

@@ -163,23 +163,32 @@ Professionals submit credential documents during the verification process, repre
 ### User interfaces
 
 #### Authentication and General
-* fieldify-auth.html: Interface for login and registration of new users.
-* fieldify-all-mockups.html: Centralized dashboard showing the overall design system.
+* fieldify-auth.html
+![Authentication Screen](fieldify-auth.png)
+
+* fieldify-all-mockups.html
+![Design System Dashboard](fieldify-all-mockups.png)
 
 #### Client Portal
-* fieldify-home.html: Main screen featuring the map and professional search functionality.
-* fieldify-request.html: Form for creating new service requests.
-* fieldify-jobs.html: List of active jobs and client service history.
-* fieldify-job-detail.html: Specific details for a contracted service.
-* fieldify-profile.html: Personal data management and account settings.
+* fieldify-home.html
+![Main Home Screen](fieldify-home.png)
+
+* fieldify-request.html
+![Service Request Form](fieldify-request.png)
+
+* fieldify-jobs.html
+![Client Jobs List](fieldify-jobs.png)
 
 #### Professional Portal
-* fieldify-pro-home.html: Dashboard for professionals including earnings summary and schedule.
-* fieldify-pro-jobs.html: Management of job applications and ongoing tasks.
+* fieldify-pro-home.html
+![Professional Dashboard](fieldify-pro-home.png)
+
+* fieldify-pro-jobs.html
+![Professional Job Management](fieldify-pro-jobs.png)
 
 #### Communication
-* fieldify-messaging-list.html: List of active conversations.
-* fieldify-messaging.html: Real-time chat interface between clients and professionals.
+* fieldify-messaging.html
+![Chat Interface](fieldify-messaging.png)
 
 ## Architecture and Design
 

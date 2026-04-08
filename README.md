@@ -242,6 +242,7 @@ Optionally, indicate an initial/tentative list of assumptions that you are doing
 </details>
 <!-- 
 In this section you should describe all kinds of requirements for your module: functional and non-functional requirements.
+---
 
 For LEIC-ES-2025-26, the requirements will be gathered and documented as user stories. 
 

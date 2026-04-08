@@ -279,6 +279,7 @@ Optionally, indicate an initial/tentative list of assumptions that you are doing
 * **Priority:** Must-have / Should-have (MoSCoW)
 * **Effort:** __ pts (Fibonacci)
 </details>
+
 <!-- 
 In this section you should describe all kinds of requirements for your module: functional and non-functional requirements.
 ---

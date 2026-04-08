@@ -105,10 +105,7 @@ Optionally, indicate an initial/tentative list of assumptions that you are doing
 
 ### User Stories
 
-## 👥 User Stories
-
-### 👤 Cliente (Client)
-
+#### Client
 <details>
 <summary><b>US01 — Account Registration</b></summary>
 
@@ -178,7 +175,7 @@ Optionally, indicate an initial/tentative list of assumptions that you are doing
 
 ---
 
-### 🛠️ Freelancer / Profissional (Professional)
+#### Freelancer 
 
 <details>
 <summary><b>US11 — Professional Registration & Verification</b></summary>

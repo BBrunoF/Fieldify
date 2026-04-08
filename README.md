@@ -111,8 +111,8 @@ Optionally, indicate an initial/tentative list of assumptions that you are doing
 * **Story:** As a new user, I want to create an account so that I can access the platform.
 * **Value:** Enables user acquisition and establishes identity.
 * **Scenarios:** Successful registration vs. Email already registered.
-**Value:** Must-have / Should-have
-**Effort:** 3 pts / 5 pts / 8 pts
+* **Priority:** Must-have / Should-have (MoSCoW)
+* **Effort:** 5 pts (Fibonacci)
 </details>
 
 <details>

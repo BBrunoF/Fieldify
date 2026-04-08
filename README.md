@@ -184,7 +184,7 @@ Professionals submit credential documents during the verification process, repre
 
 #### Communication
 | Messaging System | Messaging List |
-| :---: | ;---; |
+| :---: | :---: |
 | <img  src="https://github.com/user-attachments/assets/6d56a321-da5b-4ff7-981e-f7f680a83770" width="400" alt="Messaging"> | <img   src="https://github.com/user-attachments/assets/0c9344d9-6e8f-4e22-93c8-593c0d977003" width="400" alt="Messaging"> |
 
 

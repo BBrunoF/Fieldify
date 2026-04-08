@@ -163,23 +163,30 @@ Professionals submit credential documents during the verification process, repre
 ### User interfaces
 
 #### Authentication and General
-
-* **fieldify-auth.html**
-<img width="439" height="877" alt="image" src="https://github.com/user-attachments/assets/f85ee78f-6cb1-4983-bad8-89a8926b7fde" />
-
-* **fieldify-all-mockups.html**
-
-![Design System Dashboard](fieldify-all-mockups.png)
+| Auth & Registration | Design System Dashboard |
+| :---: | :---: |
+| <img src="<img width="392" height="776" alt="image" src="https://github.com/user-attachments/assets/c63a7bc5-24c8-4a58-b73b-2a435b7333ed" />
+" width="400" alt="Auth"> | <img src="<img width="350" height="978" alt="image" src="https://github.com/user-attachments/assets/e91dd904-daaa-48f1-8a32-fe6f5d3d060c" />
+" width="400" alt="All Mockups"> |
 
 #### Client Portal
+| Home and Search | Service Request |
+| :---: | :---: |
+| <img src="LINK_AQUI" width="400" alt="Home"> | <img src="LINK_AQUI" width="400" alt="Request"> |
 
-* **fieldify-home.html**
+| Jobs List | Job Details |
+| :---: | :---: |
+| <img src="LINK_AQUI" width="400" alt="Jobs"> | <img src="LINK_AQUI" width="400" alt="Detail"> |
 
-![Main Home Screen](fieldify-home.png)
+#### Professional Portal
+| Pro Dashboard | Job Management |
+| :---: | :---: |
+| <img src="LINK_AQUI" width="400" alt="Pro Home"> | <img src="LINK_AQUI" width="400" alt="Pro Jobs"> |
 
-* **fieldify-request.html**
-
-![Service Request Form](fieldify-request.png)
+#### Communication and Profile
+| Messaging System | User Profile |
+| :---: | :---: |
+| <img src="LINK_AQUI" width="400" alt="Messaging"> | <img src="LINK_AQUI" width="400" alt="Profile"> |
 
 ## Architecture and Design
 

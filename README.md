@@ -112,7 +112,7 @@ Optionally, indicate an initial/tentative list of assumptions that you are doing
 * **Value:** Enables user acquisition and establishes identity.
 * **Scenarios:** Successful registration vs. Email already registered.
 * **Priority:** Must-have / Should-have (MoSCoW)
-* **Effort:** 5 pts (Fibonacci)
+* **Effort:** __ pts (Fibonacci)
 </details>
 
 <details>
@@ -120,6 +120,8 @@ Optionally, indicate an initial/tentative list of assumptions that you are doing
 
 * **Story:** As a returning user, I want to log in so that I can access my account.
 * **Value:** Provides secure, frictionless re-entry.
+* **Priority:** Must-have / Should-have (MoSCoW)
+* **Effort:** __ pts (Fibonacci)
 </details>
 
 <details>
@@ -127,6 +129,8 @@ Optionally, indicate an initial/tentative list of assumptions that you are doing
 
 * **Story:** As a client, I want to submit a service request so that I can get a professional to solve my problem.
 * **Dependencies:** Service categories and Supabase profile.
+* **Priority:** Must-have / Should-have (MoSCoW)
+* **Effort:** __ pts (Fibonacci)
 </details>
 
 <details>
@@ -134,12 +138,16 @@ Optionally, indicate an initial/tentative list of assumptions that you are doing
 
 * **Story:** As a client, I want to receive push notifications so that I'm kept informed without having to check the app.
 * **Scenarios:** Job accepted notification; Handling disabled permissions.
+* **Priority:** Must-have / Should-have (MoSCoW)
+* **Effort:** __ pts (Fibonacci)
 </details>
 
 <details>
 <summary><b>US05 — View Active & Past Jobs</b></summary>
 
 * **Story:** As a client, I want to see my ongoing and past jobs so that I can track my service history.
+* **Priority:** Must-have / Should-have (MoSCoW)
+* **Effort:** __ pts (Fibonacci)
 </details>
 
 <details>
@@ -147,18 +155,24 @@ Optionally, indicate an initial/tentative list of assumptions that you are doing
 
 * **Story:** As a client, I want to cancel an accepted job so that I can back out if my plans change.
 * **Constraint:** Cancellation fee applies if professional has already tapped “On My Way”.
+* **Priority:** Must-have / Should-have (MoSCoW)
+* **Effort:** __ pts (Fibonacci)
 </details>
 
 <details>
 <summary><b>US07 — Message a Professional</b></summary>
 
 * **Story:** As a client, I want to message the professional assigned to my job so that I can communicate details.
+* **Priority:** Must-have / Should-have (MoSCoW)
+* **Effort:** __ pts (Fibonacci)
 </details>
 
 <details>
 <summary><b>US08 — Rate & Review</b></summary>
 
 * **Story:** As a client, I want to rate and review the professional after job completion to help others.
+* **Priority:** Must-have / Should-have (MoSCoW)
+* **Effort:** __ pts (Fibonacci)
 </details>
 
 <details>
@@ -166,12 +180,16 @@ Optionally, indicate an initial/tentative list of assumptions that you are doing
 
 * **Story:** As a client, I want my payment to be handled automatically upon completion.
 * **Logic:** `Charge = max(duration, 30 min) × rate + 10% fee`.
+* **Priority:** Must-have / Should-have (MoSCoW)
+* **Effort:** __ pts (Fibonacci)
 </details>
 
 <details>
 <summary><b>US10 — Profile Management</b></summary>
 
 * **Story:** As a client, I want to update my profile information to keep details current.
+* **Priority:** Must-have / Should-have (MoSCoW)
+* **Effort:** __ pts (Fibonacci)
 </details>
 
 
@@ -183,18 +201,24 @@ Optionally, indicate an initial/tentative list of assumptions that you are doing
 
 * **Story:** As a professional, I want to register and submit credentials to be verified.
 * **Requirement:** NIF validation and document upload required.
+* **Priority:** Must-have / Should-have (MoSCoW)
+* **Effort:** __ pts (Fibonacci)
 </details>
 
 <details>
 <summary><b>US12 — Approval Notification</b></summary>
 
 * **Story:** As a professional, I want to be notified of my verification outcome per trade.
+* **Priority:** Must-have / Should-have (MoSCoW)
+* **Effort:** __ pts (Fibonacci)
 </details>
 
 <details>
 <summary><b>US13 — Set Availability & Parameters</b></summary>
 
 * **Story:** As a professional, I want to configure my schedule and service radius.
+* **Priority:** Must-have / Should-have (MoSCoW)
+* **Effort:** __ pts (Fibonacci)
 </details>
 
 <details>
@@ -202,12 +226,16 @@ Optionally, indicate an initial/tentative list of assumptions that you are doing
 
 * **Story:** As a professional, I want to see and accept incoming job requests.
 * **Logic:** First-come-first-served basis.
+* **Priority:** Must-have / Should-have (MoSCoW)
+* **Effort:** __ pts (Fibonacci)
 </details>
 
 <details>
 <summary><b>US15 — Job Status Control</b></summary>
 
 * **Story:** As a professional, I want to update my job status manually (On My Way -> In Progress -> Completed).
+* **Priority:** Must-have / Should-have (MoSCoW)
+* **Effort:** __ pts (Fibonacci)
 </details>
 
 <details>
@@ -215,24 +243,32 @@ Optionally, indicate an initial/tentative list of assumptions that you are doing
 
 * **Story:** As a professional, I want to formally reschedule an accepted job.
 * **Constraint:** Requires client confirmation.
+* **Priority:** Must-have / Should-have (MoSCoW)
+* **Effort:** __ pts (Fibonacci)
 </details>
 
 <details>
 <summary><b>US17 — Job Cancellation</b></summary>
 
 * **Story:** As a professional, I want to cancel an accepted job if I am unable to fulfill it.
+* **Priority:** Must-have / Should-have (MoSCoW)
+* **Effort:** __ pts (Fibonacci)
 </details>
 
 <details>
 <summary><b>US18 — Dashboard Overview</b></summary>
 
 * **Story:** As a professional, I want to see a summary of my activity, ratings, and earnings.
+* **Priority:** Must-have / Should-have (MoSCoW)
+* **Effort:** __ pts (Fibonacci)
 </details>
 
 <details>
 <summary><b>US19 — Messaging Clients</b></summary>
 
 * **Story:** As a professional, I want to message clients assigned to my jobs.
+* **Priority:** Must-have / Should-have (MoSCoW)
+* **Effort:** __ pts (Fibonacci)
 </details>
 
 <details>
@@ -240,6 +276,8 @@ Optionally, indicate an initial/tentative list of assumptions that you are doing
 
 * **Story:** As a professional, I want to update my bio, rates, and photo.
 * **Constraint:** Identity fields (Name, NIF) are locked post-approval.
+* **Priority:** Must-have / Should-have (MoSCoW)
+* **Effort:** __ pts (Fibonacci)
 </details>
 <!-- 
 In this section you should describe all kinds of requirements for your module: functional and non-functional requirements.

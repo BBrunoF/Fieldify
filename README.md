@@ -162,35 +162,25 @@ Professionals submit credential documents during the verification process, repre
 
 ### User interfaces
 
+#### Authentication and General
+
 * **fieldify-auth.html**
+
 ![Authentication Screen](fieldify-auth.png)
 
 * **fieldify-all-mockups.html**
+
 ![Design System Dashboard](fieldify-all-mockups.png)
 
-### Client Portal
+#### Client Portal
 
 * **fieldify-home.html**
+
 ![Main Home Screen](fieldify-home.png)
 
 * **fieldify-request.html**
+
 ![Service Request Form](fieldify-request.png)
-
-* **fieldify-jobs.html**
-![Client Jobs List](fieldify-jobs.png)
-
-### Professional Portal
-
-* **fieldify-pro-home.html**
-![Professional Dashboard](fieldify-pro-home.png)
-
-* **fieldify-pro-jobs.html**
-![Professional Job Management](fieldify-pro-jobs.png)
-
-### Communication
-
-* **fieldify-messaging.html**
-![Chat Interface](fieldify-messaging.png)
 
 ## Architecture and Design
 

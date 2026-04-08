@@ -165,19 +165,17 @@ Professionals submit credential documents during the verification process, repre
 #### Authentication and Profile
 | Login & Registration | User Profile |
 | :---: | :---: |
-| <img src="<img src="https://github.com/user-attachments/assets/47ddf75d-055b-48c7-97dd-a5cce7b1cabb"  width="400" alt="Auth"> | <img src="<img  src="https://github.com/user-attachments/assets/22c831a0-9c87-40a3-9b6f-91ff4bff065c" width="400" alt="Profile"> |
+| <img src="https://github.com/user-attachments/assets/47ddf75d-055b-48c7-97dd-a5cce7b1cabb"  width="400" alt="Auth"> | <img   src="https://github.com/user-attachments/assets/22c831a0-9c87-40a3-9b6f-91ff4bff065c" width="400" alt="Profile"> |
 
 #### Client Portal - Search and Request
 | Home and Search | Service Request |
 | :---: | :---: |
-| <img src="<img src="https://github.com/user-attachments/assets/da8b8384-1bf1-49e8-aebe-8b37c48e5e55" width="400" alt="Home"> | <img src="<img  alt="image" src="https://github.com/user-attachments/assets/7d76ea31-00d9-40c9-9a95-707f22332595"  width="400" alt="Request"> |
+| <img  src="https://github.com/user-attachments/assets/da8b8384-1bf1-49e8-aebe-8b37c48e5e55" width="400" alt="Home"> | <img src="https://github.com/user-attachments/assets/7d76ea31-00d9-40c9-9a95-707f22332595"  width="400" alt="Request"> |
 
 #### Client Portal - Management
 | Jobs List | Job Details |
 | :---: | :---: |
-| <img src="<img width="386" height="780" alt="image" src="https://github.com/user-attachments/assets/bd028ff5-71ea-49c3-975c-4a310c04174c" />
-" width="400" alt="Jobs"> | <img src="<img width="383" height="778" alt="image" src="https://github.com/user-attachments/assets/432954bc-b2a5-4993-96d3-4cb25864da33" />
-" width="400" alt="Detail"> |
+| <img  src="https://github.com/user-attachments/assets/bd028ff5-71ea-49c3-975c-4a310c04174c" width="400" alt="Jobs"> | <img src="https://github.com/user-attachments/assets/432954bc-b2a5-4993-96d3-4cb25864da33"  width="400" alt="Detail"> |
 
 #### Professional Portal
 | Pro Dashboard | Job Management |

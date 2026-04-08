@@ -162,31 +162,37 @@ Professionals submit credential documents during the verification process, repre
 
 ### User interfaces
 
-#### Authentication and General
-| Auth & Registration | Design System Dashboard |
+#### Authentication and Profile
+| Login & Registration | User Profile |
 | :---: | :---: |
-| <img src="<img width="392" height="776" alt="image" src="https://github.com/user-attachments/assets/c63a7bc5-24c8-4a58-b73b-2a435b7333ed" />
-" width="400" alt="Auth"> | <img src="<img width="350" height="978" alt="image" src="https://github.com/user-attachments/assets/e91dd904-daaa-48f1-8a32-fe6f5d3d060c" />
-" width="400" alt="All Mockups"> |
+| <img src="<img width="392" height="778" alt="image" src="https://github.com/user-attachments/assets/47ddf75d-055b-48c7-97dd-a5cce7b1cabb" />
+" width="400" alt="Auth"> | <img src="<img width="392" height="779" alt="image" src="https://github.com/user-attachments/assets/22c831a0-9c87-40a3-9b6f-91ff4bff065c" />
+" width="400" alt="Profile"> |
 
-#### Client Portal
+#### Client Portal - Search and Request
 | Home and Search | Service Request |
 | :---: | :---: |
-| <img src="LINK_AQUI" width="400" alt="Home"> | <img src="LINK_AQUI" width="400" alt="Request"> |
+| <img src="<img width="339" height="985" alt="image" src="https://github.com/user-attachments/assets/da8b8384-1bf1-49e8-aebe-8b37c48e5e55" />
+" width="400" alt="Home"> | <img src="<img width="392" height="823" alt="image" src="https://github.com/user-attachments/assets/7d76ea31-00d9-40c9-9a95-707f22332595" />
+" width="400" alt="Request"> |
 
+#### Client Portal - Management
 | Jobs List | Job Details |
 | :---: | :---: |
-| <img src="LINK_AQUI" width="400" alt="Jobs"> | <img src="LINK_AQUI" width="400" alt="Detail"> |
+| <img src="<img width="386" height="780" alt="image" src="https://github.com/user-attachments/assets/bd028ff5-71ea-49c3-975c-4a310c04174c" />
+" width="400" alt="Jobs"> | <img src="<img width="383" height="778" alt="image" src="https://github.com/user-attachments/assets/432954bc-b2a5-4993-96d3-4cb25864da33" />
+" width="400" alt="Detail"> |
 
 #### Professional Portal
 | Pro Dashboard | Job Management |
 | :---: | :---: |
 | <img src="LINK_AQUI" width="400" alt="Pro Home"> | <img src="LINK_AQUI" width="400" alt="Pro Jobs"> |
 
-#### Communication and Profile
-| Messaging System | User Profile |
-| :---: | :---: |
-| <img src="LINK_AQUI" width="400" alt="Messaging"> | <img src="LINK_AQUI" width="400" alt="Profile"> |
+#### Communication
+| Messaging System |
+| :---: |
+| <img src="LINK_AQUI" width="400" alt="Messaging"> |
+
 
 ## Architecture and Design
 

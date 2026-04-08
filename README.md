@@ -183,9 +183,9 @@ Professionals submit credential documents during the verification process, repre
 | <img  src="https://github.com/user-attachments/assets/d70b3522-fea7-4df4-bb2f-8b4d675a838a" width="400" alt="Pro Home"> | <img  src="https://github.com/user-attachments/assets/fdeb5271-e0ff-4725-80bc-a1e2815b39df" width="400" alt="Pro Jobs"> |
 
 #### Communication
-| Messaging System | Messaging List|
+| Messaging System | Messaging List |
 | :---: | ;---; |
-| <img  src="https://github.com/user-attachments/assets/6d56a321-da5b-4ff7-981e-f7f680a83770" width="400" alt="Messaging"> | <img   src="https://github.com/user-attachments/assets/0c9344d9-6e8f-4e22-93c8-593c0d977003" width="400" alt="Messaging"> 
+| <img  src="https://github.com/user-attachments/assets/6d56a321-da5b-4ff7-981e-f7f680a83770" width="400" alt="Messaging"> | <img   src="https://github.com/user-attachments/assets/0c9344d9-6e8f-4e22-93c8-593c0d977003" width="400" alt="Messaging"> |
 
 
 

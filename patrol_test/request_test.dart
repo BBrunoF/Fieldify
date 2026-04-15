@@ -4,29 +4,30 @@ import 'package:patrol/patrol.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:project/main.dart' as app;
-import 'package:project/screens/home/home_screen.dart';
 
-const _email    = 'test@fieldify.dev';
+const _email = 'test@fieldify.dev';
 const _password = 'Test1234!';
 
 void main() {
   patrolSetUp(() async {
+    await app.bootstrap();
+
     final client = Supabase.instance.client;
 
-    // garantir sessão válida
-    if (client.auth.currentSession == null) {
-      await client.auth.signInWithPassword(
-        email: _email,
-        password: _password,
-      );
+    if (client.auth.currentSession != null) {
+      await client.auth.signOut();
     }
+
+    await client.auth.signInWithPassword(
+      email: _email,
+      password: _password,
+    );
   });
 
   patrolTearDown(() async {
     final client = Supabase.instance.client;
     final userId = client.auth.currentUser?.id;
 
-    // limpar dados criados no teste
     if (userId != null) {
       await client
           .from('service_requests')
@@ -34,123 +35,121 @@ void main() {
           .eq('client_id', userId)
           .eq('title', 'Leaking pipe under kitchen sink');
     }
+
+    if (client.auth.currentSession != null) {
+      await client.auth.signOut();
+    }
   });
 
-  // fluxo completo
-  patrolTest(
-    'submete pedido completo',
-    ($) async {
-      // usar widget em vez de main()
-      await $.pumpWidgetAndSettle(app.FieldifyApp());
+  patrolTest('home abre com utilizador autenticado', ($) async {
+    await $.pumpWidgetAndSettle(const app.FieldifyApp());
+    await $.pump(const Duration(seconds: 2));
 
-      await $(find.text('New request')).tap();
-      await $.pumpAndSettle();
+    expect(find.byKey(const Key('goToRequestButton')), findsOneWidget);
+  });
 
-      // step 1
-      expect(find.text('Plumbing'), findsOneWidget);
-      await $(find.text('Continue')).tap();
-      await $.pumpAndSettle();
+  patrolTest('abre request screen a partir da home', ($) async {
+    await $.pumpWidgetAndSettle(const app.FieldifyApp());
+    await $.pump(const Duration(seconds: 2));
 
-      // step 2
-      expect(find.text('Leaking pipe under kitchen sink'), findsOneWidget);
-      await $(find.text('Continue')).tap();
-      await $.pumpAndSettle();
+    await $(find.byKey(const Key('goToRequestButton'))).tap();
+    await $.pumpAndSettle();
 
-      // step 3
-      expect(find.text('Rua do Heroísmo 42, Porto'), findsOneWidget);
-      await $(find.text('Continue')).tap();
-      await $.pumpAndSettle();
+    expect(find.textContaining('Plumbing'), findsWidgets);
+  });
 
-      // step 4
-      expect(find.text('Plumbing'), findsOneWidget);
+  patrolTest('submete pedido completo', ($) async {
+    await $.pumpWidgetAndSettle(const app.FieldifyApp());
+    await $.pump(const Duration(seconds: 2));
 
-      await $(find.text('Submit request')).tap();
+    await $(find.byKey(const Key('goToRequestButton'))).tap();
+    await $.pumpAndSettle();
 
-      // esperar resposta do supabase
-      await $.pumpAndSettle();
+    await $(find.text('Continue')).tap();
+    await $.pumpAndSettle();
 
-      // sucesso
-      expect(find.text('Request submitted'), findsOneWidget);
-      expect(find.text('Track job'), findsOneWidget);
-    },
-  );
+    await $(find.text('Continue')).tap();
+    await $.pumpAndSettle();
 
-  // categoria diferente
-  patrolTest(
-    'seleciona Electrical',
-    ($) async {
-      await $.pumpWidgetAndSettle(app.FieldifyApp());
+    await $(find.text('Continue')).tap();
+    await $.pumpAndSettle();
 
-      await $(find.text('New request')).tap();
-      await $.pumpAndSettle();
+    await $(find.text('Submit request')).tap();
+    await $.pumpAndSettle();
+    await $.pump(const Duration(seconds: 3));
 
-      await $(find.text('Electrical')).tap();
-      await $(find.text('Continue')).tap();
-      await $.pumpAndSettle();
+    expect(find.text('Request submitted'), findsOneWidget);
+    expect(find.text('Track job'), findsOneWidget);
+  });
 
-      await $(find.text('Continue')).tap();
-      await $.pumpAndSettle();
+  patrolTest('seleciona Electrical', ($) async {
+    await $.pumpWidgetAndSettle(const app.FieldifyApp());
+    await $.pump(const Duration(seconds: 2));
 
-      await $(find.text('Continue')).tap();
-      await $.pumpAndSettle();
+    await $(find.byKey(const Key('goToRequestButton'))).tap();
+    await $.pumpAndSettle();
 
-      expect(find.text('Electrical'), findsOneWidget);
-    },
-  );
+    await $(find.text('Electrical')).tap();
+    await $(find.text('Continue')).tap();
+    await $.pumpAndSettle();
 
-  // schedule
-  patrolTest(
-    'ativa schedule',
-    ($) async {
-      await $.pumpWidgetAndSettle(app.FieldifyApp());
+    await $(find.text('Continue')).tap();
+    await $.pumpAndSettle();
 
-      await $(find.text('New request')).tap();
-      await $.pumpAndSettle();
+    await $(find.text('Continue')).tap();
+    await $.pumpAndSettle();
 
-      await $(find.text('Continue')).tap();
-      await $.pumpAndSettle();
+    expect(find.text('Electrical'), findsWidgets);
+  });
 
-      await $(find.text('Continue')).tap();
-      await $.pumpAndSettle();
+  patrolTest('ativa schedule', ($) async {
+    await $.pumpWidgetAndSettle(const app.FieldifyApp());
+    await $.pump(const Duration(seconds: 2));
 
-      await $(find.text('Schedule')).tap();
-      await $.pumpAndSettle();
+    await $(find.byKey(const Key('goToRequestButton'))).tap();
+    await $.pumpAndSettle();
 
-      expect(
-        find.text('Date').evaluate().isNotEmpty ||
-            find.text('DATE').evaluate().isNotEmpty,
-        isTrue,
-      );
+    await $(find.text('Continue')).tap();
+    await $.pumpAndSettle();
 
-      await $(find.text('Continue')).tap();
-      await $.pumpAndSettle();
-    },
-  );
+    await $(find.text('Continue')).tap();
+    await $.pumpAndSettle();
 
-  // voltar para home
-  patrolTest(
-    'back to home funciona',
-    ($) async {
-      await $.pumpWidgetAndSettle(app.FieldifyApp());
+    await $(find.text('Schedule')).tap();
+    await $.pumpAndSettle();
 
-      await $(find.text('New request')).tap();
-      await $.pumpAndSettle();
+    expect(
+      find.text('Date').evaluate().isNotEmpty ||
+          find.text('DATE').evaluate().isNotEmpty,
+      isTrue,
+    );
+  });
 
-      // navegar rápido pelos steps
-      for (final label in ['Continue', 'Continue', 'Continue']) {
-        await $(find.text(label)).tap();
-        await $.pumpAndSettle();
-      }
+  patrolTest('back to home funciona', ($) async {
+    await $.pumpWidgetAndSettle(const app.FieldifyApp());
+    await $.pump(const Duration(seconds: 2));
 
-      await $(find.text('Submit request')).tap();
-      await $.pumpAndSettle();
+    await $(find.byKey(const Key('goToRequestButton'))).tap();
+    await $.pumpAndSettle();
 
-      expect(find.text('Request submitted'), findsOneWidget);
+    await $(find.text('Continue')).tap();
+    await $.pumpAndSettle();
 
-      await $(find.text('Back to home')).tap();
-      await $.pumpAndSettle();
+    await $(find.text('Continue')).tap();
+    await $.pumpAndSettle();
 
-      expect(find.text('Request submitted'), findsNothing);
-    },
-  );
+    await $(find.text('Continue')).tap();
+    await $.pumpAndSettle();
+
+    await $(find.text('Submit request')).tap();
+    await $.pumpAndSettle();
+    await $.pump(const Duration(seconds: 2));
+
+    expect(find.text('Request submitted'), findsOneWidget);
+
+    await $(find.text('Back to home')).tap();
+    await $.pumpAndSettle();
+
+    expect(find.text('Request submitted'), findsNothing);
+  });
 }

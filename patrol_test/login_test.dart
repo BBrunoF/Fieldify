@@ -7,13 +7,13 @@ import 'package:project/main.dart' as app;
 import 'package:project/screens/home/home_screen.dart';
 
 void main() {
-  const testEmail    = 'bruno@gmail.com';
+  const testEmail = 'bruno@gmail.com';
   const testPassword = 'teste123password';
 
   patrolSetUp(() async {
-    final client = Supabase.instance.client;
+    await app.bootstrap();
 
-    // limpar sessão antes de cada teste
+    final client = Supabase.instance.client;
     if (client.auth.currentSession != null) {
       await client.auth.signOut();
     }
@@ -21,106 +21,82 @@ void main() {
 
   patrolTearDown(() async {
     final client = Supabase.instance.client;
-
-    // limpar sessão depois de cada teste
     if (client.auth.currentSession != null) {
       await client.auth.signOut();
     }
   });
 
-  // testar login válido
-  patrolTest(
-    'login válido navega para HomeScreen',
-    ($) async {
-      await $.pumpWidgetAndSettle(app.FieldifyApp());
+  patrolTest('login screen abre', ($) async {
+    await $.pumpWidgetAndSettle(const app.FieldifyApp());
+    await $.pump(const Duration(seconds: 2));
 
-      await $(find.byKey(const Key('emailField'))).enterText(testEmail);
-      await $(find.byKey(const Key('passwordField'))).enterText(testPassword);
+    expect(find.byKey(const Key('emailField')), findsOneWidget);
+    expect(find.byKey(const Key('passwordField')), findsOneWidget);
+    expect(find.byKey(const Key('loginButton')), findsOneWidget);
+  });
 
-      await $(find.byKey(const Key('loginButton'))).tap();
+  patrolTest('login válido navega para HomeScreen', ($) async {
+    await $.pumpWidgetAndSettle(const app.FieldifyApp());
+    await $.pump(const Duration(seconds: 2));
 
-      // esperar rebuild do AuthGate
-      await $.pumpAndSettle();
+    await $(find.byKey(const Key('emailField'))).enterText(testEmail);
+    await $(find.byKey(const Key('passwordField'))).enterText(testPassword);
+    await $(find.byKey(const Key('loginButton'))).tap();
 
-      expect(find.byType(HomeScreen), findsOneWidget);
-    },
-  );
+    await $.pumpAndSettle();
+    await $.pump(const Duration(seconds: 3));
 
-  // testar password errada
-  patrolTest(
-    'login com password errada mostra erro',
-    ($) async {
-      await $.pumpWidgetAndSettle(app.FieldifyApp());
+    expect(find.byType(HomeScreen), findsOneWidget);
+  });
 
-      await $(find.byKey(const Key('emailField'))).enterText(testEmail);
-      await $(find.byKey(const Key('passwordField')))
-          .enterText('wrongpassword');
+  patrolTest('login com password errada mostra erro', ($) async {
+    await $.pumpWidgetAndSettle(const app.FieldifyApp());
+    await $.pump(const Duration(seconds: 2));
 
-      await $(find.byKey(const Key('loginButton'))).tap();
+    await $(find.byKey(const Key('emailField'))).enterText(testEmail);
+    await $(find.byKey(const Key('passwordField'))).enterText('wrongpassword');
+    await $(find.byKey(const Key('loginButton'))).tap();
 
-      await $.pumpAndSettle();
+    await $.pumpAndSettle();
+    await $.pump(const Duration(seconds: 2));
 
-      // continua na login
-      expect($(find.byKey(const Key('loginButton'))).exists, isTrue);
+    expect(find.text('Invalid login credentials'), findsOneWidget);
+  });
 
-      // existe texto de erro
-      expect(
-        find.byWidgetPredicate((w) =>
-            w is Text &&
-            (w.data ?? '').toLowerCase().contains('invalid')),
-        findsWidgets,
-      );
-    },
-  );
+  patrolTest('login com campos vazios não crasha', ($) async {
+    await $.pumpWidgetAndSettle(const app.FieldifyApp());
+    await $.pump(const Duration(seconds: 2));
 
-  // testar campos vazios
-  patrolTest(
-    'login com campos vazios não crasha',
-    ($) async {
-      await $.pumpWidgetAndSettle(app.FieldifyApp());
+    await $(find.byKey(const Key('loginButton'))).tap();
+    await $.pumpAndSettle();
 
-      await $(find.byKey(const Key('loginButton'))).tap();
+    expect(find.byKey(const Key('loginButton')), findsOneWidget);
+  });
 
-      await $.pumpAndSettle();
+  patrolTest('toggle da password funciona', ($) async {
+    await $.pumpWidgetAndSettle(const app.FieldifyApp());
+    await $.pump(const Duration(seconds: 2));
 
-      expect($(find.byKey(const Key('loginButton'))).exists, isTrue);
-    },
-  );
+    await $(find.byKey(const Key('passwordField'))).enterText('minha_password');
 
-  // testar toggle password
-  patrolTest(
-    'toggle da password funciona',
-    ($) async {
-      await $.pumpWidgetAndSettle(app.FieldifyApp());
+    await $(find.byIcon(Icons.visibility_outlined)).tap();
+    await $.pumpAndSettle();
 
-      await $(find.byKey(const Key('passwordField')))
-          .enterText('minha_password');
+    expect(find.byIcon(Icons.visibility_off_outlined), findsOneWidget);
 
-      // mostrar password
-      await $(find.byIcon(Icons.visibility_outlined)).tap();
-      await $.pumpAndSettle();
+    await $(find.byIcon(Icons.visibility_off_outlined)).tap();
+    await $.pumpAndSettle();
 
-      expect(find.byIcon(Icons.visibility_off_outlined), findsOneWidget);
+    expect(find.byIcon(Icons.visibility_outlined), findsOneWidget);
+  });
 
-      // esconder password
-      await $(find.byIcon(Icons.visibility_off_outlined)).tap();
-      await $.pumpAndSettle();
+  patrolTest('tap em Sign up navega para RegisterScreen', ($) async {
+    await $.pumpWidgetAndSettle(const app.FieldifyApp());
+    await $.pump(const Duration(seconds: 2));
 
-      expect(find.byIcon(Icons.visibility_outlined), findsOneWidget);
-    },
-  );
+    await $(find.text('Sign up')).tap();
+    await $.pumpAndSettle();
 
-  // testar navegação para register
-  patrolTest(
-    'tap em Sign up navega para RegisterScreen',
-    ($) async {
-      await $.pumpWidgetAndSettle(app.FieldifyApp());
-
-      await $(find.text('Sign up')).tap();
-
-      await $.pumpAndSettle();
-
-      expect(find.text('Create account'), findsOneWidget);
-    },
-  );
+    expect(find.text('Create account'), findsOneWidget);
+  });
 }

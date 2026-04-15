@@ -19,7 +19,7 @@ class _LoginScreenState extends State<LoginScreen> {
   String? _error;
 
   final _emailCtrl = TextEditingController();
-  final _pwCtrl    = TextEditingController();
+  final _pwCtrl = TextEditingController();
 
   @override
   void dispose() {
@@ -29,16 +29,25 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _signIn() async {
-    setState(() { _loading = true; _error = null; });
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+
     try {
       await AuthService().signIn(
         email: _emailCtrl.text.trim(),
         password: _pwCtrl.text,
       );
       // AuthGate handles navigation via stream
-    } on AuthException catch (e) {
-      setState(() => _error = e.message);
+    } on AuthException {
+      if (!mounted) return;
+      setState(() => _error = 'Invalid login credentials');
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _error = 'Login failed');
     } finally {
+      if (!mounted) return;
       setState(() => _loading = false);
     }
   }
@@ -66,28 +75,33 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // ── Email ─────────────────────────────────────────────
                       const FieldLabel('Email'),
                       const SizedBox(height: 6),
                       TextFormField(
                         key: const Key('emailField'),
                         controller: _emailCtrl,
                         keyboardType: TextInputType.emailAddress,
+                        textInputAction: TextInputAction.next,
                         style: GoogleFonts.dmSans(
-                            fontSize: 15, color: FieldifyColors.ink),
+                          fontSize: 15,
+                          color: FieldifyColors.ink,
+                        ),
                         decoration: authInputDecoration(hint: 'you@email.com'),
                       ),
                       const SizedBox(height: 14),
 
-                      // ── Password ──────────────────────────────────────────
                       const FieldLabel('Password'),
                       const SizedBox(height: 6),
                       TextFormField(
                         key: const Key('passwordField'),
                         controller: _pwCtrl,
                         obscureText: _obscure,
+                        textInputAction: TextInputAction.done,
+                        onFieldSubmitted: (_) => _signIn(),
                         style: GoogleFonts.dmSans(
-                            fontSize: 15, color: FieldifyColors.ink),
+                          fontSize: 15,
+                          color: FieldifyColors.ink,
+                        ),
                         decoration: authInputDecoration(
                           hint: '••••••••',
                           suffix: IconButton(
@@ -100,13 +114,13 @@ class _LoginScreenState extends State<LoginScreen> {
                                   ? FieldifyColors.ink3
                                   : FieldifyColors.g700,
                             ),
-                            onPressed: () =>
-                                setState(() => _obscure = !_obscure),
+                            onPressed: () {
+                              setState(() => _obscure = !_obscure);
+                            },
                           ),
                         ),
                       ),
 
-                      // ── Forgot password ───────────────────────────────────
                       Align(
                         alignment: Alignment.centerRight,
                         child: TextButton(
@@ -128,7 +142,6 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       const SizedBox(height: 4),
 
-                      // ── Error message ─────────────────────────────────────
                       if (_error != null) ...[
                         Text(
                           _error!,
@@ -141,7 +154,6 @@ class _LoginScreenState extends State<LoginScreen> {
                         const SizedBox(height: 10),
                       ],
 
-                      // ── Sign in button ────────────────────────────────────
                       _loading
                           ? const Center(child: CircularProgressIndicator())
                           : PrimaryButton(
@@ -151,20 +163,19 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                       const SizedBox(height: 18),
 
-                      // ── OR divider ────────────────────────────────────────
                       const OrDivider(),
                       const SizedBox(height: 18),
 
-                      // ── Google button ─────────────────────────────────────
                       GoogleButton(onPressed: () {}),
                       const SizedBox(height: 20),
 
-                      // ── Footer ────────────────────────────────────────────
                       Center(
                         child: Text.rich(
                           TextSpan(
                             style: GoogleFonts.dmSans(
-                                fontSize: 13, color: FieldifyColors.ink3),
+                              fontSize: 13,
+                              color: FieldifyColors.ink3,
+                            ),
                             children: [
                               const TextSpan(text: "Don't have an account? "),
                               WidgetSpan(

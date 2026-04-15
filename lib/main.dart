@@ -3,14 +3,17 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/home/home_screen.dart';
 
-Future<void> main() async {
+Future<void> bootstrap() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await Supabase.initialize(
     url: 'https://jdmnvmqkmthjllckzlmp.supabase.co',
     anonKey: 'sb_publishable_GbzZ4mVffFIIYoKW0vjqDQ_eNoI5Ixo',
   );
+}
 
+Future<void> main() async {
+  await bootstrap();
   runApp(const FieldifyApp());
 }
 
@@ -38,15 +41,16 @@ class AuthGate extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final client = Supabase.instance.client;
+
     return StreamBuilder<AuthState>(
-      stream: Supabase.instance.client.auth.onAuthStateChange,
+      stream: client.auth.onAuthStateChange,
+      initialData: AuthState(
+        AuthChangeEvent.initialSession,
+        client.auth.currentSession,
+      ),
       builder: (context, snapshot) {
-        if (!snapshot.hasData) {
-          return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
-          );
-        }
-        final session = snapshot.data!.session;
+        final session = snapshot.data?.session ?? client.auth.currentSession;
         return session != null ? const HomeScreen() : const LoginScreen();
       },
     );

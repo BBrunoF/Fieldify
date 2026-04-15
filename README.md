@@ -82,7 +82,6 @@ To learn more about how to write a good product vision, please read:
 * Multi-Tenant Workspaces – Separate isolated environments for each freelancer or company.
 * Analytics Dashboard – Overview of job volume, completion rates, and performance metrics.
 
----
 
 #### Initial Assumptions
 
@@ -104,8 +103,15 @@ Optionally, indicate an initial/tentative list of assumptions that you are doing
 ## Requirements
 
 ### User Stories
+#### Client Perspective
+The client experience focuses on accessibility and service management. Users can register and manage their profiles, submit specific service requests, and track their history through an active and past jobs view. The platform facilitates seamless interaction via a direct messaging system with professionals and an automated payment process. Additionally, clients receive real-time updates through push notifications and can maintain service quality by rating and reviewing completed jobs or cancelling them when necessary.
+
+#### Freelancer Perspective
+The freelancer workflow is designed for professional autonomy and efficient job handling. After a verification and approval process, professionals can set their availability, service parameters, and discover new job opportunities. The dashboard provides a comprehensive overview of their activity, allowing them to accept tasks, control job statuses, and manage rescheduling or cancellations. Communication is streamlined through a client messaging system, while profile management ensures their professional presence is always up to date.
+
 <!-- 
 In this section you should describe all kinds of requirements for your module: functional and non-functional requirements.
+---
 
 For LEIC-ES-2025-26, the requirements will be gathered and documented as user stories. 
 
@@ -153,16 +159,40 @@ Professionals submit credential documents during the verification process, repre
 
 `Review` is written by the client after job completion and references both the `Job` and the `ProfessionalProfile`. The foreign key to `Job` carries a unique constraint, enforcing one review per job. The foreign key to `ProfessionalProfile` is a deliberate denormalisation — it allows efficient retrieval of all reviews for a given professional without joining through the `Job` table, which would be required on every profile view.
 
-<!-- 
-To better understand the context of the software system, it is useful to have a simple UML class diagram with all and only the key concepts (names, attributes) and relationships involved of the problem domain addressed by your app. 
-Also provide a short textual description of each concept (domain class). 
 
-Example:
  <p align="center" justify="center">
-  <img src="https://github.com/FEUP-LEIC-ES-2022-23/templates/blob/main/images/DomainModel.png"/>
+  <img width="466" height="406" alt="image" src="https://github.com/user-attachments/assets/1a9ea36a-b281-4299-bad0-9ea464e40c23" />
 </p>
--->
+
+
+
 ### User interfaces
+
+#### Authentication and Profile
+| Login & Registration | User Profile |
+| :---: | :---: |
+| <img src="https://github.com/user-attachments/assets/47ddf75d-055b-48c7-97dd-a5cce7b1cabb"  width="400" alt="Auth"> | <img   src="https://github.com/user-attachments/assets/22c831a0-9c87-40a3-9b6f-91ff4bff065c" width="400" alt="Profile"> |
+
+#### Client Portal - Search and Request
+| Home and Search | Service Request |
+| :---: | :---: |
+| <img  src="https://github.com/user-attachments/assets/da8b8384-1bf1-49e8-aebe-8b37c48e5e55" width="400" alt="Home"> | <img src="https://github.com/user-attachments/assets/7d76ea31-00d9-40c9-9a95-707f22332595"  width="400" alt="Request"> |
+
+#### Client Portal - Management
+| Jobs List | Job Details |
+| :---: | :---: |
+| <img  src="https://github.com/user-attachments/assets/bd028ff5-71ea-49c3-975c-4a310c04174c" width="400" alt="Jobs"> | <img src="https://github.com/user-attachments/assets/432954bc-b2a5-4993-96d3-4cb25864da33"  width="400" alt="Detail"> |
+
+#### Professional Portal
+| Pro Dashboard | Job Management |
+| :---: | :---: |
+| <img  src="https://github.com/user-attachments/assets/d70b3522-fea7-4df4-bb2f-8b4d675a838a" width="400" alt="Pro Home"> | <img  src="https://github.com/user-attachments/assets/fdeb5271-e0ff-4725-80bc-a1e2815b39df" width="400" alt="Pro Jobs"> |
+
+#### Communication
+| Messaging System | Messaging List |
+| :---: | :---: |
+| <img  src="https://github.com/user-attachments/assets/6d56a321-da5b-4ff7-981e-f7f680a83770" width="400" alt="Messaging"> | <img   src="https://github.com/user-attachments/assets/0c9344d9-6e8f-4e22-93c8-593c0d977003" width="400" alt="Messaging"> |
+
 
 
 ## Architecture and Design
@@ -231,15 +261,11 @@ The `Payment Gateway` (Stripe) handles all financial operations. It is called ex
 
 `Email / SMS` covers transactional email for account verification and significant platform events, dispatched through the `Notification Service` via an SMTP provider.
 
-<!--
-The purpose of this subsection is to document the high-level logical structure of the code (Logical View), using a UML diagram with logical packages, without the worry of allocating to components, processes or machines.
 
-It can be beneficial to present the system in a horizontal decomposition, defining layers and implementation concepts, such as the user interface, business logic and concepts.
+ <p align="center" justify="center">
+  <img width="466" height="216" alt="image" src="https://github.com/user-attachments/assets/0cef3f7e-b7f8-42ca-8383-7f629444afd9" />
+</p>
 
-Example of _UML package diagram_ showing a _logical view_ of the Eletronic Ticketing System (to be accompanied by a short description of each package):
-
-![LogicalView](https://user-images.githubusercontent.com/9655877/160585416-b1278ad7-18d7-463c-b8c6-afa4f7ac7639.png)
--->
 
 
 ### Physical architecture
@@ -276,15 +302,11 @@ The Google Maps Platform provides geocoding and map tile rendering. As noted abo
 
 An SMTP provider handles transactional email — account verification messages and significant platform events. Email dispatch is triggered through the Notification Service via Edge Functions.
 
-<!--
-The goal of this subsection is to document the high-level physical structure of the software system (machines, connections, software components installed, and their dependencies) using UML deployment diagrams (Deployment View) or component diagrams (Implementation View), separate or integrated, showing the physical structure of the system.
 
-It should describe also the technologies considered and justify the selections made. Examples of technologies relevant for ESOF are, for example, frameworks for mobile applications (such as Flutter).
+ <p align="center" justify="center">
+  <img width="466" height="310" alt="image" src="https://github.com/user-attachments/assets/f5c76eb2-28b3-4746-b450-46b22988e19f" />
+</p>
 
-Example of _UML deployment diagram_ showing a _deployment view_ of the Eletronic Ticketing System (please notice that, instead of software components, one should represent their physical/executable manifestations for deployment, called artifacts in UML; the diagram should be accompanied by a short description of each node and artifact):
-
-![DeploymentView](https://user-images.githubusercontent.com/9655877/160592491-20e85af9-0758-4e1e-a704-0db1be3ee65d.png)
--->
 
 
 ### Functional prototype

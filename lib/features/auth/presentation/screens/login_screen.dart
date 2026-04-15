@@ -1,54 +1,48 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-import 'auth_shared.dart';
-import '../../services/auth_service.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../widgets/auth_shared.dart';
+import 'register_screen.dart';
+import '../../controllers/auth_controller.dart';
 
-class RegisterScreen extends StatefulWidget {
-  const RegisterScreen({super.key});
+class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
 
   @override
-  State<RegisterScreen> createState() => _RegisterScreenState();
+  State<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _RegisterScreenState extends State<RegisterScreen> {
+class _LoginScreenState extends State<LoginScreen> {
   bool _obscure = true;
-  bool _loading = false;
-  String? _error;
 
-  final _firstCtrl = TextEditingController();
-  final _lastCtrl  = TextEditingController();
   final _emailCtrl = TextEditingController();
-  final _phoneCtrl = TextEditingController();
   final _pwCtrl    = TextEditingController();
+  final _auth      = AuthController();
+
+  @override
+  void initState() {
+    super.initState();
+    _auth.addListener(_onAuthChanged);
+  }
+
+  void _onAuthChanged() => setState(() {});
 
   @override
   void dispose() {
-    _firstCtrl.dispose();
-    _lastCtrl.dispose();
+    _auth.removeListener(_onAuthChanged);
+    _auth.dispose();
     _emailCtrl.dispose();
-    _phoneCtrl.dispose();
     _pwCtrl.dispose();
     super.dispose();
   }
 
-  Future<void> _signUp() async {
-    setState(() { _loading = true; _error = null; });
-    try {
-      await AuthService().signUp(
-        email: _emailCtrl.text.trim(),
-        password: _pwCtrl.text,
-        firstName: _firstCtrl.text.trim(),
-        lastName: _lastCtrl.text.trim(),
-        phone: _phoneCtrl.text.trim(),
-      );
-      // AuthGate handles navigation via stream
-    } on AuthException catch (e) {
-      setState(() => _error = e.message);
-    } finally {
-      setState(() => _loading = false);
-    }
+  Future<void> _signIn() async {
+    await _auth.signIn(
+      email: _emailCtrl.text.trim(),
+      password: _pwCtrl.text,
+    );
+    // AuthGate handles navigation via stream
   }
 
   @override
@@ -66,77 +60,24 @@ class _RegisterScreenState extends State<RegisterScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const AuthBrandBlock(
-                headline: 'Create your\naccount.',
-                subtitle: 'Free to join, no commitments',
+                headline: 'Welcome\nback.',
+                subtitle: 'Sign in to your account',
               ),
               Expanded(
                 child: AuthFormShell(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // ── First + Last name ─────────────────────────────────
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const FieldLabel('First name'),
-                                const SizedBox(height: 6),
-                                TextFormField(
-                                  controller: _firstCtrl,
-                                  style: GoogleFonts.dmSans(
-                                      fontSize: 15, color: FieldifyColors.ink),
-                                  decoration:
-                                      authInputDecoration(hint: 'Bruno'),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const FieldLabel('Last name'),
-                                const SizedBox(height: 6),
-                                TextFormField(
-                                  controller: _lastCtrl,
-                                  style: GoogleFonts.dmSans(
-                                      fontSize: 15, color: FieldifyColors.ink),
-                                  decoration:
-                                      authInputDecoration(hint: 'Silva'),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 14),
-
                       // ── Email ─────────────────────────────────────────────
                       const FieldLabel('Email'),
                       const SizedBox(height: 6),
                       TextFormField(
+                        key: const Key('emailField'),
                         controller: _emailCtrl,
                         keyboardType: TextInputType.emailAddress,
                         style: GoogleFonts.dmSans(
                             fontSize: 15, color: FieldifyColors.ink),
-                        decoration:
-                            authInputDecoration(hint: 'you@email.com'),
-                      ),
-                      const SizedBox(height: 14),
-
-                      // ── Phone ─────────────────────────────────────────────
-                      const FieldLabel('Phone'),
-                      const SizedBox(height: 6),
-                      TextFormField(
-                        controller: _phoneCtrl,
-                        keyboardType: TextInputType.phone,
-                        style: GoogleFonts.dmSans(
-                            fontSize: 15, color: FieldifyColors.ink),
-                        decoration:
-                            authInputDecoration(hint: '+351 912 345 678'),
+                        decoration: authInputDecoration(hint: 'you@email.com'),
                       ),
                       const SizedBox(height: 14),
 
@@ -144,12 +85,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       const FieldLabel('Password'),
                       const SizedBox(height: 6),
                       TextFormField(
+                        key: const Key('passwordField'),
                         controller: _pwCtrl,
                         obscureText: _obscure,
                         style: GoogleFonts.dmSans(
                             fontSize: 15, color: FieldifyColors.ink),
                         decoration: authInputDecoration(
-                          hint: 'Min. 8 characters',
+                          hint: '••••••••',
                           suffix: IconButton(
                             icon: Icon(
                               _obscure
@@ -165,12 +107,33 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 20),
+
+                      // ── Forgot password ───────────────────────────────────
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: TextButton(
+                          onPressed: () {},
+                          style: TextButton.styleFrom(
+                            padding: EdgeInsets.zero,
+                            minimumSize: const Size(0, 36),
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
+                          child: Text(
+                            'Forgot password?',
+                            style: GoogleFonts.dmSans(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                              color: FieldifyColors.g700,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 4),
 
                       // ── Error message ─────────────────────────────────────
-                      if (_error != null) ...[
+                      if (_auth.error != null) ...[
                         Text(
-                          _error!,
+                          _auth.error!,
                           style: GoogleFonts.dmSans(
                             fontSize: 13,
                             color: const Color(0xFFC0392B),
@@ -180,12 +143,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         const SizedBox(height: 10),
                       ],
 
-                      // ── Create account button ─────────────────────────────
-                      _loading
+                      // ── Sign in button ────────────────────────────────────
+                      _auth.isLoading
                           ? const Center(child: CircularProgressIndicator())
                           : PrimaryButton(
-                              label: 'Create account',
-                              onPressed: _signUp,
+                              label: 'Sign in',
+                              onPressed: _signIn,
+                              buttonKey: const Key('loginButton'),
                             ),
                       const SizedBox(height: 18),
 
@@ -195,18 +159,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                       // ── Google button ─────────────────────────────────────
                       GoogleButton(onPressed: () {}),
-                      const SizedBox(height: 14),
-
-                      // ── Terms ─────────────────────────────────────────────
-                      Text(
-                        'By creating an account you agree to our Terms of Service and Privacy Policy.',
-                        textAlign: TextAlign.center,
-                        style: GoogleFonts.dmSans(
-                          fontSize: 11,
-                          color: FieldifyColors.ink4,
-                          height: 1.6,
-                        ),
-                      ),
                       const SizedBox(height: 20),
 
                       // ── Footer ────────────────────────────────────────────
@@ -216,13 +168,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             style: GoogleFonts.dmSans(
                                 fontSize: 13, color: FieldifyColors.ink3),
                             children: [
-                              const TextSpan(text: 'Already have an account? '),
+                              const TextSpan(text: "Don't have an account? "),
                               WidgetSpan(
                                 alignment: PlaceholderAlignment.middle,
                                 child: GestureDetector(
-                                  onTap: () => Navigator.of(context).pop(),
+                                  onTap: () => Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (_) => const RegisterScreen(),
+                                    ),
+                                  ),
                                   child: Text(
-                                    'Sign in',
+                                    'Sign up',
                                     style: GoogleFonts.dmSans(
                                       fontSize: 13,
                                       fontWeight: FontWeight.w500,

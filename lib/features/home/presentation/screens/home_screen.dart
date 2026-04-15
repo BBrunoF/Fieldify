@@ -1,10 +1,11 @@
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../auth/auth_shared.dart';
-import '../request/request_screen.dart';
-import '../../shared/fieldify_painters.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../auth/presentation/widgets/auth_shared.dart';
+import '../../../../shared/widgets/fieldify_painters.dart';
+import '../../../../shared/widgets/bottom_nav.dart';
+import '../../../request/presentation/screens/request_screen.dart';
 
 // ── Screen ───────────────────────────────────────────────────────────────────
 class HomeScreen extends StatefulWidget {
@@ -27,7 +28,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       child: Scaffold(
         backgroundColor: FieldifyColors.surface,
-        bottomNavigationBar: _BottomNav(
+        bottomNavigationBar: BottomNav(
           selected: _selectedNav,
           onTap: (i) => setState(() => _selectedNav = i),
         ),
@@ -119,6 +120,7 @@ class _HomeScreenState extends State<HomeScreen> {
               color: FieldifyColors.g200,
             ),
           ),
+          // TODO: replace with current user name from profile
           Text(
             'Bruno',
             style: GoogleFonts.dmSans(
@@ -147,7 +149,7 @@ class _HomeScreenState extends State<HomeScreen> {
               Positioned.fill(
                 child: CustomPaint(painter: MapPainter()),
               ),
-              // Pro dots
+              // TODO: replace pro dot initials with nearby pros from DB
               const Positioned(top: 18, left: 45, child: _ProDot('MF')),
               const Positioned(top: 62, right: 45, child: _ProDot('AC')),
               const Positioned(bottom: 22, left: 70, child: _ProDot('JR')),
@@ -182,6 +184,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                             ),
                             const SizedBox(width: 5),
+                            // TODO: replace with user location from profile/GPS
                             Text(
                               'Porto, Portugal',
                               style: GoogleFonts.dmSans(
@@ -201,6 +204,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           borderRadius: BorderRadius.circular(999),
                           border: Border.all(color: FieldifyColors.g200),
                         ),
+                        // TODO: replace with live nearby pros count from DB
                         child: Text(
                           '8 pros nearby',
                           style: GoogleFonts.dmSans(
@@ -722,161 +726,4 @@ class _RequestCard extends StatelessWidget {
       ),
     );
   }
-}
-
-// ── Bottom nav ────────────────────────────────────────────────────────────────
-
-class _BottomNav extends StatelessWidget {
-  final int selected;
-  final ValueChanged<int> onTap;
-
-  const _BottomNav({required this.selected, required this.onTap});
-
-  static const _labels = ['Home', 'Jobs', 'Messages', 'Profile'];
-
-  @override
-  Widget build(BuildContext context) {
-    final bottom = MediaQuery.of(context).padding.bottom;
-    return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(top: BorderSide(color: Color(0x14000000))),
-      ),
-      padding: EdgeInsets.fromLTRB(24, 12, 24, 28 + bottom),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: List.generate(
-          4,
-          (i) => GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: () => onTap(i),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                SizedBox(
-                  width: 22,
-                  height: 22,
-                  child: CustomPaint(
-                    painter: _NavIconPainter(
-                      index: i,
-                      active: selected == i,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  _labels[i],
-                  style: GoogleFonts.dmSans(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w500,
-                    color: selected == i
-                        ? FieldifyColors.g800
-                        : FieldifyColors.ink4,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Container(
-                  width: 20,
-                  height: 2.5,
-                  decoration: BoxDecoration(
-                    color: selected == i
-                        ? FieldifyColors.g800
-                        : Colors.transparent,
-                    borderRadius: BorderRadius.circular(999),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// ── Custom painters ───────────────────────────────────────────────────────────
-
-/// Bottom nav icons (Home, Jobs, Messages, Profile)
-class _NavIconPainter extends CustomPainter {
-  final int index;
-  final bool active;
-
-  const _NavIconPainter({required this.index, required this.active});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final scale = size.width / 22;
-    canvas.save();
-    canvas.scale(scale, scale);
-
-    final color = active ? FieldifyColors.g800 : FieldifyColors.ink4;
-    final stroke = Paint()
-      ..color = color
-      ..strokeWidth = 1.5
-      ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.round
-      ..style = PaintingStyle.stroke;
-
-    switch (index) {
-      case 0: // Home
-        canvas.drawPath(
-          Path()
-            ..moveTo(3, 10)
-            ..lineTo(11, 3)
-            ..lineTo(19, 10)
-            ..lineTo(19, 19)
-            ..lineTo(14, 19)
-            ..lineTo(14, 14)
-            ..lineTo(8, 14)
-            ..lineTo(8, 19)
-            ..lineTo(3, 19)
-            ..close(),
-          stroke,
-        );
-
-      case 1: // Jobs/Calendar
-        canvas.drawRRect(
-          RRect.fromRectAndRadius(
-              const Rect.fromLTWH(3, 5, 16, 14), const Radius.circular(2)),
-          stroke,
-        );
-        canvas.drawLine(const Offset(7, 3), const Offset(7, 7), stroke);
-        canvas.drawLine(const Offset(15, 3), const Offset(15, 7), stroke);
-        canvas.drawLine(const Offset(3, 10), const Offset(19, 10), stroke);
-
-      case 2: // Messages
-        canvas.drawPath(
-          Path()
-            ..moveTo(4, 4)
-            ..lineTo(18, 4)
-            ..arcTo(const Rect.fromLTWH(17, 4, 2, 2), -math.pi / 2, math.pi / 2, false)
-            ..lineTo(20, 14)
-            ..arcTo(const Rect.fromLTWH(17, 13, 2, 2), 0, math.pi / 2, false)
-            ..lineTo(7, 15)
-            ..lineTo(4, 18)
-            ..lineTo(4, 15)
-            ..arcTo(const Rect.fromLTWH(3, 13, 2, 2), math.pi / 2, math.pi / 2, false)
-            ..lineTo(3, 5)
-            ..arcTo(const Rect.fromLTWH(3, 4, 2, 2), math.pi, math.pi / 2, false)
-            ..close(),
-          stroke,
-        );
-
-      case 3: // Profile
-        canvas.drawCircle(const Offset(11, 8), 3.5, stroke);
-        canvas.drawPath(
-          Path()
-            ..moveTo(4, 19)
-            ..cubicTo(4, 15.7, 7.1, 13, 11, 13)
-            ..cubicTo(14.9, 13, 18, 15.7, 18, 19),
-          stroke,
-        );
-    }
-
-    canvas.restore();
-  }
-
-  @override
-  bool shouldRepaint(covariant _NavIconPainter old) =>
-      old.active != active || old.index != index;
 }

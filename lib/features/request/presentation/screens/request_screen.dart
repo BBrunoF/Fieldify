@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-import '../auth/auth_shared.dart';
-import '../../shared/fieldify_painters.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../auth/presentation/widgets/auth_shared.dart';
+import '../../../../shared/widgets/fieldify_painters.dart';
+import '../../controllers/request_controller.dart';
 
 // ── Data ──────────────────────────────────────────────────────────────────────
 
@@ -42,19 +43,32 @@ class _RequestScreenState extends State<RequestScreen> {
   int _step = 1;
   int _cat  = 0;
   bool _scheduled = false;
-  bool _loading = false;
-  String? _error;
 
   final _titleCtrl   = TextEditingController(text: 'Leaking pipe under kitchen sink');
   final _descCtrl    = TextEditingController(text: 'Water dripping from pipe joint for 2 days. Slowly pooling in the cabinet below.');
   final _addressCtrl = TextEditingController(text: 'Rua do Heroísmo 42, Porto');
   final _floorCtrl   = TextEditingController();
+  final _requestCtrl = RequestController();
 
   DateTime _date = DateTime(2025, 4, 18);
   TimeOfDay _time = const TimeOfDay(hour: 10, minute: 0);
 
   @override
+  void initState() {
+    super.initState();
+    _requestCtrl.addListener(_onRequestChanged);
+  }
+
+  void _onRequestChanged() {
+    setState(() {
+      if (_requestCtrl.isSubmitted) _step = 5;
+    });
+  }
+
+  @override
   void dispose() {
+    _requestCtrl.removeListener(_onRequestChanged);
+    _requestCtrl.dispose();
     _titleCtrl.dispose();
     _descCtrl.dispose();
     _addressCtrl.dispose();
@@ -66,45 +80,26 @@ class _RequestScreenState extends State<RequestScreen> {
     if (_step < 4) {
       setState(() => _step++);
     } else {
-      _submit();
+      _submitRequest();
     }
   }
 
-  Future<void> _submit() async {
-    setState(() { _loading = true; _error = null; });
-    try {
-      final user = Supabase.instance.client.auth.currentUser!;
-
-      // Build scheduled_at if user picked a specific time
-      DateTime? scheduledAt;
-      if (_scheduled) {
-        scheduledAt = DateTime(
-          _date.year, _date.month, _date.day,
-          _time.hour, _time.minute,
-        ).toUtc();
-      }
-
-      // Hardcoded Porto coords until Google Maps geocoding is wired up
-      const lat = 41.1579;
-      const lng = -8.6291;
-
-      await Supabase.instance.client.from('service_requests').insert({
-        'client_id':    user.id,
-        'trade_id':     _tradeIds[_cat],
-        'title':        _titleCtrl.text.trim(),
-        'description':  _descCtrl.text.trim(),
-        'address_text': _addressCtrl.text.trim(),
-        'location':     'POINT($lng $lat)',
-        'scheduled_at': scheduledAt?.toIso8601String(),
-        'photo_urls':   [],
-      });
-
-      if (mounted) setState(() => _step = 5);
-    } on PostgrestException catch (e) {
-      setState(() => _error = e.message);
-    } finally {
-      if (mounted) setState(() => _loading = false);
+  Future<void> _submitRequest() async {
+    DateTime? scheduledAt;
+    if (_scheduled) {
+      scheduledAt = DateTime(
+        _date.year, _date.month, _date.day,
+        _time.hour, _time.minute,
+      ).toUtc();
     }
+
+    await _requestCtrl.submit(
+      tradeId: _tradeIds[_cat],
+      title: _titleCtrl.text.trim(),
+      description: _descCtrl.text.trim(),
+      addressText: _addressCtrl.text.trim(),
+      scheduledAt: scheduledAt,
+    );
   }
 
   void _back() {
@@ -256,14 +251,14 @@ class _RequestScreenState extends State<RequestScreen> {
         color: Colors.white,
         border: Border(top: BorderSide(color: Color(0x14000000))),
       ),
-      child: _loading
+      child: _requestCtrl.isLoading
           ? const Center(child: CircularProgressIndicator())
           : Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                if (_error != null) ...[
+                if (_requestCtrl.error != null) ...[
                   Text(
-                    _error!,
+                    _requestCtrl.error!,
                     style: GoogleFonts.dmSans(
                         fontSize: 13, color: const Color(0xFFC0392B)),
                     textAlign: TextAlign.center,

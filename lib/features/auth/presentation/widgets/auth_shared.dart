@@ -1,20 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-
-// ── Colour tokens ────────────────────────────────────────────────────────────
-class FieldifyColors {
-  static const g800   = Color(0xFF27500A);
-  static const g700   = Color(0xFF3B6D11);
-  static const g500   = Color(0xFF639922);
-  static const g200   = Color(0xFFC0DD97);
-  static const g100   = Color(0xFFEAF3DE);
-  static const ink    = Color(0xFF111111);
-  static const ink2   = Color(0xFF444444);
-  static const ink3   = Color(0xFF888888);
-  static const ink4   = Color(0xFFBBBBBB);
-  static const surface = Color(0xFFF6F7F4);
-  static const border2 = Color(0x21000000);
-}
+import '../../../../core/theme/app_colors.dart';
 
 // ── Shared widgets ────────────────────────────────────────────────────────────
 
@@ -150,11 +136,11 @@ InputDecoration authInputDecoration({required String hint, Widget? suffix}) {
     contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
     border: OutlineInputBorder(
       borderRadius: BorderRadius.circular(12),
-      borderSide: const BorderSide(color: FieldifyColors.border2),
+      borderSide: const BorderSide(color: FieldifyColors.border),
     ),
     enabledBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(12),
-      borderSide: const BorderSide(color: FieldifyColors.border2),
+      borderSide: const BorderSide(color: FieldifyColors.border),
     ),
     focusedBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(12),
@@ -179,7 +165,7 @@ class PrimaryButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ElevatedButton(
-      key: buttonKey, 
+      key: buttonKey,
       onPressed: onPressed,
       style: ElevatedButton.styleFrom(
         backgroundColor: FieldifyColors.g800,
@@ -215,7 +201,7 @@ class GoogleButton extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 13),
         shape:
             RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-        side: const BorderSide(color: FieldifyColors.border2),
+        side: const BorderSide(color: FieldifyColors.border),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -248,7 +234,7 @@ class OrDivider extends StatelessWidget {
     return Row(
       children: [
         const Expanded(
-            child: Divider(color: FieldifyColors.border2, thickness: 1)),
+            child: Divider(color: FieldifyColors.border, thickness: 1)),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12),
           child: Text(
@@ -260,7 +246,7 @@ class OrDivider extends StatelessWidget {
           ),
         ),
         const Expanded(
-            child: Divider(color: FieldifyColors.border2, thickness: 1)),
+            child: Divider(color: FieldifyColors.border, thickness: 1)),
       ],
     );
   }

@@ -103,11 +103,10 @@ Optionally, indicate an initial/tentative list of assumptions that you are doing
 ## Requirements
 
 ### User Stories
-
-####Client Perspective
+#### Client Perspective
 The client experience focuses on accessibility and service management. Users can register and manage their profiles, submit specific service requests, and track their history through an active and past jobs view. The platform facilitates seamless interaction via a direct messaging system with professionals and an automated payment process. Additionally, clients receive real-time updates through push notifications and can maintain service quality by rating and reviewing completed jobs or cancelling them when necessary.
 
-####Freelancer Perspective
+#### Freelancer Perspective
 The freelancer workflow is designed for professional autonomy and efficient job handling. After a verification and approval process, professionals can set their availability, service parameters, and discover new job opportunities. The dashboard provides a comprehensive overview of their activity, allowing them to accept tasks, control job statuses, and manage rescheduling or cancellations. Communication is streamlined through a client messaging system, while profile management ensures their professional presence is always up to date.
 
 <!-- 

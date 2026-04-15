@@ -343,6 +343,8 @@ You can find below information and references related with the project managemen
 ### Sprint 0
 
 ### Sprint 1
+<img width="1913" height="962" alt="image" src="https://github.com/user-attachments/assets/6d24c9d1-cc79-4c86-829f-ded69b13fe70" />
+
 
 ### Sprint 2
 

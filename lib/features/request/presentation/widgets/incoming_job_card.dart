@@ -39,6 +39,25 @@ class IncomingJobCard extends StatelessWidget {
                   ),
                 ),
               ),
+              if (job.isRejected) ...[
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF6E8D7),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Text(
+                    'REJECTED',
+                    style: GoogleFonts.dmSans(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                      color: const Color(0xFF9A5D14),
+                      letterSpacing: 0.3,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+              ],
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                 decoration: BoxDecoration(
@@ -98,7 +117,7 @@ class IncomingJobCard extends StatelessWidget {
                     ),
                   ),
                   child: Text(
-                    'Reject',
+                    job.isRejected ? 'Reject again' : 'Reject',
                     style: GoogleFonts.dmSans(
                       fontWeight: FontWeight.w500,
                       color: FieldifyColors.ink2,

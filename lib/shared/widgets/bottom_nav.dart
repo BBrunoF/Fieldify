@@ -7,8 +7,14 @@ import '../../core/theme/app_colors.dart';
 class BottomNav extends StatelessWidget {
   final int selected;
   final ValueChanged<int> onTap;
+  final bool showJobs;
 
-  const BottomNav({super.key, required this.selected, required this.onTap});
+  const BottomNav({
+    super.key,
+    required this.selected,
+    required this.onTap,
+    this.showJobs = true,
+  });
 
   static const _labels = ['Home', 'Jobs', 'Messages', 'Profile'];
 
@@ -23,9 +29,13 @@ class BottomNav extends StatelessWidget {
       padding: EdgeInsets.fromLTRB(24, 12, 24, 28 + bottom),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: List.generate(
-          4,
-          (i) => GestureDetector(
+        children: (() {
+          final visibleIndexes = showJobs ? const [0, 1, 2, 3] : const [0, 2, 3];
+          return List.generate(
+            visibleIndexes.length,
+            (visibleIndex) {
+              final i = visibleIndexes[visibleIndex];
+              return GestureDetector(
             behavior: HitTestBehavior.opaque,
             onTap: () => onTap(i),
             child: Column(
@@ -65,8 +75,10 @@ class BottomNav extends StatelessWidget {
                 ),
               ],
             ),
-          ),
-        ),
+          );
+            },
+          );
+        })(),
       ),
     );
   }

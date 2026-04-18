@@ -16,9 +16,11 @@ class IncomingJobsRepository {
   IncomingJobsRepository({IncomingJobsService? service})
       : _service = service ?? IncomingJobsService();
 
-  Future<List<IncomingJob>> fetchIncomingJobs() async {
+  Future<List<IncomingJob>> fetchIncomingJobs({
+    bool includeRejected = false,
+  }) async {
     try {
-      return await _service.fetchIncomingJobs();
+      return await _service.fetchIncomingJobs(includeRejected: includeRejected);
     } on PostgrestException catch (e) {
       throw IncomingJobsFailure(e.message);
     }
@@ -27,6 +29,14 @@ class IncomingJobsRepository {
   Future<void> acceptJob(String requestId) async {
     try {
       await _service.acceptJob(requestId);
+    } on PostgrestException catch (e) {
+      throw IncomingJobsFailure(e.message);
+    }
+  }
+
+  Future<void> rejectJob(String requestId) async {
+    try {
+      await _service.rejectJob(requestId);
     } on PostgrestException catch (e) {
       throw IncomingJobsFailure(e.message);
     }

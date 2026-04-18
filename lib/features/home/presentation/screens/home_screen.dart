@@ -5,6 +5,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../auth/presentation/widgets/auth_shared.dart';
 import '../../../../shared/widgets/fieldify_painters.dart';
 import '../../../../shared/widgets/bottom_nav.dart';
+import '../../../../core/supabase/supabase_client.dart';
 import '../../../request/presentation/screens/request_screen.dart';
 import '../../../request/presentation/widgets/incoming_jobs_view.dart';
 
@@ -19,9 +20,41 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedCategory = 0;
   int _selectedNav = 0;
+  bool _isProfessional = false;
 
+  @override
+  void initState() {
+    super.initState();
+    _loadUserRole();
+  }
+
+  Future<void> _loadUserRole() async {
+    final user = supabase.auth.currentUser;
+    if (user == null) return;
+
+    try {
+      final profile = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', user.id)
+          .maybeSingle();
+
+      final isProfessional = profile != null && profile['role'] == 'professional';
+      if (!mounted) return;
+      setState(() {
+        _isProfessional = isProfessional;
+        if (!_isProfessional && _selectedNav == 1) {
+          _selectedNav = 0;
+        }
+      });
+    } catch (_) {}
+  }
 
   void _onNavTap(int i) {
+    if (!_isProfessional && i == 1) {
+      setState(() => _selectedNav = 0);
+      return;
+    }
     setState(() => _selectedNav = i);
   }
 
@@ -37,10 +70,13 @@ class _HomeScreenState extends State<HomeScreen> {
         bottomNavigationBar: BottomNav(
           selected: _selectedNav,
           onTap: _onNavTap,
+          showJobs: _isProfessional,
         ),
         body: SafeArea(
           bottom: false,
-          child: _selectedNav == 1 ? _buildJobsTab() : _buildMainTab(),
+          child: _selectedNav == 1 && _isProfessional
+              ? _buildJobsTab()
+              : _buildMainTab(),
         ),
       ),
     );

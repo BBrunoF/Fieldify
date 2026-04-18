@@ -6,6 +6,7 @@ class IncomingJob {
   final String status;
   final DateTime? createdAt;
   final String clientId;
+  final bool isRejected;
 
   const IncomingJob({
     required this.id,
@@ -15,9 +16,13 @@ class IncomingJob {
     required this.status,
     required this.createdAt,
     required this.clientId,
+    this.isRejected = false,
   });
 
-  factory IncomingJob.fromJson(Map<String, dynamic> json) {
+  factory IncomingJob.fromJson(
+    Map<String, dynamic> json, {
+    bool isRejected = false,
+  }) {
     return IncomingJob(
       id: json['id'] as String,
       title: (json['title'] ?? '') as String,
@@ -28,6 +33,7 @@ class IncomingJob {
           ? DateTime.tryParse(json['created_at'] as String)
           : null,
       clientId: (json['client_id'] ?? '') as String,
+      isRejected: isRejected,
     );
   }
 }

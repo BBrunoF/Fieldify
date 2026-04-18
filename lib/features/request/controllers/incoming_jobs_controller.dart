@@ -11,10 +11,12 @@ class IncomingJobsController extends ChangeNotifier {
   bool _isLoading = false;
   String? _error;
   List<IncomingJob> _jobs = const [];
+  bool _showRejected = false;
 
   bool get isLoading => _isLoading;
   String? get error => _error;
   List<IncomingJob> get jobs => _jobs;
+  bool get showRejected => _showRejected;
 
   Future<void> loadJobs() async {
     _isLoading = true;
@@ -22,13 +24,21 @@ class IncomingJobsController extends ChangeNotifier {
     notifyListeners();
 
     try {
-      _jobs = await _repository.fetchIncomingJobs();
+      _jobs = await _repository.fetchIncomingJobs(
+        includeRejected: _showRejected,
+      );
     } catch (e) {
       _error = e.toString();
     } finally {
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  Future<void> setShowRejected(bool value) async {
+    if (_showRejected == value) return;
+    _showRejected = value;
+    await loadJobs();
   }
 
   Future<void> acceptJob(String requestId) async {
@@ -42,9 +52,15 @@ class IncomingJobsController extends ChangeNotifier {
     }
   }
 
-  void rejectJobLocally(String requestId) {
-    _jobs = _jobs.where((job) => job.id != requestId).toList();
-    notifyListeners();
+  Future<void> rejectJob(String requestId) async {
+    try {
+      await _repository.rejectJob(requestId);
+      _jobs = _jobs.where((job) => job.id != requestId).toList();
+      notifyListeners();
+    } catch (e) {
+      _error = e.toString();
+      notifyListeners();
+    }
   }
 
   void clearError() {

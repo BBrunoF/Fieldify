@@ -6,6 +6,7 @@ import '../../../auth/presentation/widgets/auth_shared.dart';
 import '../../../../shared/widgets/fieldify_painters.dart';
 import '../../../../shared/widgets/bottom_nav.dart';
 import '../../../request/presentation/screens/request_screen.dart';
+import '../../../request/presentation/widgets/incoming_jobs_view.dart';
 
 // ── Screen ───────────────────────────────────────────────────────────────────
 class HomeScreen extends StatefulWidget {
@@ -19,6 +20,11 @@ class _HomeScreenState extends State<HomeScreen> {
   int _selectedCategory = 0;
   int _selectedNav = 0;
 
+
+  void _onNavTap(int i) {
+    setState(() => _selectedNav = i);
+  }
+
   @override
   Widget build(BuildContext context) {
     return AnnotatedRegion<SystemUiOverlayStyle>(
@@ -30,43 +36,77 @@ class _HomeScreenState extends State<HomeScreen> {
         backgroundColor: FieldifyColors.surface,
         bottomNavigationBar: BottomNav(
           selected: _selectedNav,
-          onTap: (i) => setState(() => _selectedNav = i),
+          onTap: _onNavTap,
         ),
         body: SafeArea(
           bottom: false,
-          child: SingleChildScrollView(
+          child: _selectedNav == 1 ? _buildJobsTab() : _buildMainTab(),
+        ),
+      ),
+    );
+  }
+
+
+  Widget _buildMainTab() {
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          // ── Green zone: header + map + search ──────────────────────
+          Container(
+            color: FieldifyColors.g800,
             child: Column(
               children: [
-                // ── Green zone: header + map + search ──────────────────────
-                Container(
-                  color: FieldifyColors.g800,
-                  child: Column(
-                    children: [
-                      _buildHeader(),
-                      _buildMap(),
-                      _buildSearchBar(),
-                    ],
-                  ),
-                ),
-                // ── Curved transition strip ────────────────────────────────
-                Container(
-                  height: 18,
-                  color: FieldifyColors.g800,
-                  child: Container(
-                    decoration: const BoxDecoration(
-                      color: FieldifyColors.surface,
-                      borderRadius:
-                          BorderRadius.vertical(top: Radius.circular(18)),
-                    ),
-                  ),
-                ),
-                // ── Body content ───────────────────────────────────────────
-                _buildContent(),
+                _buildHeader(),
+                _buildMap(),
+                _buildSearchBar(),
               ],
             ),
           ),
-        ),
+          // ── Curved transition strip ────────────────────────────────
+          Container(
+            height: 18,
+            color: FieldifyColors.g800,
+            child: Container(
+              decoration: const BoxDecoration(
+                color: FieldifyColors.surface,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
+              ),
+            ),
+          ),
+          // ── Body content ───────────────────────────────────────────
+          _buildContent(),
+        ],
       ),
+    );
+  }
+
+  Widget _buildJobsTab() {
+    return Column(
+      children: [
+        Container(
+          color: FieldifyColors.g800,
+          padding: const EdgeInsets.fromLTRB(24, 14, 24, 18),
+          child: Row(
+            children: [
+              Text(
+                'Incoming jobs',
+                style: GoogleFonts.dmSans(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.white,
+                  letterSpacing: -0.4,
+                ),
+              ),
+            ],
+          ),
+        ),
+        Expanded(
+          child: Container(
+            color: FieldifyColors.surface,
+            child: const IncomingJobsView(),
+          ),
+        ),
+      ],
     );
   }
 
@@ -344,6 +384,7 @@ class _HomeScreenState extends State<HomeScreen> {
 // ── Small widgets ─────────────────────────────────────────────────────────────
 
 class _NotifButton extends StatelessWidget {
+
   @override
   Widget build(BuildContext context) {
     return Stack(
@@ -382,6 +423,7 @@ class _ProDot extends StatelessWidget {
   final String initials;
   const _ProDot(this.initials);
 
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -408,6 +450,7 @@ class _ProDot extends StatelessWidget {
 
 class _ActiveJobBanner extends StatelessWidget {
   const _ActiveJobBanner();
+
 
   @override
   Widget build(BuildContext context) {
@@ -502,6 +545,7 @@ class _SectionHeader extends StatelessWidget {
 
   const _SectionHeader({required this.title, this.link, this.onLink});
 
+
   @override
   Widget build(BuildContext context) {
     return Row(
@@ -551,6 +595,7 @@ class _CategoryPill extends StatelessWidget {
     required this.active,
     required this.onTap,
   });
+
 
   @override
   Widget build(BuildContext context) {
@@ -614,6 +659,7 @@ class _RequestCard extends StatelessWidget {
     required this.price,
     required this.filled,
   });
+
 
   @override
   Widget build(BuildContext context) {

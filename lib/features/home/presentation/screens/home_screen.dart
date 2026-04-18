@@ -184,7 +184,13 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ],
               ),
-              _NotifButton(),
+              Row(
+                children: const [
+                  const _NotifButton(),
+                  SizedBox(width: 8),
+                  _LogoutButton(),
+                ],
+              ),
             ],
           ),
           const SizedBox(height: 18),
@@ -420,6 +426,7 @@ class _HomeScreenState extends State<HomeScreen> {
 // ── Small widgets ─────────────────────────────────────────────────────────────
 
 class _NotifButton extends StatelessWidget {
+  const _NotifButton({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -451,6 +458,40 @@ class _NotifButton extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+
+class _LogoutButton extends StatelessWidget {
+  const _LogoutButton();
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () async {
+          await supabase.auth.signOut();
+        },
+        customBorder: const CircleBorder(),
+        child: Container(
+          width: 36,
+          height: 36,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: Colors.white.withAlpha(51),
+              width: 1.5,
+            ),
+          ),
+          child: const Icon(
+            Icons.logout_rounded,
+            size: 16,
+            color: FieldifyColors.g100,
+          ),
+        ),
+      ),
     );
   }
 }

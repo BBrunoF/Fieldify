@@ -1,14 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'core/routing/app_router.dart';
+import 'core/supabase/supabase_client.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
-  await Supabase.initialize(
-    url: 'https://jdmnvmqkmthjllckzlmp.supabase.co',
-    anonKey: 'sb_publishable_GbzZ4mVffFIIYoKW0vjqDQ_eNoI5Ixo',
-  );
+  await initializeSupabase();
 
   runApp(const FieldifyApp());
 }

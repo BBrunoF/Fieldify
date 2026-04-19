@@ -5,8 +5,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:project/core/supabase/supabase_client.dart';
 import 'package:project/features/home/presentation/screens/home_screen.dart';
-import 'package:project/features/request/presentation/widgets/incoming_job_card.dart';
-import 'package:project/features/request/presentation/widgets/incoming_jobs_view.dart';
+import 'package:project/features/pro/incoming_jobs/presentation/widgets/incoming_job_card.dart';
+import 'package:project/features/pro/incoming_jobs/presentation/widgets/incoming_jobs_view.dart';
 import 'package:project/main.dart' as app;
 
 const _clientEmail = 'client@client.com';

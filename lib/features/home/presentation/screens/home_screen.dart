@@ -39,7 +39,8 @@ class _HomeScreenState extends State<HomeScreen> {
           .eq('id', user.id)
           .maybeSingle();
 
-      final isProfessional = profile != null && profile['role'] == 'professional';
+      final isProfessional =
+          profile != null && profile['role'] == 'professional';
       if (!mounted) return;
       setState(() {
         _isProfessional = isProfessional;
@@ -82,20 +83,16 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-
   Widget _buildMainTab() {
     return SingleChildScrollView(
+      key: const Key('homeMainTab'),
       child: Column(
         children: [
           // ── Green zone: header + map + search ──────────────────────
           Container(
             color: FieldifyColors.g800,
             child: Column(
-              children: [
-                _buildHeader(),
-                _buildMap(),
-                _buildSearchBar(),
-              ],
+              children: [_buildHeader(), _buildMap(), _buildSearchBar()],
             ),
           ),
           // ── Curved transition strip ────────────────────────────────
@@ -118,6 +115,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildJobsTab() {
     return Column(
+      key: const Key('homeJobsTab'),
       children: [
         Container(
           color: FieldifyColors.g800,
@@ -126,6 +124,7 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               Text(
                 'Incoming jobs',
+                key: const Key('homeJobsHeader'),
                 style: GoogleFonts.dmSans(
                   fontSize: 22,
                   fontWeight: FontWeight.w500,
@@ -186,7 +185,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               Row(
                 children: const [
-                  const _NotifButton(),
+                  _NotifButton(),
                   SizedBox(width: 8),
                   _LogoutButton(),
                 ],
@@ -196,6 +195,7 @@ class _HomeScreenState extends State<HomeScreen> {
           const SizedBox(height: 18),
           Text(
             'Good morning,',
+            key: const Key('homeGreetingText'),
             style: GoogleFonts.dmSans(
               fontSize: 13,
               fontWeight: FontWeight.w300,
@@ -205,6 +205,7 @@ class _HomeScreenState extends State<HomeScreen> {
           // TODO: replace with current user name from profile
           Text(
             'Bruno',
+            key: const Key('homeUserNameText'),
             style: GoogleFonts.dmSans(
               fontSize: 24,
               fontWeight: FontWeight.w500,
@@ -228,9 +229,7 @@ class _HomeScreenState extends State<HomeScreen> {
           height: 160,
           child: Stack(
             children: [
-              Positioned.fill(
-                child: CustomPaint(painter: MapPainter()),
-              ),
+              Positioned.fill(child: CustomPaint(painter: MapPainter())),
               // TODO: replace pro dot initials with nearby pros from DB
               const Positioned(top: 18, left: 45, child: _ProDot('MF')),
               const Positioned(top: 62, right: 45, child: _ProDot('AC')),
@@ -250,7 +249,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: [
                       Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 11, vertical: 5),
+                          horizontal: 11,
+                          vertical: 5,
+                        ),
                         decoration: BoxDecoration(
                           color: FieldifyColors.g800,
                           borderRadius: BorderRadius.circular(999),
@@ -280,7 +281,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 11, vertical: 5),
+                          horizontal: 11,
+                          vertical: 5,
+                        ),
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(999),
@@ -326,12 +329,13 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Text(
                 'What do you need fixed?',
                 style: GoogleFonts.dmSans(
-                    fontSize: 14, color: FieldifyColors.ink3),
+                  fontSize: 14,
+                  color: FieldifyColors.ink3,
+                ),
               ),
             ),
             Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
               decoration: BoxDecoration(
                 color: FieldifyColors.g100,
                 borderRadius: BorderRadius.circular(7),
@@ -390,7 +394,8 @@ class _HomeScreenState extends State<HomeScreen> {
           const _SectionHeader(title: 'Quick request'),
           const SizedBox(height: 12),
           _RequestCard(
-            key: Key('goToRequestButton'),
+            key: const Key('quickRequestPlumbingCard'),
+            buttonKey: const Key('goToRequestButton'),
             icon: ServiceIconType.plumbing,
             title: 'Plumbing',
             subtitle: 'Leaks, pipes, installations',
@@ -426,7 +431,7 @@ class _HomeScreenState extends State<HomeScreen> {
 // ── Small widgets ─────────────────────────────────────────────────────────────
 
 class _NotifButton extends StatelessWidget {
-  const _NotifButton({super.key});
+  const _NotifButton();
 
   @override
   Widget build(BuildContext context) {
@@ -438,11 +443,13 @@ class _NotifButton extends StatelessWidget {
           height: 36,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            border: Border.all(
-                color: Colors.white.withAlpha(51), width: 1.5),
+            border: Border.all(color: Colors.white.withAlpha(51), width: 1.5),
           ),
-          child: const Icon(Icons.notifications_outlined,
-              size: 16, color: FieldifyColors.g100),
+          child: const Icon(
+            Icons.notifications_outlined,
+            size: 16,
+            color: FieldifyColors.g100,
+          ),
         ),
         Positioned(
           top: -1,
@@ -462,7 +469,6 @@ class _NotifButton extends StatelessWidget {
   }
 }
 
-
 class _LogoutButton extends StatelessWidget {
   const _LogoutButton();
 
@@ -474,16 +480,14 @@ class _LogoutButton extends StatelessWidget {
         onTap: () async {
           await supabase.auth.signOut();
         },
+        key: const Key('homeLogoutButton'),
         customBorder: const CircleBorder(),
         child: Container(
           width: 36,
           height: 36,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            border: Border.all(
-              color: Colors.white.withAlpha(51),
-              width: 1.5,
-            ),
+            border: Border.all(color: Colors.white.withAlpha(51), width: 1.5),
           ),
           child: const Icon(
             Icons.logout_rounded,
@@ -499,7 +503,6 @@ class _LogoutButton extends StatelessWidget {
 class _ProDot extends StatelessWidget {
   final String initials;
   const _ProDot(this.initials);
-
 
   @override
   Widget build(BuildContext context) {
@@ -527,7 +530,6 @@ class _ProDot extends StatelessWidget {
 
 class _ActiveJobBanner extends StatelessWidget {
   const _ActiveJobBanner();
-
 
   @override
   Widget build(BuildContext context) {
@@ -593,8 +595,7 @@ class _ActiveJobBanner extends StatelessWidget {
             ),
           ),
           Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             decoration: BoxDecoration(
               color: FieldifyColors.g200,
               borderRadius: BorderRadius.circular(999),
@@ -621,7 +622,6 @@ class _SectionHeader extends StatelessWidget {
   final VoidCallback? onLink;
 
   const _SectionHeader({required this.title, this.link, this.onLink});
-
 
   @override
   Widget build(BuildContext context) {
@@ -673,7 +673,6 @@ class _CategoryPill extends StatelessWidget {
     required this.onTap,
   });
 
-
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -687,9 +686,7 @@ class _CategoryPill extends StatelessWidget {
               color: active ? FieldifyColors.g800 : Colors.white,
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: active
-                    ? FieldifyColors.g800
-                    : const Color(0x14000000),
+                color: active ? FieldifyColors.g800 : const Color(0x14000000),
               ),
             ),
             child: Center(
@@ -726,6 +723,7 @@ class _RequestCard extends StatelessWidget {
   final String time;
   final String price;
   final bool filled;
+  final Key? buttonKey;
 
   const _RequestCard({
     super.key,
@@ -735,8 +733,8 @@ class _RequestCard extends StatelessWidget {
     required this.time,
     required this.price,
     required this.filled,
+    this.buttonKey,
   });
-
 
   @override
   Widget build(BuildContext context) {
@@ -785,7 +783,9 @@ class _RequestCard extends StatelessWidget {
                 Text(
                   subtitle,
                   style: GoogleFonts.dmSans(
-                      fontSize: 12, color: FieldifyColors.ink3),
+                    fontSize: 12,
+                    color: FieldifyColors.ink3,
+                  ),
                 ),
                 const SizedBox(height: 5),
                 Row(
@@ -810,7 +810,9 @@ class _RequestCard extends StatelessWidget {
                     Text(
                       price,
                       style: GoogleFonts.dmSans(
-                          fontSize: 11, color: FieldifyColors.ink3),
+                        fontSize: 11,
+                        color: FieldifyColors.ink3,
+                      ),
                     ),
                   ],
                 ),
@@ -820,20 +822,18 @@ class _RequestCard extends StatelessWidget {
           const SizedBox(width: 8),
           // Button
           GestureDetector(
-            key: const Key('goToRequestButton'),
-            onTap: () => Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const RequestScreen()),
-            ),
+            key: buttonKey,
+            onTap: () => Navigator.of(
+              context,
+            ).push(MaterialPageRoute(builder: (_) => const RequestScreen())),
             child: Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
               decoration: BoxDecoration(
                 color: filled ? FieldifyColors.g800 : Colors.transparent,
                 borderRadius: BorderRadius.circular(10),
                 border: filled
                     ? null
-                    : Border.all(
-                        color: FieldifyColors.g200, width: 1.5),
+                    : Border.all(color: FieldifyColors.g200, width: 1.5),
               ),
               child: Text(
                 'Request',

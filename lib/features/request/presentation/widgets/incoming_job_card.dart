@@ -32,6 +32,7 @@ class IncomingJobCard extends StatelessWidget {
               Expanded(
                 child: Text(
                   job.title.isEmpty ? 'Untitled request' : job.title,
+                  key: Key('incomingJobTitle_${job.id}'),
                   style: GoogleFonts.dmSans(
                     fontSize: 16,
                     fontWeight: FontWeight.w500,
@@ -41,13 +42,17 @@ class IncomingJobCard extends StatelessWidget {
               ),
               if (job.isRejected) ...[
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 5,
+                  ),
                   decoration: BoxDecoration(
                     color: const Color(0xFFF6E8D7),
                     borderRadius: BorderRadius.circular(999),
                   ),
                   child: Text(
                     'REJECTED',
+                    key: Key('incomingJobRejectedBadge_${job.id}'),
                     style: GoogleFonts.dmSans(
                       fontSize: 10,
                       fontWeight: FontWeight.w600,
@@ -59,13 +64,17 @@ class IncomingJobCard extends StatelessWidget {
                 const SizedBox(width: 8),
               ],
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 5,
+                ),
                 decoration: BoxDecoration(
                   color: FieldifyColors.g100,
                   borderRadius: BorderRadius.circular(999),
                 ),
                 child: Text(
                   job.status.toUpperCase(),
+                  key: Key('incomingJobStatus_${job.id}'),
                   style: GoogleFonts.dmSans(
                     fontSize: 10,
                     fontWeight: FontWeight.w600,
@@ -78,7 +87,9 @@ class IncomingJobCard extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            job.description.isEmpty ? 'No description provided.' : job.description,
+            job.description.isEmpty
+                ? 'No description provided.'
+                : job.description,
             style: GoogleFonts.dmSans(
               fontSize: 13,
               color: FieldifyColors.ink3,
@@ -89,7 +100,11 @@ class IncomingJobCard extends StatelessWidget {
             const SizedBox(height: 12),
             Row(
               children: [
-                const Icon(Icons.place_outlined, size: 15, color: FieldifyColors.ink4),
+                const Icon(
+                  Icons.place_outlined,
+                  size: 15,
+                  color: FieldifyColors.ink4,
+                ),
                 const SizedBox(width: 6),
                 Expanded(
                   child: Text(
@@ -108,6 +123,7 @@ class IncomingJobCard extends StatelessWidget {
             children: [
               Expanded(
                 child: OutlinedButton(
+                  key: Key('incomingJobRejectButton_${job.id}'),
                   onPressed: onReject,
                   style: OutlinedButton.styleFrom(
                     minimumSize: const Size.fromHeight(46),
@@ -128,6 +144,7 @@ class IncomingJobCard extends StatelessWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: ElevatedButton(
+                  key: Key('incomingJobAcceptButton_${job.id}'),
                   onPressed: onAccept,
                   style: ElevatedButton.styleFrom(
                     minimumSize: const Size.fromHeight(46),

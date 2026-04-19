@@ -1,4 +1,4 @@
-import '../../../../core/supabase/supabase_client.dart';
+import '../../../../../core/supabase/supabase_client.dart';
 import '../models/trade_model.dart';
 
 class TradesRepository {

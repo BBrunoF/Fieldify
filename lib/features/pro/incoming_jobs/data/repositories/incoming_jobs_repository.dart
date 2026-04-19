@@ -21,6 +21,8 @@ class IncomingJobsRepository {
   }) async {
     try {
       return await _service.fetchIncomingJobs(includeRejected: includeRejected);
+    } on ProfessionalProfileMissingException catch (e) {
+      throw IncomingJobsFailure(e.toString());
     } on PostgrestException catch (e) {
       throw IncomingJobsFailure(e.message);
     }
@@ -29,6 +31,8 @@ class IncomingJobsRepository {
   Future<void> acceptJob(String requestId) async {
     try {
       await _service.acceptJob(requestId);
+    } on JobAlreadyTakenException catch (e) {
+      throw IncomingJobsFailure(e.toString());
     } on PostgrestException catch (e) {
       throw IncomingJobsFailure(e.message);
     }

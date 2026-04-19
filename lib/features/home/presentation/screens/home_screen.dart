@@ -6,8 +6,8 @@ import '../../../auth/presentation/widgets/auth_shared.dart';
 import '../../../../shared/widgets/fieldify_painters.dart';
 import '../../../../shared/widgets/bottom_nav.dart';
 import '../../../../core/supabase/supabase_client.dart';
-import '../../../request/presentation/screens/request_screen.dart';
-import '../../../request/presentation/widgets/incoming_jobs_view.dart';
+import '../../../client/request/presentation/screens/request_screen.dart';
+import '../../../pro/incoming_jobs/presentation/widgets/incoming_jobs_view.dart';
 
 // ── Screen ───────────────────────────────────────────────────────────────────
 class HomeScreen extends StatefulWidget {

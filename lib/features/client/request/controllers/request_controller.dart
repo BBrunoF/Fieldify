@@ -1,6 +1,6 @@
 // SPLIT FROM: request_screen.dart
 import 'package:flutter/foundation.dart';
-import '../../../core/supabase/supabase_client.dart';
+import '../../../../core/supabase/supabase_client.dart';
 import '../data/repositories/request_repository.dart';
 
 class RequestController extends ChangeNotifier {

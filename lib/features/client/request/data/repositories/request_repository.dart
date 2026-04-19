@@ -1,6 +1,6 @@
 // SPLIT FROM: request_screen.dart
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../../../../core/supabase/supabase_client.dart';
+import '../../../../../core/supabase/supabase_client.dart';
 
 class RequestFailure implements Exception {
   final String message;

@@ -9,6 +9,7 @@ class IncomingJobsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: const Key('incomingJobsScreen'),
       backgroundColor: FieldifyColors.surface,
       appBar: AppBar(
         backgroundColor: FieldifyColors.g800,
@@ -16,6 +17,7 @@ class IncomingJobsScreen extends StatelessWidget {
         elevation: 0,
         title: Text(
           'Incoming jobs',
+          key: const Key('incomingJobsAppBarTitle'),
           style: GoogleFonts.dmSans(fontWeight: FontWeight.w500),
         ),
       ),

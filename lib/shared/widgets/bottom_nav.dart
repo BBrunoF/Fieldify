@@ -30,54 +30,51 @@ class BottomNav extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: (() {
-          final visibleIndexes = showJobs ? const [0, 1, 2, 3] : const [0, 2, 3];
-          return List.generate(
-            visibleIndexes.length,
-            (visibleIndex) {
-              final i = visibleIndexes[visibleIndex];
-              return GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: () => onTap(i),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                SizedBox(
-                  width: 22,
-                  height: 22,
-                  child: CustomPaint(
-                    painter: NavIconPainter(
-                      index: i,
-                      active: selected == i,
+          final visibleIndexes = showJobs
+              ? const [0, 1, 2, 3]
+              : const [0, 2, 3];
+          return List.generate(visibleIndexes.length, (visibleIndex) {
+            final i = visibleIndexes[visibleIndex];
+            return GestureDetector(
+              key: Key('bottomNavItem_${_labels[i].toLowerCase()}'),
+              behavior: HitTestBehavior.opaque,
+              onTap: () => onTap(i),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SizedBox(
+                    width: 22,
+                    height: 22,
+                    child: CustomPaint(
+                      painter: NavIconPainter(index: i, active: selected == i),
                     ),
                   ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  _labels[i],
-                  style: GoogleFonts.dmSans(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w500,
-                    color: selected == i
-                        ? FieldifyColors.g800
-                        : FieldifyColors.ink4,
+                  const SizedBox(height: 4),
+                  Text(
+                    _labels[i],
+                    style: GoogleFonts.dmSans(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w500,
+                      color: selected == i
+                          ? FieldifyColors.g800
+                          : FieldifyColors.ink4,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 2),
-                Container(
-                  width: 20,
-                  height: 2.5,
-                  decoration: BoxDecoration(
-                    color: selected == i
-                        ? FieldifyColors.g800
-                        : Colors.transparent,
-                    borderRadius: BorderRadius.circular(999),
+                  const SizedBox(height: 2),
+                  Container(
+                    width: 20,
+                    height: 2.5,
+                    decoration: BoxDecoration(
+                      color: selected == i
+                          ? FieldifyColors.g800
+                          : Colors.transparent,
+                      borderRadius: BorderRadius.circular(999),
+                    ),
                   ),
-                ),
-              ],
-            ),
-          );
-            },
-          );
+                ],
+              ),
+            );
+          });
         })(),
       ),
     );
@@ -125,7 +122,9 @@ class NavIconPainter extends CustomPainter {
       case 1: // Jobs/Calendar
         canvas.drawRRect(
           RRect.fromRectAndRadius(
-              const Rect.fromLTWH(3, 5, 16, 14), const Radius.circular(2)),
+            const Rect.fromLTWH(3, 5, 16, 14),
+            const Radius.circular(2),
+          ),
           stroke,
         );
         canvas.drawLine(const Offset(7, 3), const Offset(7, 7), stroke);
@@ -137,15 +136,30 @@ class NavIconPainter extends CustomPainter {
           Path()
             ..moveTo(4, 4)
             ..lineTo(18, 4)
-            ..arcTo(const Rect.fromLTWH(17, 4, 2, 2), -math.pi / 2, math.pi / 2, false)
+            ..arcTo(
+              const Rect.fromLTWH(17, 4, 2, 2),
+              -math.pi / 2,
+              math.pi / 2,
+              false,
+            )
             ..lineTo(20, 14)
             ..arcTo(const Rect.fromLTWH(17, 13, 2, 2), 0, math.pi / 2, false)
             ..lineTo(7, 15)
             ..lineTo(4, 18)
             ..lineTo(4, 15)
-            ..arcTo(const Rect.fromLTWH(3, 13, 2, 2), math.pi / 2, math.pi / 2, false)
+            ..arcTo(
+              const Rect.fromLTWH(3, 13, 2, 2),
+              math.pi / 2,
+              math.pi / 2,
+              false,
+            )
             ..lineTo(3, 5)
-            ..arcTo(const Rect.fromLTWH(3, 4, 2, 2), math.pi, math.pi / 2, false)
+            ..arcTo(
+              const Rect.fromLTWH(3, 4, 2, 2),
+              math.pi,
+              math.pi / 2,
+              false,
+            )
             ..close(),
           stroke,
         );

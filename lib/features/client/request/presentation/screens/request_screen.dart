@@ -55,7 +55,7 @@ class _RequestScreenState extends State<RequestScreen> {
   final _floorCtrl = TextEditingController();
   final _requestCtrl = RequestController();
 
-  DateTime _date = DateTime(2025, 4, 18);
+  DateTime _date = DateTime.now().add(const Duration(days: 1));
   TimeOfDay _time = const TimeOfDay(hour: 10, minute: 0);
 
   @override

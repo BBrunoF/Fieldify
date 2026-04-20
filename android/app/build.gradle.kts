@@ -40,6 +40,10 @@ android {
     }
 }
 
+dependencies {
+    androidTestUtil("androidx.test:orchestrator:1.5.1")
+}
+
 flutter {
     source = "../.."
 }

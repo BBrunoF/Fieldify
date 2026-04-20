@@ -219,7 +219,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // ── Map strip ──────────────────────────────────────────────────────────────
   Widget _buildMap() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -234,9 +233,7 @@ class _HomeScreenState extends State<HomeScreen> {
               const Positioned(top: 18, left: 45, child: _ProDot('MF')),
               const Positioned(top: 62, right: 45, child: _ProDot('AC')),
               const Positioned(bottom: 22, left: 70, child: _ProDot('JR')),
-              // Center pin
               const Center(child: MapPin()),
-              // Bottom overlay
               Positioned(
                 bottom: 0,
                 left: 0,
@@ -310,7 +307,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // ── Search bar ─────────────────────────────────────────────────────────────
   Widget _buildSearchBar() {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
@@ -355,7 +351,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // ── Body content ───────────────────────────────────────────────────────────
   Widget _buildContent() {
     const categories = [
       _CategoryData('Plumbing', ServiceIconType.plumbing),
@@ -369,11 +364,9 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Active job banner
           const _ActiveJobBanner(),
           const SizedBox(height: 20),
 
-          // Services
           _SectionHeader(title: 'Services', link: 'See all', onLink: () {}),
           const SizedBox(height: 12),
           Row(
@@ -390,7 +383,6 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           const SizedBox(height: 20),
 
-          // Quick request
           const _SectionHeader(title: 'Quick request'),
           const SizedBox(height: 12),
           _RequestCard(
@@ -402,6 +394,7 @@ class _HomeScreenState extends State<HomeScreen> {
             time: '~12 min',
             price: 'from €30/h',
             filled: true,
+            requestButtonKey: const Key('goToRequestButton'),
           ),
           const SizedBox(height: 10),
           _RequestCard(
@@ -429,6 +422,46 @@ class _HomeScreenState extends State<HomeScreen> {
 }
 
 // ── Small widgets ─────────────────────────────────────────────────────────────
+
+class _LogoutButton extends StatelessWidget {
+  const _LogoutButton();
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      key: const Key('logoutButton'),
+      onTap: () async {
+        try {
+          await AuthService().signOut();
+        } catch (e) {
+          if (!context.mounted) return;
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Erro ao terminar sessão: $e'),
+            ),
+          );
+        }
+      },
+      child: Container(
+        width: 36,
+        height: 36,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: Colors.white.withAlpha(51),
+            width: 1.5,
+          ),
+        ),
+        child: const Icon(
+          Icons.logout,
+          size: 16,
+          color: FieldifyColors.g100,
+        ),
+      ),
+    );
+  }
+}
 
 class _NotifButton extends StatelessWidget {
   const _NotifButton();
@@ -654,8 +687,6 @@ class _SectionHeader extends StatelessWidget {
   }
 }
 
-// ── Category pill ─────────────────────────────────────────────────────────────
-
 class _CategoryData {
   final String name;
   final ServiceIconType icon;
@@ -714,8 +745,6 @@ class _CategoryPill extends StatelessWidget {
   }
 }
 
-// ── Request card ──────────────────────────────────────────────────────────────
-
 class _RequestCard extends StatelessWidget {
   final ServiceIconType icon;
   final String title;
@@ -747,7 +776,6 @@ class _RequestCard extends StatelessWidget {
       ),
       child: Row(
         children: [
-          // Icon box
           Container(
             width: 46,
             height: 46,
@@ -766,7 +794,6 @@ class _RequestCard extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 14),
-          // Info
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -820,7 +847,6 @@ class _RequestCard extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 8),
-          // Button
           GestureDetector(
             key: buttonKey,
             onTap: () => Navigator.of(

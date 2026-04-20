@@ -38,7 +38,6 @@ Future<void> _login(
   PatrolIntegrationTester $, {
   required String email,
   required String password,
-  required bool professional,
 }) async {
   if (find.byKey(const Key('emailField')).evaluate().isEmpty) {
     await _openLoginPage($);
@@ -59,31 +58,17 @@ Future<void> _login(
     find.byKey(const Key('homeGreetingText')),
   ).waitUntilVisible(timeout: const Duration(seconds: 20));
 
-  if (professional) {
-    await $(
-      find.byKey(const Key('bottomNavItem_jobs')),
-    ).waitUntilVisible(timeout: const Duration(seconds: 20));
-  } else {
-    expect(find.byKey(const Key('bottomNavItem_jobs')), findsNothing);
-  }
+  await $(
+    find.byKey(const Key('bottomNavItem_jobs')),
+  ).waitUntilVisible(timeout: const Duration(seconds: 20));
 }
 
 Future<void> _loginAsClient(PatrolIntegrationTester $) async {
-  await _login(
-    $,
-    email: _clientEmail,
-    password: _clientPassword,
-    professional: false,
-  );
+  await _login($, email: _clientEmail, password: _clientPassword);
 }
 
 Future<void> _loginAsProfessional(PatrolIntegrationTester $) async {
-  await _login(
-    $,
-    email: _professionalEmail,
-    password: _professionalPassword,
-    professional: true,
-  );
+  await _login($, email: _professionalEmail, password: _professionalPassword);
 }
 
 Future<void> _logoutToLogin(PatrolIntegrationTester $) async {
@@ -257,7 +242,7 @@ void main() {
     );
 
     await _returnToHomeAfterSubmission($);
-    expect(find.byKey(const Key('bottomNavItem_jobs')), findsNothing);
+    expect(find.byKey(const Key('bottomNavItem_jobs')), findsOneWidget);
   });
 
   patrolTest('professional can accept a client request', ($) async {

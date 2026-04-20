@@ -7,6 +7,7 @@ import '../../../../shared/widgets/fieldify_painters.dart';
 import '../../../../shared/widgets/bottom_nav.dart';
 import '../../../../core/supabase/supabase_client.dart';
 import '../../../client/request/presentation/screens/request_screen.dart';
+import '../../../client/job_history/presentation/widgets/job_history_view.dart';
 import '../../../pro/incoming_jobs/presentation/widgets/incoming_jobs_view.dart';
 
 // ── Screen ───────────────────────────────────────────────────────────────────
@@ -44,18 +45,11 @@ class _HomeScreenState extends State<HomeScreen> {
       if (!mounted) return;
       setState(() {
         _isProfessional = isProfessional;
-        if (!_isProfessional && _selectedNav == 1) {
-          _selectedNav = 0;
-        }
       });
     } catch (_) {}
   }
 
   void _onNavTap(int i) {
-    if (!_isProfessional && i == 1) {
-      setState(() => _selectedNav = 0);
-      return;
-    }
     setState(() => _selectedNav = i);
   }
 
@@ -71,11 +65,11 @@ class _HomeScreenState extends State<HomeScreen> {
         bottomNavigationBar: BottomNav(
           selected: _selectedNav,
           onTap: _onNavTap,
-          showJobs: _isProfessional,
+          showJobs: true,
         ),
         body: SafeArea(
           bottom: false,
-          child: _selectedNav == 1 && _isProfessional
+          child: _selectedNav == 1
               ? _buildJobsTab()
               : _buildMainTab(),
         ),
@@ -114,16 +108,22 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildJobsTab() {
+    final headerTitle = _isProfessional ? 'Incoming jobs' : 'My jobs';
     return Column(
       key: const Key('homeJobsTab'),
       children: [
         Container(
           color: FieldifyColors.g800,
-          padding: const EdgeInsets.fromLTRB(24, 14, 24, 18),
+          padding: EdgeInsets.fromLTRB(
+            24,
+            14,
+            24,
+            _isProfessional ? 18 : 12,
+          ),
           child: Row(
             children: [
               Text(
-                'Incoming jobs',
+                headerTitle,
                 key: const Key('homeJobsHeader'),
                 style: GoogleFonts.dmSans(
                   fontSize: 22,
@@ -137,8 +137,12 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         Expanded(
           child: Container(
-            color: FieldifyColors.surface,
-            child: const IncomingJobsView(),
+            color: _isProfessional
+                ? FieldifyColors.surface
+                : FieldifyColors.g800,
+            child: _isProfessional
+                ? const IncomingJobsView()
+                : const JobHistoryView(),
           ),
         ),
       ],

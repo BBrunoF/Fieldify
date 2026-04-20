@@ -47,3 +47,7 @@ dependencies {
 flutter {
     source = "../.."
 }
+
+dependencies {
+    androidTestUtil("androidx.test:orchestrator:1.5.1")
+}

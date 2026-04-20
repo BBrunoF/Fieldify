@@ -1,6 +1,6 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
-import '../screens/auth/auth_shared.dart';
+import '../../core/theme/app_colors.dart';
 
 // ── Service icon types ────────────────────────────────────────────────────────
 enum ServiceIconType { plumbing, electrical, carpentry, hvac, painting, other }

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-import 'auth_shared.dart';
-import '../../services/auth_service.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../widgets/auth_shared.dart';
+import '../../controllers/auth_controller.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -14,17 +14,26 @@ class RegisterScreen extends StatefulWidget {
 
 class _RegisterScreenState extends State<RegisterScreen> {
   bool _obscure = true;
-  bool _loading = false;
-  String? _error;
 
   final _firstCtrl = TextEditingController();
   final _lastCtrl  = TextEditingController();
   final _emailCtrl = TextEditingController();
   final _phoneCtrl = TextEditingController();
   final _pwCtrl    = TextEditingController();
+  final _auth      = AuthController();
+
+  @override
+  void initState() {
+    super.initState();
+    _auth.addListener(_onAuthChanged);
+  }
+
+  void _onAuthChanged() => setState(() {});
 
   @override
   void dispose() {
+    _auth.removeListener(_onAuthChanged);
+    _auth.dispose();
     _firstCtrl.dispose();
     _lastCtrl.dispose();
     _emailCtrl.dispose();
@@ -34,21 +43,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   Future<void> _signUp() async {
-    setState(() { _loading = true; _error = null; });
-    try {
-      await AuthService().signUp(
-        email: _emailCtrl.text.trim(),
-        password: _pwCtrl.text,
-        firstName: _firstCtrl.text.trim(),
-        lastName: _lastCtrl.text.trim(),
-        phone: _phoneCtrl.text.trim(),
-      );
-      // AuthGate handles navigation via stream
-    } on AuthException catch (e) {
-      setState(() => _error = e.message);
-    } finally {
-      setState(() => _loading = false);
-    }
+    await _auth.signUp(
+      email: _emailCtrl.text.trim(),
+      password: _pwCtrl.text,
+      firstName: _firstCtrl.text.trim(),
+      lastName: _lastCtrl.text.trim(),
+      phone: _phoneCtrl.text.trim(),
+    );
+    // AuthGate handles navigation via stream
   }
 
   @override
@@ -168,9 +170,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       const SizedBox(height: 20),
 
                       // ── Error message ─────────────────────────────────────
-                      if (_error != null) ...[
+                      if (_auth.error != null) ...[
                         Text(
-                          _error!,
+                          _auth.error!,
                           style: GoogleFonts.dmSans(
                             fontSize: 13,
                             color: const Color(0xFFC0392B),
@@ -181,7 +183,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ],
 
                       // ── Create account button ─────────────────────────────
-                      _loading
+                      _auth.isLoading
                           ? const Center(child: CircularProgressIndicator())
                           : PrimaryButton(
                               label: 'Create account',

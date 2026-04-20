@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-import 'auth_shared.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../widgets/auth_shared.dart';
 import 'register_screen.dart';
-import '../../services/auth_service.dart';
+import '../../controllers/auth_controller.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -15,41 +15,34 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   bool _obscure = true;
-  bool _loading = false;
-  String? _error;
 
   final _emailCtrl = TextEditingController();
-  final _pwCtrl = TextEditingController();
+  final _pwCtrl    = TextEditingController();
+  final _auth      = AuthController();
+
+  @override
+  void initState() {
+    super.initState();
+    _auth.addListener(_onAuthChanged);
+  }
+
+  void _onAuthChanged() => setState(() {});
 
   @override
   void dispose() {
+    _auth.removeListener(_onAuthChanged);
+    _auth.dispose();
     _emailCtrl.dispose();
     _pwCtrl.dispose();
     super.dispose();
   }
 
   Future<void> _signIn() async {
-    setState(() {
-      _loading = true;
-      _error = null;
-    });
-
-    try {
-      await AuthService().signIn(
-        email: _emailCtrl.text.trim(),
-        password: _pwCtrl.text,
-      );
-      // AuthGate handles navigation via stream
-    } on AuthException {
-      if (!mounted) return;
-      setState(() => _error = 'Invalid login credentials');
-    } catch (_) {
-      if (!mounted) return;
-      setState(() => _error = 'Login failed');
-    } finally {
-      if (!mounted) return;
-      setState(() => _loading = false);
-    }
+    await _auth.signIn(
+      email: _emailCtrl.text.trim(),
+      password: _pwCtrl.text,
+    );
+    // AuthGate handles navigation via stream
   }
 
   @override
@@ -142,9 +135,10 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       const SizedBox(height: 4),
 
-                      if (_error != null) ...[
+                      // ── Error message ─────────────────────────────────────
+                      if (_auth.error != null) ...[
                         Text(
-                          _error!,
+                          _auth.error!,
                           style: GoogleFonts.dmSans(
                             fontSize: 13,
                             color: const Color(0xFFC0392B),
@@ -154,7 +148,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         const SizedBox(height: 10),
                       ],
 
-                      _loading
+                      // ── Sign in button ────────────────────────────────────
+                      _auth.isLoading
                           ? const Center(child: CircularProgressIndicator())
                           : PrimaryButton(
                               label: 'Sign in',

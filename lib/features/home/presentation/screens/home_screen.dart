@@ -1,11 +1,13 @@
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../auth/auth_shared.dart';
-import '../request/request_screen.dart';
-import '../../services/auth_service.dart';
-import '../../shared/fieldify_painters.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../auth/presentation/widgets/auth_shared.dart';
+import '../../../../shared/widgets/fieldify_painters.dart';
+import '../../../../shared/widgets/bottom_nav.dart';
+import '../../../../core/supabase/supabase_client.dart';
+import '../../../client/request/presentation/screens/request_screen.dart';
+import '../../../pro/incoming_jobs/presentation/widgets/incoming_jobs_view.dart';
 
 // ── Screen ───────────────────────────────────────────────────────────────────
 class HomeScreen extends StatefulWidget {
@@ -18,6 +20,44 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedCategory = 0;
   int _selectedNav = 0;
+  bool _isProfessional = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserRole();
+  }
+
+  Future<void> _loadUserRole() async {
+    final user = supabase.auth.currentUser;
+    if (user == null) return;
+
+    try {
+      final profile = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', user.id)
+          .maybeSingle();
+
+      final isProfessional =
+          profile != null && profile['role'] == 'professional';
+      if (!mounted) return;
+      setState(() {
+        _isProfessional = isProfessional;
+        if (!_isProfessional && _selectedNav == 1) {
+          _selectedNav = 0;
+        }
+      });
+    } catch (_) {}
+  }
+
+  void _onNavTap(int i) {
+    if (!_isProfessional && i == 1) {
+      setState(() => _selectedNav = 0);
+      return;
+    }
+    setState(() => _selectedNav = i);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -28,45 +68,84 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       child: Scaffold(
         backgroundColor: FieldifyColors.surface,
-        bottomNavigationBar: _BottomNav(
+        bottomNavigationBar: BottomNav(
           selected: _selectedNav,
-          onTap: (i) => setState(() => _selectedNav = i),
+          onTap: _onNavTap,
+          showJobs: _isProfessional,
         ),
         body: SafeArea(
           bottom: false,
-          child: SingleChildScrollView(
-            child: Column(
-              children: [
-                Container(
-                  color: FieldifyColors.g800,
-                  child: Column(
-                    children: [
-                      _buildHeader(),
-                      _buildMap(),
-                      _buildSearchBar(),
-                    ],
-                  ),
-                ),
-                Container(
-                  height: 18,
-                  color: FieldifyColors.g800,
-                  child: Container(
-                    decoration: const BoxDecoration(
-                      color: FieldifyColors.surface,
-                      borderRadius:
-                          BorderRadius.vertical(top: Radius.circular(18)),
-                    ),
-                  ),
-                ),
-                _buildContent(),
-              ],
-            ),
-          ),
+          child: _selectedNav == 1 && _isProfessional
+              ? _buildJobsTab()
+              : _buildMainTab(),
         ),
       ),
     );
   }
 
+  Widget _buildMainTab() {
+    return SingleChildScrollView(
+      key: const Key('homeMainTab'),
+      child: Column(
+        children: [
+          // ── Green zone: header + map + search ──────────────────────
+          Container(
+            color: FieldifyColors.g800,
+            child: Column(
+              children: [_buildHeader(), _buildMap(), _buildSearchBar()],
+            ),
+          ),
+          // ── Curved transition strip ────────────────────────────────
+          Container(
+            height: 18,
+            color: FieldifyColors.g800,
+            child: Container(
+              decoration: const BoxDecoration(
+                color: FieldifyColors.surface,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
+              ),
+            ),
+          ),
+          // ── Body content ───────────────────────────────────────────
+          _buildContent(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildJobsTab() {
+    return Column(
+      key: const Key('homeJobsTab'),
+      children: [
+        Container(
+          color: FieldifyColors.g800,
+          padding: const EdgeInsets.fromLTRB(24, 14, 24, 18),
+          child: Row(
+            children: [
+              Text(
+                'Incoming jobs',
+                key: const Key('homeJobsHeader'),
+                style: GoogleFonts.dmSans(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.white,
+                  letterSpacing: -0.4,
+                ),
+              ),
+            ],
+          ),
+        ),
+        Expanded(
+          child: Container(
+            color: FieldifyColors.surface,
+            child: const IncomingJobsView(),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ── Header ─────────────────────────────────────────────────────────────────
   Widget _buildHeader() {
     return Padding(
       padding: const EdgeInsets.fromLTRB(24, 4, 24, 0),
@@ -106,9 +185,9 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               Row(
                 children: const [
-                  _LogoutButton(),
-                  SizedBox(width: 8),
                   _NotifButton(),
+                  SizedBox(width: 8),
+                  _LogoutButton(),
                 ],
               ),
             ],
@@ -116,14 +195,17 @@ class _HomeScreenState extends State<HomeScreen> {
           const SizedBox(height: 18),
           Text(
             'Good morning,',
+            key: const Key('homeGreetingText'),
             style: GoogleFonts.dmSans(
               fontSize: 13,
               fontWeight: FontWeight.w300,
               color: FieldifyColors.g200,
             ),
           ),
+          // TODO: replace with current user name from profile
           Text(
             'Bruno',
+            key: const Key('homeUserNameText'),
             style: GoogleFonts.dmSans(
               fontSize: 24,
               fontWeight: FontWeight.w500,
@@ -146,9 +228,8 @@ class _HomeScreenState extends State<HomeScreen> {
           height: 160,
           child: Stack(
             children: [
-              Positioned.fill(
-                child: CustomPaint(painter: MapPainter()),
-              ),
+              Positioned.fill(child: CustomPaint(painter: MapPainter())),
+              // TODO: replace pro dot initials with nearby pros from DB
               const Positioned(top: 18, left: 45, child: _ProDot('MF')),
               const Positioned(top: 62, right: 45, child: _ProDot('AC')),
               const Positioned(bottom: 22, left: 70, child: _ProDot('JR')),
@@ -183,6 +264,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                             ),
                             const SizedBox(width: 5),
+                            // TODO: replace with user location from profile/GPS
                             Text(
                               'Porto, Portugal',
                               style: GoogleFonts.dmSans(
@@ -204,6 +286,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           borderRadius: BorderRadius.circular(999),
                           border: Border.all(color: FieldifyColors.g200),
                         ),
+                        // TODO: replace with live nearby pros count from DB
                         child: Text(
                           '8 pros nearby',
                           style: GoogleFonts.dmSans(
@@ -303,13 +386,14 @@ class _HomeScreenState extends State<HomeScreen> {
           const _SectionHeader(title: 'Quick request'),
           const SizedBox(height: 12),
           _RequestCard(
+            key: const Key('quickRequestPlumbingCard'),
+            buttonKey: const Key('goToRequestButton'),
             icon: ServiceIconType.plumbing,
             title: 'Plumbing',
             subtitle: 'Leaks, pipes, installations',
             time: '~12 min',
             price: 'from €30/h',
             filled: true,
-            requestButtonKey: const Key('goToRequestButton'),
           ),
           const SizedBox(height: 10),
           _RequestCard(
@@ -338,46 +422,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
 // ── Small widgets ─────────────────────────────────────────────────────────────
 
-class _LogoutButton extends StatelessWidget {
-  const _LogoutButton();
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      key: const Key('logoutButton'),
-      onTap: () async {
-        try {
-          await AuthService().signOut();
-        } catch (e) {
-          if (!context.mounted) return;
-
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Erro ao terminar sessão: $e'),
-            ),
-          );
-        }
-      },
-      child: Container(
-        width: 36,
-        height: 36,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          border: Border.all(
-            color: Colors.white.withAlpha(51),
-            width: 1.5,
-          ),
-        ),
-        child: const Icon(
-          Icons.logout,
-          size: 16,
-          color: FieldifyColors.g100,
-        ),
-      ),
-    );
-  }
-}
-
 class _NotifButton extends StatelessWidget {
   const _NotifButton();
 
@@ -391,10 +435,7 @@ class _NotifButton extends StatelessWidget {
           height: 36,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            border: Border.all(
-              color: Colors.white.withAlpha(51),
-              width: 1.5,
-            ),
+            border: Border.all(color: Colors.white.withAlpha(51), width: 1.5),
           ),
           child: const Icon(
             Icons.notifications_outlined,
@@ -416,6 +457,37 @@ class _NotifButton extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _LogoutButton extends StatelessWidget {
+  const _LogoutButton();
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () async {
+          await supabase.auth.signOut();
+        },
+        key: const Key('homeLogoutButton'),
+        customBorder: const CircleBorder(),
+        child: Container(
+          width: 36,
+          height: 36,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(color: Colors.white.withAlpha(51), width: 1.5),
+          ),
+          child: const Icon(
+            Icons.logout_rounded,
+            size: 16,
+            color: FieldifyColors.g100,
+          ),
+        ),
+      ),
     );
   }
 }
@@ -639,7 +711,7 @@ class _RequestCard extends StatelessWidget {
   final String time;
   final String price;
   final bool filled;
-  final Key? requestButtonKey;
+  final Key? buttonKey;
 
   const _RequestCard({
     super.key,
@@ -649,7 +721,7 @@ class _RequestCard extends StatelessWidget {
     required this.time,
     required this.price,
     required this.filled,
-    this.requestButtonKey,
+    this.buttonKey,
   });
 
   @override
@@ -735,10 +807,10 @@ class _RequestCard extends StatelessWidget {
           ),
           const SizedBox(width: 8),
           GestureDetector(
-            key: requestButtonKey,
-            onTap: () => Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const RequestScreen()),
-            ),
+            key: buttonKey,
+            onTap: () => Navigator.of(
+              context,
+            ).push(MaterialPageRoute(builder: (_) => const RequestScreen())),
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
               decoration: BoxDecoration(
@@ -762,175 +834,4 @@ class _RequestCard extends StatelessWidget {
       ),
     );
   }
-}
-
-class _BottomNav extends StatelessWidget {
-  final int selected;
-  final ValueChanged<int> onTap;
-
-  const _BottomNav({required this.selected, required this.onTap});
-
-  static const _labels = ['Home', 'Jobs', 'Messages', 'Profile'];
-
-  @override
-  Widget build(BuildContext context) {
-    final bottom = MediaQuery.of(context).padding.bottom;
-    return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(top: BorderSide(color: Color(0x14000000))),
-      ),
-      padding: EdgeInsets.fromLTRB(24, 12, 24, 28 + bottom),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: List.generate(
-          4,
-          (i) => GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: () => onTap(i),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                SizedBox(
-                  width: 22,
-                  height: 22,
-                  child: CustomPaint(
-                    painter: _NavIconPainter(
-                      index: i,
-                      active: selected == i,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  _labels[i],
-                  style: GoogleFonts.dmSans(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w500,
-                    color: selected == i
-                        ? FieldifyColors.g800
-                        : FieldifyColors.ink4,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Container(
-                  width: 20,
-                  height: 2.5,
-                  decoration: BoxDecoration(
-                    color: selected == i
-                        ? FieldifyColors.g800
-                        : Colors.transparent,
-                    borderRadius: BorderRadius.circular(999),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _NavIconPainter extends CustomPainter {
-  final int index;
-  final bool active;
-
-  const _NavIconPainter({required this.index, required this.active});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final scale = size.width / 22;
-    canvas.save();
-    canvas.scale(scale, scale);
-
-    final color = active ? FieldifyColors.g800 : FieldifyColors.ink4;
-    final stroke = Paint()
-      ..color = color
-      ..strokeWidth = 1.5
-      ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.round
-      ..style = PaintingStyle.stroke;
-
-    switch (index) {
-      case 0:
-        canvas.drawPath(
-          Path()
-            ..moveTo(3, 10)
-            ..lineTo(11, 3)
-            ..lineTo(19, 10)
-            ..lineTo(19, 19)
-            ..lineTo(14, 19)
-            ..lineTo(14, 14)
-            ..lineTo(8, 14)
-            ..lineTo(8, 19)
-            ..lineTo(3, 19)
-            ..close(),
-          stroke,
-        );
-      case 1:
-        canvas.drawRRect(
-          RRect.fromRectAndRadius(
-            const Rect.fromLTWH(3, 5, 16, 14),
-            const Radius.circular(2),
-          ),
-          stroke,
-        );
-        canvas.drawLine(const Offset(7, 3), const Offset(7, 7), stroke);
-        canvas.drawLine(const Offset(15, 3), const Offset(15, 7), stroke);
-        canvas.drawLine(const Offset(3, 10), const Offset(19, 10), stroke);
-      case 2:
-        canvas.drawPath(
-          Path()
-            ..moveTo(4, 4)
-            ..lineTo(18, 4)
-            ..arcTo(
-              const Rect.fromLTWH(17, 4, 2, 2),
-              -math.pi / 2,
-              math.pi / 2,
-              false,
-            )
-            ..lineTo(20, 14)
-            ..arcTo(
-              const Rect.fromLTWH(17, 13, 2, 2),
-              0,
-              math.pi / 2,
-              false,
-            )
-            ..lineTo(7, 15)
-            ..lineTo(4, 18)
-            ..lineTo(4, 15)
-            ..arcTo(
-              const Rect.fromLTWH(3, 13, 2, 2),
-              math.pi / 2,
-              math.pi / 2,
-              false,
-            )
-            ..lineTo(3, 5)
-            ..arcTo(
-              const Rect.fromLTWH(3, 4, 2, 2),
-              math.pi,
-              math.pi / 2,
-              false,
-            )
-            ..close(),
-          stroke,
-        );
-      case 3:
-        canvas.drawCircle(const Offset(11, 8), 3.5, stroke);
-        canvas.drawPath(
-          Path()
-            ..moveTo(4, 19)
-            ..cubicTo(4, 15.7, 7.1, 13, 11, 13)
-            ..cubicTo(14.9, 13, 18, 15.7, 18, 19),
-          stroke,
-        );
-    }
-
-    canvas.restore();
-  }
-
-  @override
-  bool shouldRepaint(covariant _NavIconPainter old) =>
-      old.active != active || old.index != index;
 }

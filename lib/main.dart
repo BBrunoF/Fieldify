@@ -2,12 +2,10 @@ import 'package:flutter/material.dart';
 import 'core/routing/app_router.dart';
 import 'core/supabase/supabase_client.dart';
 
-Future<void> bootstrap() async {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initializeSupabase();
 
-Future<void> main() async {
-  await bootstrap();
   runApp(const FieldifyApp());
 }
 

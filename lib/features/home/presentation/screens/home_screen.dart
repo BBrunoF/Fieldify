@@ -394,7 +394,6 @@ class _HomeScreenState extends State<HomeScreen> {
             time: '~12 min',
             price: 'from €30/h',
             filled: true,
-            requestButtonKey: const Key('goToRequestButton'),
           ),
           const SizedBox(height: 10),
           _RequestCard(
@@ -422,46 +421,6 @@ class _HomeScreenState extends State<HomeScreen> {
 }
 
 // ── Small widgets ─────────────────────────────────────────────────────────────
-
-class _LogoutButton extends StatelessWidget {
-  const _LogoutButton();
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      key: const Key('logoutButton'),
-      onTap: () async {
-        try {
-          await AuthService().signOut();
-        } catch (e) {
-          if (!context.mounted) return;
-
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Erro ao terminar sessão: $e'),
-            ),
-          );
-        }
-      },
-      child: Container(
-        width: 36,
-        height: 36,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          border: Border.all(
-            color: Colors.white.withAlpha(51),
-            width: 1.5,
-          ),
-        ),
-        child: const Icon(
-          Icons.logout,
-          size: 16,
-          color: FieldifyColors.g100,
-        ),
-      ),
-    );
-  }
-}
 
 class _NotifButton extends StatelessWidget {
   const _NotifButton();

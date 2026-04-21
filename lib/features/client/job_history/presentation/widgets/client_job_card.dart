@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../../core/theme/app_colors.dart';
+import '../../../../shared/job_detail/data/models/job_detail_model.dart';
+import '../../../../shared/job_detail/presentation/screens/job_detail_screen.dart';
 import '../../data/models/job_history_model.dart';
 
 class ClientJobCard extends StatelessWidget {
@@ -73,6 +75,17 @@ class ClientJobCard extends StatelessWidget {
       return 'Assigned professional';
     }
     return 'Assigned pro · $trade';
+  }
+
+  void _openDetail(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => JobDetailScreen(
+          jobId: job.id,
+          viewerRole: ViewerRole.client,
+        ),
+      ),
+    );
   }
 
   String _formatElapsed(Duration d) {
@@ -223,7 +236,7 @@ class ClientJobCard extends StatelessWidget {
                 const SizedBox(width: 8),
                 OutlinedButton(
                   key: Key('clientJobMessageButton_${job.id}'),
-                  onPressed: () {},
+                  onPressed: () => _openDetail(context),
                   style: OutlinedButton.styleFrom(
                     minimumSize: const Size(0, 36),
                     padding: const EdgeInsets.symmetric(horizontal: 14),
@@ -244,7 +257,7 @@ class ClientJobCard extends StatelessWidget {
                 const SizedBox(width: 8),
                 ElevatedButton(
                   key: Key('clientJobTrackButton_${job.id}'),
-                  onPressed: () {},
+                  onPressed: () => _openDetail(context),
                   style: ElevatedButton.styleFrom(
                     minimumSize: const Size(0, 36),
                     padding: const EdgeInsets.symmetric(horizontal: 14),

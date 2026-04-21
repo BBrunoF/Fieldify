@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../../core/theme/app_colors.dart';
+import '../../../../shared/job_detail/data/models/job_detail_model.dart';
+import '../../../../shared/job_detail/presentation/screens/job_detail_screen.dart';
 import '../../data/models/incoming_job.dart';
 
 class IncomingJobCard extends StatelessWidget {
@@ -15,16 +17,31 @@ class IncomingJobCard extends StatelessWidget {
     required this.onReject,
   });
 
+  void _openDetail(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => JobDetailScreen(
+          jobId: job.id,
+          viewerRole: ViewerRole.pro,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0x14000000)),
-      ),
-      child: Column(
+    return GestureDetector(
+      key: Key('incomingJobCardTap_${job.id}'),
+      behavior: HitTestBehavior.opaque,
+      onTap: () => _openDetail(context),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: const Color(0x14000000)),
+        ),
+        child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
@@ -164,6 +181,7 @@ class IncomingJobCard extends StatelessWidget {
             ],
           ),
         ],
+      ),
       ),
     );
   }

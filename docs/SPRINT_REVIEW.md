@@ -4,10 +4,11 @@
 22/04/2026
 
 ## Attendees
-- [nome 1]
-- [nome 2]
-- [nome 3]
-- [nome 4]
+- Bruno Rafael Bessa Freitas 
+- Tiago Morais Amaral
+- Tomás Manuel Almeida Ribeiro
+- João António Neiva Amaro
+- José Pedro Rocha da Costa 
 - Teacher: Ademar Manuel Teixeira de Aguiar
 
 ## Delivered PBIs

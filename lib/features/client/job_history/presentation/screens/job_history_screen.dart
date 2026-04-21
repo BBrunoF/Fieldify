@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../../core/theme/app_colors.dart';
+import '../../controllers/job_history_controller.dart';
 import '../widgets/job_history_view.dart';
 
 class JobHistoryScreen extends StatelessWidget {
-  const JobHistoryScreen({super.key});
+  final JobHistoryController? controller;
+
+  const JobHistoryScreen({super.key, this.controller});
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +33,7 @@ class JobHistoryScreen extends StatelessWidget {
                 ),
               ),
             ),
-            const Expanded(child: JobHistoryView()),
+            Expanded(child: JobHistoryView(controller: controller)),
           ],
         ),
       ),

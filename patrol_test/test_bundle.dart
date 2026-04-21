@@ -75,9 +75,9 @@ Future<void> main() async {
   });
 
 // START: GENERATED TEST GROUPS
+  group('job_history_test', job_history_test.main);
   group('login_test', login_test.main);
   group('request_test', request_test.main);
-  group('job_history_test', job_history_test.main);
   group('smoke_test', smoke_test.main);
 // END: GENERATED TEST GROUPS
 

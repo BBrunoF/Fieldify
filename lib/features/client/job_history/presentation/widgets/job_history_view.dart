@@ -5,18 +5,23 @@ import '../../controllers/job_history_controller.dart';
 import 'client_job_card.dart';
 
 class JobHistoryView extends StatefulWidget {
-  const JobHistoryView({super.key});
+  final JobHistoryController? controller;
+
+  const JobHistoryView({super.key, this.controller});
 
   @override
   State<JobHistoryView> createState() => _JobHistoryViewState();
 }
 
 class _JobHistoryViewState extends State<JobHistoryView> {
-  final JobHistoryController _controller = JobHistoryController();
+  late final JobHistoryController _controller;
+  late final bool _ownsController;
 
   @override
   void initState() {
     super.initState();
+    _controller = widget.controller ?? JobHistoryController();
+    _ownsController = widget.controller == null;
     _controller.addListener(_onChanged);
     _controller.loadJobs();
   }
@@ -36,7 +41,9 @@ class _JobHistoryViewState extends State<JobHistoryView> {
   @override
   void dispose() {
     _controller.removeListener(_onChanged);
-    _controller.dispose();
+    if (_ownsController) {
+      _controller.dispose();
+    }
     super.dispose();
   }
 

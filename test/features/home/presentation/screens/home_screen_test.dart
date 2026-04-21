@@ -18,7 +18,7 @@ class _FakeIncomingJobsRepository extends IncomingJobsRepository {
 
 void main() {
   group('HomeScreen', () {
-    testWidgets('client users do not see jobs tab and can open request flow', (
+    testWidgets('client users see jobs tab and can open request flow', (
       tester,
     ) async {
       await pumpTestApp(
@@ -31,7 +31,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.byKey(const Key('bottomNavItem_jobs')), findsNothing);
+      expect(find.byKey(const Key('bottomNavItem_jobs')), findsOneWidget);
 
       await tester.ensureVisible(find.byKey(const Key('goToRequestButton')));
       await tester.tap(find.byKey(const Key('goToRequestButton')));

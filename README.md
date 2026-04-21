@@ -162,7 +162,6 @@ Professionals submit credential documents during the verification process, repre
 
  <p align="center" justify="center">
   <img width="466" height="406" alt="image" src="https://github.com/user-attachments/assets/02ca9194-afad-49c0-9db5-8de4d2d0cdf1" />
-
 </p>
 
 

@@ -3,6 +3,7 @@
 ## Tools Used
 - Claude (claude.ai)
 - GitHub Copilot
+- Gemini (Google)
 
 ## Usage Log
 

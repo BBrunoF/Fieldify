@@ -6,7 +6,9 @@ import '../widgets/auth_shared.dart';
 import '../../controllers/auth_controller.dart';
 
 class RegisterScreen extends StatefulWidget {
-  const RegisterScreen({super.key});
+  final AuthController? controller;
+
+  const RegisterScreen({super.key, this.controller});
 
   @override
   State<RegisterScreen> createState() => _RegisterScreenState();
@@ -16,15 +18,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool _obscure = true;
 
   final _firstCtrl = TextEditingController();
-  final _lastCtrl  = TextEditingController();
+  final _lastCtrl = TextEditingController();
   final _emailCtrl = TextEditingController();
   final _phoneCtrl = TextEditingController();
-  final _pwCtrl    = TextEditingController();
-  final _auth      = AuthController();
+  final _pwCtrl = TextEditingController();
+  late final AuthController _auth;
+  late final bool _ownsController;
 
   @override
   void initState() {
     super.initState();
+    _auth = widget.controller ?? AuthController();
+    _ownsController = widget.controller == null;
     _auth.addListener(_onAuthChanged);
   }
 
@@ -33,7 +38,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   void dispose() {
     _auth.removeListener(_onAuthChanged);
-    _auth.dispose();
+    if (_ownsController) {
+      _auth.dispose();
+    }
     _firstCtrl.dispose();
     _lastCtrl.dispose();
     _emailCtrl.dispose();
@@ -88,9 +95,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 TextFormField(
                                   controller: _firstCtrl,
                                   style: GoogleFonts.dmSans(
-                                      fontSize: 15, color: FieldifyColors.ink),
-                                  decoration:
-                                      authInputDecoration(hint: 'Bruno'),
+                                    fontSize: 15,
+                                    color: FieldifyColors.ink,
+                                  ),
+                                  decoration: authInputDecoration(
+                                    hint: 'Bruno',
+                                  ),
                                 ),
                               ],
                             ),
@@ -105,9 +115,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 TextFormField(
                                   controller: _lastCtrl,
                                   style: GoogleFonts.dmSans(
-                                      fontSize: 15, color: FieldifyColors.ink),
-                                  decoration:
-                                      authInputDecoration(hint: 'Silva'),
+                                    fontSize: 15,
+                                    color: FieldifyColors.ink,
+                                  ),
+                                  decoration: authInputDecoration(
+                                    hint: 'Silva',
+                                  ),
                                 ),
                               ],
                             ),
@@ -123,9 +136,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         controller: _emailCtrl,
                         keyboardType: TextInputType.emailAddress,
                         style: GoogleFonts.dmSans(
-                            fontSize: 15, color: FieldifyColors.ink),
-                        decoration:
-                            authInputDecoration(hint: 'you@email.com'),
+                          fontSize: 15,
+                          color: FieldifyColors.ink,
+                        ),
+                        decoration: authInputDecoration(hint: 'you@email.com'),
                       ),
                       const SizedBox(height: 14),
 
@@ -136,9 +150,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         controller: _phoneCtrl,
                         keyboardType: TextInputType.phone,
                         style: GoogleFonts.dmSans(
-                            fontSize: 15, color: FieldifyColors.ink),
-                        decoration:
-                            authInputDecoration(hint: '+351 912 345 678'),
+                          fontSize: 15,
+                          color: FieldifyColors.ink,
+                        ),
+                        decoration: authInputDecoration(
+                          hint: '+351 912 345 678',
+                        ),
                       ),
                       const SizedBox(height: 14),
 
@@ -149,7 +166,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         controller: _pwCtrl,
                         obscureText: _obscure,
                         style: GoogleFonts.dmSans(
-                            fontSize: 15, color: FieldifyColors.ink),
+                          fontSize: 15,
+                          color: FieldifyColors.ink,
+                        ),
                         decoration: authInputDecoration(
                           hint: 'Min. 8 characters',
                           suffix: IconButton(
@@ -216,7 +235,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         child: Text.rich(
                           TextSpan(
                             style: GoogleFonts.dmSans(
-                                fontSize: 13, color: FieldifyColors.ink3),
+                              fontSize: 13,
+                              color: FieldifyColors.ink3,
+                            ),
                             children: [
                               const TextSpan(text: 'Already have an account? '),
                               WidgetSpan(

@@ -14,10 +14,7 @@ class AuthRepository {
 
   AuthRepository({AuthService? service}) : _service = service ?? AuthService();
 
-  Future<void> signIn({
-    required String email,
-    required String password,
-  }) async {
+  Future<void> signIn({required String email, required String password}) async {
     try {
       await _service.signIn(email: email, password: password);
     } on AuthException catch (e) {

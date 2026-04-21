@@ -5,18 +5,23 @@ import '../../controllers/incoming_jobs_controller.dart';
 import 'incoming_job_card.dart';
 
 class IncomingJobsView extends StatefulWidget {
-  const IncomingJobsView({super.key});
+  final IncomingJobsController? controller;
+
+  const IncomingJobsView({super.key, this.controller});
 
   @override
   State<IncomingJobsView> createState() => _IncomingJobsViewState();
 }
 
 class _IncomingJobsViewState extends State<IncomingJobsView> {
-  final IncomingJobsController _controller = IncomingJobsController();
+  late final IncomingJobsController _controller;
+  late final bool _ownsController;
 
   @override
   void initState() {
     super.initState();
+    _controller = widget.controller ?? IncomingJobsController();
+    _ownsController = widget.controller == null;
     _controller.addListener(_onChanged);
     _controller.loadJobs();
   }
@@ -36,7 +41,9 @@ class _IncomingJobsViewState extends State<IncomingJobsView> {
   @override
   void dispose() {
     _controller.removeListener(_onChanged);
-    _controller.dispose();
+    if (_ownsController) {
+      _controller.dispose();
+    }
     super.dispose();
   }
 

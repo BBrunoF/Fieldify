@@ -32,9 +32,9 @@ class IncomingJobsService {
     if (proProfile == null || proProfile['trade_id'] == null) {
       throw const ProfessionalProfileMissingException();
     }
-    
+
     final tradeId = proProfile['trade_id'] as int;
-    
+
     final rejectedRows = await supabase
         .from('service_request_rejections')
         .select('request_id')

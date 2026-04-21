@@ -38,7 +38,9 @@ class ServiceIconPainter extends CustomPainter {
         );
         canvas.drawRRect(
           RRect.fromRectAndRadius(
-              const Rect.fromLTWH(9, 14, 6, 5), const Radius.circular(1)),
+            const Rect.fromLTWH(9, 14, 6, 5),
+            const Radius.circular(1),
+          ),
           stroke,
         );
 
@@ -56,7 +58,9 @@ class ServiceIconPainter extends CustomPainter {
       case ServiceIconType.carpentry:
         canvas.drawRRect(
           RRect.fromRectAndRadius(
-              const Rect.fromLTWH(3, 7, 18, 10), const Radius.circular(2)),
+            const Rect.fromLTWH(3, 7, 18, 10),
+            const Radius.circular(2),
+          ),
           stroke,
         );
         for (final x in [7.0, 12.0, 17.0]) {
@@ -72,8 +76,12 @@ class ServiceIconPainter extends CustomPainter {
         );
         canvas.drawRRect(
           RRect.fromRectAndRadius(
-              const Rect.fromLTWH(9, 13, 6, 5), const Radius.circular(1.5)),
-          Paint()..color = color..style = PaintingStyle.fill,
+            const Rect.fromLTWH(9, 13, 6, 5),
+            const Radius.circular(1.5),
+          ),
+          Paint()
+            ..color = color
+            ..style = PaintingStyle.fill,
         );
         canvas.drawLine(const Offset(3, 12), const Offset(5, 12), stroke);
         canvas.drawLine(const Offset(19, 12), const Offset(21, 12), stroke);
@@ -81,7 +89,9 @@ class ServiceIconPainter extends CustomPainter {
       case ServiceIconType.painting:
         canvas.drawRRect(
           RRect.fromRectAndRadius(
-              const Rect.fromLTWH(3, 3, 18, 18), const Radius.circular(2)),
+            const Rect.fromLTWH(3, 3, 18, 18),
+            const Radius.circular(2),
+          ),
           stroke,
         );
         canvas.drawLine(const Offset(3, 8), const Offset(21, 8), stroke);
@@ -130,13 +140,21 @@ class MapPainter extends CustomPainter {
     if (vw > 340) {
       // Home map blocks (342×160)
       for (final r in const [
-        Rect.fromLTWH(0, 0, 90, 55),    Rect.fromLTWH(100, 0, 70, 45),
-        Rect.fromLTWH(180, 0, 80, 60),  Rect.fromLTWH(270, 0, 72, 50),
-        Rect.fromLTWH(0, 65, 75, 50),   Rect.fromLTWH(85, 55, 95, 55),
-        Rect.fromLTWH(190, 70, 65, 45), Rect.fromLTWH(265, 60, 77, 55),
-        Rect.fromLTWH(0, 125, 100, 35), Rect.fromLTWH(110, 120, 80, 40),
-        Rect.fromLTWH(200, 125, 70, 35),Rect.fromLTWH(280, 125, 62, 35),
-      ]) { canvas.drawRect(r, bp); }
+        Rect.fromLTWH(0, 0, 90, 55),
+        Rect.fromLTWH(100, 0, 70, 45),
+        Rect.fromLTWH(180, 0, 80, 60),
+        Rect.fromLTWH(270, 0, 72, 50),
+        Rect.fromLTWH(0, 65, 75, 50),
+        Rect.fromLTWH(85, 55, 95, 55),
+        Rect.fromLTWH(190, 70, 65, 45),
+        Rect.fromLTWH(265, 60, 77, 55),
+        Rect.fromLTWH(0, 125, 100, 35),
+        Rect.fromLTWH(110, 120, 80, 40),
+        Rect.fromLTWH(200, 125, 70, 35),
+        Rect.fromLTWH(280, 125, 62, 35),
+      ]) {
+        canvas.drawRect(r, bp);
+      }
       final rp = Paint()..color = const Color(0xFFEAF3DE);
       canvas.drawRect(const Rect.fromLTWH(0, 55, 342, 10), rp);
       canvas.drawRect(const Rect.fromLTWH(0, 115, 342, 10), rp);
@@ -144,19 +162,25 @@ class MapPainter extends CustomPainter {
       canvas.drawRect(const Rect.fromLTWH(170, 0, 10, 160), rp);
       canvas.drawRect(const Rect.fromLTWH(255, 0, 10, 160), rp);
       final dp = _dashPaint;
-      _dash(canvas, const Offset(0, 60),  const Offset(342, 60),  dp);
+      _dash(canvas, const Offset(0, 60), const Offset(342, 60), dp);
       _dash(canvas, const Offset(0, 120), const Offset(342, 120), dp);
-      _dash(canvas, const Offset(95, 0),  const Offset(95, 160),  dp);
+      _dash(canvas, const Offset(95, 0), const Offset(95, 160), dp);
       _dash(canvas, const Offset(175, 0), const Offset(175, 160), dp);
       _dash(canvas, const Offset(260, 0), const Offset(260, 160), dp);
     } else {
       // Location step map blocks (350×120)
       for (final r in const [
-        Rect.fromLTWH(0, 0, 80, 42),    Rect.fromLTWH(90, 0, 65, 36),
-        Rect.fromLTWH(165, 0, 75, 48),  Rect.fromLTWH(250, 0, 100, 42),
-        Rect.fromLTWH(0, 52, 70, 40),   Rect.fromLTWH(80, 46, 85, 46),
-        Rect.fromLTWH(175, 58, 60, 36), Rect.fromLTWH(245, 52, 105, 44),
-      ]) { canvas.drawRect(r, bp); }
+        Rect.fromLTWH(0, 0, 80, 42),
+        Rect.fromLTWH(90, 0, 65, 36),
+        Rect.fromLTWH(165, 0, 75, 48),
+        Rect.fromLTWH(250, 0, 100, 42),
+        Rect.fromLTWH(0, 52, 70, 40),
+        Rect.fromLTWH(80, 46, 85, 46),
+        Rect.fromLTWH(175, 58, 60, 36),
+        Rect.fromLTWH(245, 52, 105, 44),
+      ]) {
+        canvas.drawRect(r, bp);
+      }
       final rp = Paint()..color = const Color(0xFFEAF3DE);
       canvas.drawRect(const Rect.fromLTWH(0, 42, 350, 8), rp);
       canvas.drawRect(const Rect.fromLTWH(0, 92, 350, 8), rp);
@@ -164,11 +188,11 @@ class MapPainter extends CustomPainter {
       canvas.drawRect(const Rect.fromLTWH(163, 0, 8, 120), rp);
       canvas.drawRect(const Rect.fromLTWH(243, 0, 8, 120), rp);
       final dp = _dashPaint;
-      _dash(canvas, const Offset(0, 46),   const Offset(350, 46),  dp);
-      _dash(canvas, const Offset(0, 96),   const Offset(350, 96),  dp);
-      _dash(canvas, const Offset(84, 0),   const Offset(84, 120),  dp);
-      _dash(canvas, const Offset(167, 0),  const Offset(167, 120), dp);
-      _dash(canvas, const Offset(247, 0),  const Offset(247, 120), dp);
+      _dash(canvas, const Offset(0, 46), const Offset(350, 46), dp);
+      _dash(canvas, const Offset(0, 96), const Offset(350, 96), dp);
+      _dash(canvas, const Offset(84, 0), const Offset(84, 120), dp);
+      _dash(canvas, const Offset(167, 0), const Offset(167, 120), dp);
+      _dash(canvas, const Offset(247, 0), const Offset(247, 120), dp);
     }
 
     canvas.restore();
@@ -192,8 +216,7 @@ class MapPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant MapPainter old) =>
-      old.vw != vw || old.vh != vh;
+  bool shouldRepaint(covariant MapPainter old) => old.vw != vw || old.vh != vh;
 }
 
 // ── Reusable map pin widget ───────────────────────────────────────────────────

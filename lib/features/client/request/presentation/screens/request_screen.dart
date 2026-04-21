@@ -33,7 +33,9 @@ const _btnLabels = ['Continue', 'Continue', 'Continue', 'Submit request'];
 // ── Screen ────────────────────────────────────────────────────────────────────
 
 class RequestScreen extends StatefulWidget {
-  const RequestScreen({super.key});
+  final RequestController? controller;
+
+  const RequestScreen({super.key, this.controller});
 
   @override
   State<RequestScreen> createState() => _RequestScreenState();
@@ -53,7 +55,8 @@ class _RequestScreenState extends State<RequestScreen> {
   );
   final _addressCtrl = TextEditingController(text: 'Rua do Heroísmo 42, Porto');
   final _floorCtrl = TextEditingController();
-  final _requestCtrl = RequestController();
+  late final RequestController _requestCtrl;
+  late final bool _ownsController;
 
   DateTime _date = DateTime.now().add(const Duration(days: 1));
   TimeOfDay _time = const TimeOfDay(hour: 10, minute: 0);
@@ -61,6 +64,8 @@ class _RequestScreenState extends State<RequestScreen> {
   @override
   void initState() {
     super.initState();
+    _requestCtrl = widget.controller ?? RequestController();
+    _ownsController = widget.controller == null;
     _requestCtrl.addListener(_onRequestChanged);
   }
 
@@ -73,7 +78,9 @@ class _RequestScreenState extends State<RequestScreen> {
   @override
   void dispose() {
     _requestCtrl.removeListener(_onRequestChanged);
-    _requestCtrl.dispose();
+    if (_ownsController) {
+      _requestCtrl.dispose();
+    }
     _titleCtrl.dispose();
     _descCtrl.dispose();
     _addressCtrl.dispose();

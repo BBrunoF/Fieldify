@@ -12,10 +12,7 @@ class AuthController extends ChangeNotifier {
   bool get isLoading => _loading;
   String? get error => _error;
 
-  Future<void> signIn({
-    required String email,
-    required String password,
-  }) async {
+  Future<void> signIn({required String email, required String password}) async {
     _loading = true;
     _error = null;
     notifyListeners();

@@ -171,9 +171,7 @@ class PrimaryButton extends StatelessWidget {
         backgroundColor: FieldifyColors.g800,
         foregroundColor: FieldifyColors.g100,
         padding: const EdgeInsets.symmetric(vertical: 15),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(14),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
         elevation: 0,
       ),
       child: Text(
@@ -199,8 +197,7 @@ class GoogleButton extends StatelessWidget {
       style: OutlinedButton.styleFrom(
         backgroundColor: Colors.white,
         padding: const EdgeInsets.symmetric(vertical: 13),
-        shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
         side: const BorderSide(color: FieldifyColors.border),
       ),
       child: Row(
@@ -234,19 +231,22 @@ class OrDivider extends StatelessWidget {
     return Row(
       children: [
         const Expanded(
-            child: Divider(color: FieldifyColors.border, thickness: 1)),
+          child: Divider(color: FieldifyColors.border, thickness: 1),
+        ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12),
           child: Text(
             'or',
             style: GoogleFonts.dmSans(
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
-                color: FieldifyColors.ink4),
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+              color: FieldifyColors.ink4,
+            ),
           ),
         ),
         const Expanded(
-            child: Divider(color: FieldifyColors.border, thickness: 1)),
+          child: Divider(color: FieldifyColors.border, thickness: 1),
+        ),
       ],
     );
   }
@@ -285,8 +285,12 @@ class GoogleLogoPainter extends CustomPainter {
     canvas.save();
     canvas.scale(s, s);
 
-    void fill(Color c, Path path) =>
-        canvas.drawPath(path, Paint()..color = c..style = PaintingStyle.fill);
+    void fill(Color c, Path path) => canvas.drawPath(
+      path,
+      Paint()
+        ..color = c
+        ..style = PaintingStyle.fill,
+    );
 
     fill(
       const Color(0xFF4285F4),

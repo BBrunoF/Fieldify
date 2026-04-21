@@ -6,7 +6,7 @@ class IncomingJobsController extends ChangeNotifier {
   final IncomingJobsRepository _repository;
 
   IncomingJobsController({IncomingJobsRepository? repository})
-      : _repository = repository ?? IncomingJobsRepository();
+    : _repository = repository ?? IncomingJobsRepository();
 
   bool _isLoading = false;
   String? _error;

@@ -5,9 +5,14 @@ import '../data/repositories/request_repository.dart';
 
 class RequestController extends ChangeNotifier {
   final RequestRepository _repo;
+  final String? Function() _currentUserIdProvider;
 
-  RequestController({RequestRepository? repo})
-      : _repo = repo ?? RequestRepository();
+  RequestController({
+    RequestRepository? repo,
+    String? Function()? currentUserIdProvider,
+  }) : _repo = repo ?? RequestRepository(),
+       _currentUserIdProvider =
+           currentUserIdProvider ?? (() => supabase.auth.currentUser?.id);
 
   bool _loading = false;
   String? _error;
@@ -28,7 +33,13 @@ class RequestController extends ChangeNotifier {
     _error = null;
     notifyListeners();
 
-    final user = supabase.auth.currentUser!;
+    final userId = _currentUserIdProvider();
+    if (userId == null) {
+      _loading = false;
+      _error = 'No authenticated user.';
+      notifyListeners();
+      return;
+    }
 
     // Hardcoded Porto coords until Google Maps geocoding is wired up
     const lat = 41.1579;
@@ -36,7 +47,7 @@ class RequestController extends ChangeNotifier {
 
     try {
       await _repo.submitRequest({
-        'client_id': user.id,
+        'client_id': userId,
         'trade_id': tradeId,
         'title': title,
         'description': description,

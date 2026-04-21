@@ -7,7 +7,9 @@ import 'register_screen.dart';
 import '../../controllers/auth_controller.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+  final AuthController? controller;
+
+  const LoginScreen({super.key, this.controller});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -17,12 +19,15 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _obscure = true;
 
   final _emailCtrl = TextEditingController();
-  final _pwCtrl    = TextEditingController();
-  final _auth      = AuthController();
+  final _pwCtrl = TextEditingController();
+  late final AuthController _auth;
+  late final bool _ownsController;
 
   @override
   void initState() {
     super.initState();
+    _auth = widget.controller ?? AuthController();
+    _ownsController = widget.controller == null;
     _auth.addListener(_onAuthChanged);
   }
 
@@ -31,17 +36,16 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   void dispose() {
     _auth.removeListener(_onAuthChanged);
-    _auth.dispose();
+    if (_ownsController) {
+      _auth.dispose();
+    }
     _emailCtrl.dispose();
     _pwCtrl.dispose();
     super.dispose();
   }
 
   Future<void> _signIn() async {
-    await _auth.signIn(
-      email: _emailCtrl.text.trim(),
-      password: _pwCtrl.text,
-    );
+    await _auth.signIn(email: _emailCtrl.text.trim(), password: _pwCtrl.text);
     // AuthGate handles navigation via stream
   }
 

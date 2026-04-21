@@ -14,7 +14,7 @@ class IncomingJobsRepository {
   final IncomingJobsService _service;
 
   IncomingJobsRepository({IncomingJobsService? service})
-      : _service = service ?? IncomingJobsService();
+    : _service = service ?? IncomingJobsService();
 
   Future<List<IncomingJob>> fetchIncomingJobs({
     bool includeRejected = false,

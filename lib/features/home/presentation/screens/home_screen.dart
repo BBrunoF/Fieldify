@@ -8,11 +8,23 @@ import '../../../../shared/widgets/bottom_nav.dart';
 import '../../../../core/supabase/supabase_client.dart';
 import '../../../client/request/presentation/screens/request_screen.dart';
 import '../../../client/job_history/presentation/widgets/job_history_view.dart';
+import '../../../pro/incoming_jobs/controllers/incoming_jobs_controller.dart';
 import '../../../pro/incoming_jobs/presentation/widgets/incoming_jobs_view.dart';
 
 // ── Screen ───────────────────────────────────────────────────────────────────
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final Future<bool> Function()? loadProfessionalRole;
+  final Future<void> Function()? onLogout;
+  final WidgetBuilder? requestScreenBuilder;
+  final IncomingJobsController? incomingJobsController;
+
+  const HomeScreen({
+    super.key,
+    this.loadProfessionalRole,
+    this.onLogout,
+    this.requestScreenBuilder,
+    this.incomingJobsController,
+  });
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -30,23 +42,28 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _loadUserRole() async {
-    final user = supabase.auth.currentUser;
-    if (user == null) return;
-
     try {
-      final profile = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('id', user.id)
-          .maybeSingle();
-
-      final isProfessional =
-          profile != null && profile['role'] == 'professional';
+      final isProfessional = widget.loadProfessionalRole != null
+          ? await widget.loadProfessionalRole!()
+          : await _fetchProfessionalRoleFromSupabase();
       if (!mounted) return;
       setState(() {
         _isProfessional = isProfessional;
       });
     } catch (_) {}
+  }
+
+  Future<bool> _fetchProfessionalRoleFromSupabase() async {
+    final user = supabase.auth.currentUser;
+    if (user == null) return false;
+
+    final profile = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .maybeSingle();
+
+    return profile != null && profile['role'] == 'professional';
   }
 
   void _onNavTap(int i) {
@@ -141,7 +158,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ? FieldifyColors.surface
                 : FieldifyColors.g800,
             child: _isProfessional
-                ? const IncomingJobsView()
+                ? IncomingJobsView(controller: widget.incomingJobsController)
                 : const JobHistoryView(),
           ),
         ),
@@ -188,10 +205,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
               Row(
-                children: const [
-                  _NotifButton(),
-                  SizedBox(width: 8),
-                  _LogoutButton(),
+                children: [
+                  const _NotifButton(),
+                  const SizedBox(width: 8),
+                  _LogoutButton(onLogout: widget.onLogout),
                 ],
               ),
             ],
@@ -392,6 +409,12 @@ class _HomeScreenState extends State<HomeScreen> {
           _RequestCard(
             key: const Key('quickRequestPlumbingCard'),
             buttonKey: const Key('goToRequestButton'),
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(
+                builder:
+                    widget.requestScreenBuilder ?? (_) => const RequestScreen(),
+              ),
+            ),
             icon: ServiceIconType.plumbing,
             title: 'Plumbing',
             subtitle: 'Leaks, pipes, installations',
@@ -401,6 +424,12 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           const SizedBox(height: 10),
           _RequestCard(
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(
+                builder:
+                    widget.requestScreenBuilder ?? (_) => const RequestScreen(),
+              ),
+            ),
             icon: ServiceIconType.electrical,
             title: 'Electrical',
             subtitle: 'Wiring, fuses, outlets',
@@ -410,6 +439,12 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           const SizedBox(height: 10),
           _RequestCard(
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(
+                builder:
+                    widget.requestScreenBuilder ?? (_) => const RequestScreen(),
+              ),
+            ),
             icon: ServiceIconType.carpentry,
             title: 'Carpentry',
             subtitle: 'Furniture, doors, repairs',
@@ -466,7 +501,9 @@ class _NotifButton extends StatelessWidget {
 }
 
 class _LogoutButton extends StatelessWidget {
-  const _LogoutButton();
+  final Future<void> Function()? onLogout;
+
+  const _LogoutButton({this.onLogout});
 
   @override
   Widget build(BuildContext context) {
@@ -474,6 +511,10 @@ class _LogoutButton extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: () async {
+          if (onLogout != null) {
+            await onLogout!();
+            return;
+          }
           await supabase.auth.signOut();
         },
         key: const Key('homeLogoutButton'),
@@ -716,6 +757,7 @@ class _RequestCard extends StatelessWidget {
   final String price;
   final bool filled;
   final Key? buttonKey;
+  final VoidCallback onTap;
 
   const _RequestCard({
     super.key,
@@ -725,6 +767,7 @@ class _RequestCard extends StatelessWidget {
     required this.time,
     required this.price,
     required this.filled,
+    required this.onTap,
     this.buttonKey,
   });
 
@@ -812,9 +855,7 @@ class _RequestCard extends StatelessWidget {
           const SizedBox(width: 8),
           GestureDetector(
             key: buttonKey,
-            onTap: () => Navigator.of(
-              context,
-            ).push(MaterialPageRoute(builder: (_) => const RequestScreen())),
+            onTap: onTap,
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
               decoration: BoxDecoration(

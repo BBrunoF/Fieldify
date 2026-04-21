@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../../core/theme/app_colors.dart';
+import '../../controllers/incoming_jobs_controller.dart';
 import '../widgets/incoming_jobs_view.dart';
 
 class IncomingJobsScreen extends StatelessWidget {
-  const IncomingJobsScreen({super.key});
+  final IncomingJobsController? controller;
+
+  const IncomingJobsScreen({super.key, this.controller});
 
   @override
   Widget build(BuildContext context) {
@@ -21,7 +24,7 @@ class IncomingJobsScreen extends StatelessWidget {
           style: GoogleFonts.dmSans(fontWeight: FontWeight.w500),
         ),
       ),
-      body: const IncomingJobsView(),
+      body: IncomingJobsView(controller: controller),
     );
   }
 }

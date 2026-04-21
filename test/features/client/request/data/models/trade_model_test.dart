@@ -5,14 +5,14 @@ void main() {
   test('Trade.fromJson maps Supabase data into the model', () {
     final trade = Trade.fromJson({
       'id': 3,
-      'name': 'Carpentry',
-      'description': 'Furniture, doors, floors',
-      'standard_rate': 35,
+      'slug': 'carpentry',
+      'display_name': 'Carpentry',
+      'standard_rate': 35.00,
     });
 
     expect(trade.id, 3);
-    expect(trade.name, 'Carpentry');
-    expect(trade.description, 'Furniture, doors, floors');
+    expect(trade.slug, 'carpentry');
+    expect(trade.displayName, 'Carpentry');
     expect(trade.standardRate, 35);
   });
 }

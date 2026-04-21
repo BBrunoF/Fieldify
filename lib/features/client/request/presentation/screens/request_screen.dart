@@ -1,3 +1,5 @@
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -5,27 +7,26 @@ import '../../../../../core/theme/app_colors.dart';
 import '../../../../auth/presentation/widgets/auth_shared.dart';
 import '../../../../../shared/widgets/fieldify_painters.dart';
 import '../../controllers/request_controller.dart';
+import '../../data/models/trade_model.dart';
 
 // ── Data ──────────────────────────────────────────────────────────────────────
 
-class _Cat {
-  final String name, desc;
-  final int rate;
-  final ServiceIconType icon;
-  const _Cat(this.name, this.desc, this.rate, this.icon);
+ServiceIconType _iconForTrade(String slug) {
+  switch (slug) {
+    case 'plumbing':
+      return ServiceIconType.plumbing;
+    case 'electrical':
+      return ServiceIconType.electrical;
+    case 'carpentry':
+      return ServiceIconType.carpentry;
+    case 'hvac':
+      return ServiceIconType.hvac;
+    case 'painting':
+      return ServiceIconType.painting;
+    default:
+      return ServiceIconType.other;
+  }
 }
-
-const _cats = [
-  _Cat('Plumbing', 'Leaks, pipes, drains', 35, ServiceIconType.plumbing),
-  _Cat('Electrical', 'Wiring, outlets, fuses', 40, ServiceIconType.electrical),
-  _Cat('Carpentry', 'Furniture, doors, floors', 35, ServiceIconType.carpentry),
-  _Cat('HVAC', 'AC, heating, ventilation', 45, ServiceIconType.hvac),
-  _Cat('Painting', 'Interior, exterior', 30, ServiceIconType.painting),
-  _Cat('Other', 'Anything else', 35, ServiceIconType.other),
-];
-
-// trade_id matches seed order in public.trades
-const _tradeIds = [1, 2, 3, 4, 5, 6];
 
 const _stepLabels = ['Category', 'Details', 'Location', 'Confirm'];
 const _btnLabels = ['Continue', 'Continue', 'Continue', 'Submit request'];
@@ -45,6 +46,9 @@ class _RequestScreenState extends State<RequestScreen> {
   int _step = 1;
   int _cat = 0;
   bool _scheduled = false;
+  final List<File> _photos = [];
+  final _picker = ImagePicker();
+  static const _maxPhotos = 3;
 
   final _titleCtrl = TextEditingController(
     text: 'Leaking pipe under kitchen sink',
@@ -67,6 +71,7 @@ class _RequestScreenState extends State<RequestScreen> {
     _requestCtrl = widget.controller ?? RequestController();
     _ownsController = widget.controller == null;
     _requestCtrl.addListener(_onRequestChanged);
+    _requestCtrl.loadTrades();
   }
 
   void _onRequestChanged() {
@@ -108,14 +113,54 @@ class _RequestScreenState extends State<RequestScreen> {
       ).toUtc();
     }
 
+    final trades = _requestCtrl.trades;
+    if (_cat >= trades.length) return;
     await _requestCtrl.submit(
-      tradeId: _tradeIds[_cat],
+      tradeId: trades[_cat].id,
       title: _titleCtrl.text.trim(),
       description: _descCtrl.text.trim(),
       addressText: _addressCtrl.text.trim(),
       scheduledAt: scheduledAt,
+      photos: _photos,
     );
   }
+
+  Future<void> _pickPhoto(ImageSource source) async {
+  if (_photos.length >= _maxPhotos) return;
+  final picked = await _picker.pickImage(
+    source: source,
+    maxWidth: 2000,
+    imageQuality: 80,
+  );
+  if (picked == null) return;
+  setState(() => _photos.add(File(picked.path)));
+}
+
+void _removePhoto(int i) => setState(() => _photos.removeAt(i));
+
+Future<void> _showPhotoSourceSheet() async {
+  final source = await showModalBottomSheet<ImageSource>(
+    context: context,
+    builder: (ctx) => SafeArea(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ListTile(
+            leading: const Icon(Icons.photo_camera_outlined),
+            title: const Text('Take photo'),
+            onTap: () => Navigator.pop(ctx, ImageSource.camera),
+          ),
+          ListTile(
+            leading: const Icon(Icons.photo_library_outlined),
+            title: const Text('Choose from gallery'),
+            onTap: () => Navigator.pop(ctx, ImageSource.gallery),
+          ),
+        ],
+      ),
+    ),
+  );
+  if (source != null) await _pickPhoto(source);
+}
 
   void _back() {
     if (_step > 1) {
@@ -335,23 +380,40 @@ class _RequestScreenState extends State<RequestScreen> {
   // ── Step 1: Category ─────────────────────────────────────────────────────
 
   Widget _buildStep1() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _StepTitle(
-          'What do you need?',
-          'Pick a category — the rate is set per service.',
+    final trades = _requestCtrl.trades;
+    Widget body;
+    if (_requestCtrl.isLoadingTrades && trades.isEmpty) {
+      body = const Padding(
+        key: Key('requestCategoriesLoading'),
+        padding: EdgeInsets.symmetric(vertical: 48),
+        child: Center(child: CircularProgressIndicator()),
+      );
+    } else if (_requestCtrl.tradesError != null && trades.isEmpty) {
+      body = Padding(
+        key: const Key('requestCategoriesError'),
+        padding: const EdgeInsets.symmetric(vertical: 32),
+        child: Center(
+          child: Text(
+            _requestCtrl.tradesError!,
+            textAlign: TextAlign.center,
+            style: GoogleFonts.dmSans(
+              fontSize: 13,
+              color: const Color(0xFFC0392B),
+            ),
+          ),
         ),
-        GridView.count(
-          crossAxisCount: 2,
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          mainAxisSpacing: 10,
-          crossAxisSpacing: 10,
-          childAspectRatio: 1.1,
-          children: List.generate(_cats.length, (i) {
-            final c = _cats[i];
-            final selected = _cat == i;
+      );
+    } else {
+      body = GridView.count(
+        crossAxisCount: 2,
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        mainAxisSpacing: 10,
+        crossAxisSpacing: 10,
+        childAspectRatio: 1.1,
+        children: List.generate(trades.length, (i) {
+          final c = trades[i];
+          final selected = _cat == i;
             return GestureDetector(
               key: Key('requestCategoryCard_$i'),
               onTap: () => setState(() => _cat = i),
@@ -387,7 +449,7 @@ class _RequestScreenState extends State<RequestScreen> {
                             child: CustomPaint(
                               size: const Size(22, 22),
                               painter: ServiceIconPainter(
-                                icon: c.icon,
+                                icon: _iconForTrade(c.slug),
                                 color: selected
                                     ? FieldifyColors.g100
                                     : FieldifyColors.g800,
@@ -422,20 +484,11 @@ class _RequestScreenState extends State<RequestScreen> {
                     ),
                     const Spacer(),
                     Text(
-                      c.name,
+                      c.displayName,
                       style: GoogleFonts.dmSans(
                         fontSize: 13,
                         fontWeight: FontWeight.w500,
                         color: FieldifyColors.ink,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      c.desc,
-                      style: GoogleFonts.dmSans(
-                        fontSize: 11,
-                        color: FieldifyColors.ink3,
-                        height: 1.4,
                       ),
                     ),
                     const SizedBox(height: 6),
@@ -449,7 +502,7 @@ class _RequestScreenState extends State<RequestScreen> {
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
-                        '€${c.rate} / h',
+                        '€${c.standardRate} / h',
                         style: GoogleFonts.dmMono(
                           fontSize: 11,
                           fontWeight: FontWeight.w500,
@@ -462,7 +515,17 @@ class _RequestScreenState extends State<RequestScreen> {
               ),
             );
           }),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _StepTitle(
+          'What do you need?',
+          'Pick a category — the rate is set per service.',
         ),
+        body,
       ],
     );
   }
@@ -500,57 +563,109 @@ class _RequestScreenState extends State<RequestScreen> {
         ),
         _FormField(
           label: 'Photos',
-          labelSuffix: ' — optional',
-          child: Container(
+          labelSuffix: ' — optional (max $_maxPhotos)',
+          child: Column(
             key: const Key('requestPhotosSection'),
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: const Color(0x21000000),
-                style: BorderStyle.solid,
-                width: 1.5,
-              ),
-            ),
-            child: Row(
-              children: [
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: FieldifyColors.g100,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: const Icon(
-                    Icons.camera_alt_outlined,
-                    size: 20,
-                    color: FieldifyColors.g800,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (_photos.isNotEmpty)
+                SizedBox(
+                  height: 80,
+                  child: ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: _photos.length,
+                    separatorBuilder: (_, _) => const SizedBox(width: 8),
+                    itemBuilder: (_, i) => Stack(
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(10),
+                          child: Image.file(
+                            _photos[i],
+                            width: 80,
+                            height: 80,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                        Positioned(
+                          top: 2,
+                          right: 2,
+                          child: GestureDetector(
+                            key: Key('requestPhotoRemove_$i'),
+                            onTap: () => _removePhoto(i),
+                            child: Container(
+                              padding: const EdgeInsets.all(2),
+                              decoration: const BoxDecoration(
+                                color: Colors.black54,
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.close,
+                                size: 14,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-                const SizedBox(width: 12),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Add photos',
-                      style: GoogleFonts.dmSans(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                        color: FieldifyColors.ink2,
+              if (_photos.isNotEmpty) const SizedBox(height: 10),
+              if (_photos.length < _maxPhotos)
+                GestureDetector(
+                  key: const Key('requestAddPhotoButton'),
+                  onTap: _showPhotoSourceSheet,
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: const Color(0x21000000),
+                        width: 1.5,
                       ),
                     ),
-                    Text(
-                      'JPEG or PNG · max 10MB each',
-                      style: GoogleFonts.dmSans(
-                        fontSize: 11,
-                        color: FieldifyColors.ink4,
-                      ),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: FieldifyColors.g100,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: const Icon(
+                            Icons.camera_alt_outlined,
+                            size: 20,
+                            color: FieldifyColors.g800,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              _photos.isEmpty ? 'Add photos' : 'Add another',
+                              style: GoogleFonts.dmSans(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w500,
+                                color: FieldifyColors.ink2,
+                              ),
+                            ),
+                            Text(
+                              '${_photos.length} / $_maxPhotos · JPEG/PNG/WebP',
+                              style: GoogleFonts.dmSans(
+                                fontSize: 11,
+                                color: FieldifyColors.ink4,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
-              ],
-            ),
+            ],
           ),
         ),
       ],
@@ -753,7 +868,8 @@ class _RequestScreenState extends State<RequestScreen> {
   // ── Step 4: Confirm ──────────────────────────────────────────────────────
 
   Widget _buildStep4() {
-    final cat = _cats[_cat];
+    final trades = _requestCtrl.trades;
+    final Trade? cat = (_cat < trades.length) ? trades[_cat] : null;
     final whenText = _scheduled
         ? '${_date.day}/${_date.month}/${_date.year} at ${_time.format(context)}'
         : 'As soon as possible';
@@ -768,7 +884,7 @@ class _RequestScreenState extends State<RequestScreen> {
         _ConfirmCard(
           heading: 'Job details',
           rows: [
-            ('Category', cat.name, null),
+            ('Category', cat?.displayName ?? '—', null),
             ('Title', _titleCtrl.text, null),
             ('Address', _addressCtrl.text, null),
             ('When', whenText, FieldifyColors.g700),
@@ -777,7 +893,7 @@ class _RequestScreenState extends State<RequestScreen> {
         const SizedBox(height: 12),
         _buildPaymentCard(),
         const SizedBox(height: 12),
-        _buildPriceBreak(cat.rate),
+        _buildPriceBreak(cat?.standardRate ?? 0),
         const SizedBox(height: 12),
         _Notice(
           type: _NoticeType.warn,

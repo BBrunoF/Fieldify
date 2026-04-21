@@ -1,20 +1,34 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:project/features/client/request/controllers/request_controller.dart';
+import 'package:project/features/client/request/data/models/trade_model.dart';
 import 'package:project/features/client/request/data/repositories/request_repository.dart';
 import 'package:project/features/client/request/presentation/screens/request_screen.dart';
 
 import '../../../../../test_helpers.dart';
 
+const _seedTrades = [
+  Trade(id: 1, slug: 'plumbing', displayName: 'Plumbing', standardRate: 35),
+  Trade(id: 2, slug: 'electrical', displayName: 'Electrical', standardRate: 40),
+  Trade(id: 3, slug: 'carpentry', displayName: 'Carpentry', standardRate: 35),
+  Trade(id: 4, slug: 'hvac', displayName: 'HVAC', standardRate: 45),
+  Trade(id: 5, slug: 'painting', displayName: 'Painting', standardRate: 30),
+  Trade(id: 6, slug: 'other', displayName: 'Other', standardRate: 35),
+];
+
 class _FakeRequestRepository extends RequestRepository {
   _FakeRequestRepository({this.onSubmitRequest});
 
   final Future<void> Function(Map<String, dynamic> data)? onSubmitRequest;
+  final List<Trade> trades = _seedTrades;
 
   @override
   Future<void> submitRequest(Map<String, dynamic> data) async {
     await onSubmitRequest?.call(data);
   }
+
+  @override
+  Future<List<Trade>> getTrades() async => trades;
 }
 
 void main() {

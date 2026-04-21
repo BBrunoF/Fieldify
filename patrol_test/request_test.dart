@@ -101,6 +101,9 @@ Future<void> _submitRequestAsClient(
 }) async {
   await _openRequestFlow($);
 
+  await $(
+    find.byKey(const Key('requestCategoryCard_0')),
+  ).waitUntilVisible(timeout: const Duration(seconds: 20));
   await $(find.byKey(const Key('requestCategoryCard_0'))).tap();
   await $(find.byKey(const Key('requestPrimaryButton'))).tap();
 

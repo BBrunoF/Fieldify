@@ -1,16 +1,21 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:project/features/client/request/controllers/request_controller.dart';
+import 'package:project/features/client/request/data/models/trade_model.dart';
 import 'package:project/features/client/request/data/repositories/request_repository.dart';
 
 class _FakeRequestRepository extends RequestRepository {
-  _FakeRequestRepository({this.onSubmitRequest});
+  _FakeRequestRepository({this.onSubmitRequest, this.trades = const []});
 
   final Future<void> Function(Map<String, dynamic> data)? onSubmitRequest;
+  final List<Trade> trades;
 
   @override
   Future<void> submitRequest(Map<String, dynamic> data) async {
     await onSubmitRequest?.call(data);
   }
+
+  @override
+  Future<List<Trade>> getTrades() async => trades;
 }
 
 void main() {
@@ -24,6 +29,7 @@ void main() {
           },
         ),
         currentUserIdProvider: () => 'client-123',
+        requestIdGenerator: () => 'req-fixed-uuid',
       );
 
       final scheduledAt = DateTime.utc(2026, 4, 22, 14, 30);
@@ -39,6 +45,7 @@ void main() {
       expect(controller.isSubmitted, isTrue);
       expect(controller.error, isNull);
       expect(submittedData, {
+        'id': 'req-fixed-uuid',
         'client_id': 'client-123',
         'trade_id': 4,
         'title': 'Broken AC',
@@ -76,6 +83,23 @@ void main() {
         expect(controller.error, 'No authenticated user.');
       },
     );
+
+    test('loadTrades populates the trades list', () async {
+      const seed = [
+        Trade(id: 1, slug: 'plumbing', displayName: 'Plumbing', standardRate: 35),
+        Trade(id: 2, slug: 'electrical', displayName: 'Electrical', standardRate: 40),
+      ];
+      final controller = RequestController(
+        repo: _FakeRequestRepository(trades: seed),
+        currentUserIdProvider: () => 'client-123',
+      );
+
+      await controller.loadTrades();
+
+      expect(controller.trades, seed);
+      expect(controller.isLoadingTrades, isFalse);
+      expect(controller.tradesError, isNull);
+    });
 
     test('exposes repository failures to the UI', () async {
       final controller = RequestController(

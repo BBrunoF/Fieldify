@@ -8,6 +8,7 @@
 - [US03] Service Request Submission
 - [US15] Job Status Controller
 - [US06] Job Cancellation (Client)
+- [US10] Client Profile Management
 
 ### Tasks Completed
 - Unit and integration tests

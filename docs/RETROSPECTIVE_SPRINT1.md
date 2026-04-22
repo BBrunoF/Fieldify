@@ -41,11 +41,11 @@ into sub-tasks completable in 1–3 days. No task in
 
 | Member | Self Score (0-10) | Justification |
 |--------|-------------------|---------------|
-| Tiago Morais Amaral | 8 | Completed assigned tasks with good quality, however the team failed to deliver all planned PBIs due to underestimation of complexity |
-| Bruno Rafael Bessa Freitas | 7 | Completed assigned tasks with good quality, however the team failed to deliver all planned PBIs due to underestimation of complexity |
-| Tomás Manuel Almeida Ribeiro | 8 | Completed assigned tasks with good quality, however the team failed to deliver all planned PBIs due to underestimation of complexity |
-| João António Neiva Amaro | 7 | Completed assigned tasks with good quality, however the team failed to deliver all planned PBIs due to underestimation of complexity |
-| José Pedro Rocha da Costa  | 8 | Completed assigned tasks with good quality, however the team failed to deliver all planned PBIs due to underestimation of complexity |
+| Tiago Morais Amaral |  |  |
+| Bruno Rafael Bessa Freitas |  |  |
+| Tomás Manuel Almeida Ribeiro | |  |
+| João António Neiva Amaro |  |  |
+| José Pedro Rocha da Costa  |  |  |
 
 
 # Sprint 2

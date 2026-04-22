@@ -4,7 +4,9 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../auth/auth_shared.dart';
 import '../request/request_screen.dart';
+import '../profile/profile_screen.dart';
 import '../../services/auth_service.dart';
+import '../../services/profile_service.dart';
 import '../../shared/fieldify_painters.dart';
 
 // ── Screen ───────────────────────────────────────────────────────────────────
@@ -30,7 +32,15 @@ class _HomeScreenState extends State<HomeScreen> {
         backgroundColor: FieldifyColors.surface,
         bottomNavigationBar: _BottomNav(
           selected: _selectedNav,
-          onTap: (i) => setState(() => _selectedNav = i),
+          onTap: (i) {
+            if (i == 3) {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const ProfileScreen()),
+              );
+              return;
+            }
+            setState(() => _selectedNav = i);
+          },
         ),
         body: SafeArea(
           bottom: false,
@@ -123,7 +133,9 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           Text(
-            'Bruno',
+            ProfileService().fullName.split(' ').first.isNotEmpty
+                ? ProfileService().fullName.split(' ').first
+                : 'there',
             style: GoogleFonts.dmSans(
               fontSize: 24,
               fontWeight: FontWeight.w500,

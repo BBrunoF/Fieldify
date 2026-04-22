@@ -4,11 +4,11 @@
 22/04/2026
 
 ## Attendees
-- Bruno Rafael Bessa Freitas 
+- Bruno Rafael Bessa Freitas
 - Tiago Morais Amaral
 - Tomás Manuel Almeida Ribeiro
 - João António Neiva Amaro
-- José Pedro Rocha da Costa 
+- José Pedro Rocha da Costa
 - Teacher: Ademar Manuel Teixeira de Aguiar
 
 ## Delivered PBIs
@@ -19,6 +19,7 @@
 | T1#29 | [US03] Service Request Submission | ✅ Done |
 | T1#41 | [US15] Job Status Controller | ✅ Done |
 | T1#32 | [US06] Job Cancellation (Client) | ✅ Done |
+| T1#36 | [US10] Client Profile Management | ✅ Done |
 | T1#50 | Unit and integration tests | ✅ Done |
 | T1#49 | User acceptance tests (UAT) | ✅ Done |
 | T1#48 | Log, track and verify defects | ✅ Done |
@@ -31,7 +32,6 @@
 | T1#43 | [US17] Job Cancellation (Pro) | Poor time management and underestimation of initial setup complexity |
 
 ## Teacher Feedback
-- 
-
+-
 ## Product Backlog Adaptations
-- 
+-

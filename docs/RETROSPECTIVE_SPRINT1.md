@@ -37,4 +37,15 @@ Any User Story exceeding 5 story points must be broken
 into sub-tasks completable in 1–3 days. No task in 
 "In Progress" should remain stagnant for more than 72 hours.
 
+## Individual Assessment
+
+| Member | Self Score (0-10) | Justification |
+|--------|-------------------|---------------|
+| Tiago Morais Amaral | 8 | Completed assigned tasks with good quality, however the team failed to deliver all planned PBIs due to underestimation of complexity |
+| Bruno Rafael Bessa Freitas | 7 | Completed assigned tasks with good quality, however the team failed to deliver all planned PBIs due to underestimation of complexity |
+| Tomás Manuel Almeida Ribeiro | 8 | Completed assigned tasks with good quality, however the team failed to deliver all planned PBIs due to underestimation of complexity |
+| João António Neiva Amaro | 7 | Completed assigned tasks with good quality, however the team failed to deliver all planned PBIs due to underestimation of complexity |
+| José Pedro Rocha da Costa  | 8 | Completed assigned tasks with good quality, however the team failed to deliver all planned PBIs due to underestimation of complexity |
+
+
 # Sprint 2

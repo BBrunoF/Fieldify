@@ -20,11 +20,11 @@ public class MainActivityTest {
         return instrumentation.listDartTests();
     }
 
-    private final String dartTestName;
-
     public MainActivityTest(String dartTestName) {
         this.dartTestName = dartTestName;
     }
+
+    private final String dartTestName;
 
     @Test
     public void runDartTest() {

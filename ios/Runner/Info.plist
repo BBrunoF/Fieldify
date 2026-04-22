@@ -66,5 +66,9 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>NSCameraUsageDescription</key>
+	<string>Fieldify needs camera access so you can take photos of what needs to be fixed.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Fieldify needs photo library access so you can attach photos to your service requests.</string>
 </dict>
 </plist>

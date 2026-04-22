@@ -99,6 +99,13 @@ entity service_requests {
   * updated_at : timestamptz
 }
 
+entity service_request_rejections {
+  * pro_id : uuid <<PK,FK>>
+  * request_id : uuid <<PK,FK>>
+  --
+  * created_at : timestamptz
+}
+
 ' ─── Payments ────────────────────────────────────────────────
 entity payment_methods {
   * id : uuid <<PK>>
@@ -185,6 +192,8 @@ professional_profiles   ||--o{   availability_schedules : "has"
 profiles                ||--o{   service_requests       : "client"
 profiles                ||--o{   service_requests       : "pro"
 trades                  ||--o{   service_requests       : "trade"
+service_requests        ||--o{   service_request_rejections : "rejected by"
+profiles                ||--o{   service_request_rejections : "rejects"
 
 ' Payment layer
 profiles                ||--o{   payment_methods        : "has"

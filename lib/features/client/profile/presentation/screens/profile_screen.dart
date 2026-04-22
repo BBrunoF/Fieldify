@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../auth/presentation/widgets/auth_shared.dart';
-import '../../../../auth/data/services/profile_service.dart';
+import '../../controllers/profile_controller.dart';
 
 // ── Validation ────────────────────────────────────────────────────────────────
 
@@ -30,39 +30,68 @@ String? _validateAddress(String? v) {
 // ── Screen ────────────────────────────────────────────────────────────────────
 
 class ProfileScreen extends StatefulWidget {
-  const ProfileScreen({super.key});
+  final ProfileController? controller;
+
+  const ProfileScreen({super.key, this.controller});
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  final _service = ProfileService();
-  final _formKey = GlobalKey<FormState>();
+  late final ProfileController _controller;
+  late final bool _ownsController;
 
+  final _formKey = GlobalKey<FormState>();
   late final TextEditingController _firstCtrl;
   late final TextEditingController _lastCtrl;
   late final TextEditingController _phoneCtrl;
-
   late List<String> _addresses;
-
-  bool _loading = false;
   bool _dirty = false;
-  String? _saveError;
-  String? _saveSuccess;
 
   @override
   void initState() {
     super.initState();
-    final parts = _service.fullName.split(' ');
-    _firstCtrl = TextEditingController(text: parts.isNotEmpty ? parts.first : '');
-    _lastCtrl  = TextEditingController(text: parts.length > 1 ? parts.sublist(1).join(' ') : '');
-    _phoneCtrl = TextEditingController(text: _service.phone);
-    _addresses = List<String>.from(_service.addresses);
+    _controller = widget.controller ?? ProfileController();
+    _ownsController = widget.controller == null;
+    _controller.addListener(_onChanged);
+
+    final p = _controller.profile;
+    _firstCtrl = TextEditingController(text: p?.firstName ?? '');
+    _lastCtrl  = TextEditingController(text: p?.lastName ?? '');
+    _phoneCtrl = TextEditingController(text: p?.phone ?? '');
+    _addresses = List<String>.from(p?.addresses ?? []);
+  }
+
+  void _onChanged() {
+    if (!mounted) return;
+    setState(() {});
+
+    if (_controller.error != null) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(content: Text(_controller.error!)));
+      _controller.clearError();
+    }
+
+    if (_controller.saved) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(
+            content: Text('Profile updated'),
+            backgroundColor: FieldifyColors.g700,
+          ),
+        );
+      setState(() => _dirty = false);
+      _controller.clearSaved();
+    }
   }
 
   @override
   void dispose() {
+    _controller.removeListener(_onChanged);
+    if (_ownsController) _controller.dispose();
     _firstCtrl.dispose();
     _lastCtrl.dispose();
     _phoneCtrl.dispose();
@@ -70,48 +99,38 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _markDirty() {
-    if (!_dirty) setState(() { _dirty = true; _saveSuccess = null; });
+    if (!_dirty) setState(() => _dirty = true);
   }
 
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
-    setState(() { _loading = true; _saveError = null; _saveSuccess = null; });
-    try {
-      await _service.updatePersonalDetails(
-        firstName: _firstCtrl.text,
-        lastName: _lastCtrl.text,
-        phone: _phoneCtrl.text,
-      );
-      await _service.updateAddresses(_addresses);
-      if (!mounted) return;
-      setState(() { _dirty = false; _saveSuccess = 'Profile updated'; });
-    } catch (e) {
-      if (!mounted) return;
-      setState(() => _saveError = 'Failed to save. Please try again.');
-    } finally {
-      if (mounted) setState(() => _loading = false);
-    }
+    await _controller.saveAll(
+      firstName: _firstCtrl.text,
+      lastName: _lastCtrl.text,
+      phone: _phoneCtrl.text,
+      addresses: _addresses,
+    );
   }
 
   void _addAddress() {
     _showAddressSheet(null, (addr) {
-      setState(() { _addresses.add(addr); _dirty = true; _saveSuccess = null; });
+      setState(() { _addresses.add(addr); _dirty = true; });
     });
   }
 
-  void _editAddress(int index) {
-    _showAddressSheet(_addresses[index], (addr) {
-      setState(() { _addresses[index] = addr; _dirty = true; _saveSuccess = null; });
+  void _editAddress(int i) {
+    _showAddressSheet(_addresses[i], (addr) {
+      setState(() { _addresses[i] = addr; _dirty = true; });
     });
   }
 
-  void _removeAddress(int index) {
-    setState(() { _addresses.removeAt(index); _dirty = true; _saveSuccess = null; });
+  void _removeAddress(int i) {
+    setState(() { _addresses.removeAt(i); _dirty = true; });
   }
 
   void _showAddressSheet(String? initial, void Function(String) onSave) {
     final ctrl = TextEditingController(text: initial);
-    final sheetFormKey = GlobalKey<FormState>();
+    final key  = GlobalKey<FormState>();
 
     showModalBottomSheet(
       context: context,
@@ -126,15 +145,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           padding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
           child: Form(
-            key: sheetFormKey,
+            key: key,
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Center(
                   child: Container(
-                    width: 36,
-                    height: 4,
+                    width: 36, height: 4,
                     decoration: BoxDecoration(
                       color: FieldifyColors.ink4,
                       borderRadius: BorderRadius.circular(2),
@@ -145,7 +163,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 Text(
                   initial == null ? 'Add address' : 'Edit address',
                   style: GoogleFonts.dmSans(
-                      fontSize: 17, fontWeight: FontWeight.w500, color: FieldifyColors.ink),
+                    fontSize: 17, fontWeight: FontWeight.w500, color: FieldifyColors.ink),
                 ),
                 const SizedBox(height: 4),
                 Text(
@@ -163,7 +181,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 const SizedBox(height: 16),
                 ElevatedButton(
                   onPressed: () {
-                    if (!sheetFormKey.currentState!.validate()) return;
+                    if (!key.currentState!.validate()) return;
                     Navigator.pop(context);
                     onSave(ctrl.text.trim());
                   },
@@ -177,7 +195,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   child: Text(
                     initial == null ? 'Add' : 'Save',
                     style: GoogleFonts.dmSans(
-                        fontSize: 15, fontWeight: FontWeight.w500, color: FieldifyColors.g100),
+                      fontSize: 15, fontWeight: FontWeight.w500, color: FieldifyColors.g100),
                   ),
                 ),
               ],
@@ -211,21 +229,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _buildSection('Personal details', _buildPersonalFields()),
+                        _buildSectionLabel('Personal details'),
+                        const SizedBox(height: 10),
+                        _buildPersonalFields(),
                         const SizedBox(height: 20),
-                        _buildSection('Email', _buildEmailRow()),
+                        _buildSectionLabel('Email'),
+                        const SizedBox(height: 10),
+                        _buildEmailRow(),
                         const SizedBox(height: 20),
                         _buildAddressSection(),
                         const SizedBox(height: 28),
-                        if (_saveError != null) ...[
-                          _buildFeedback(_saveError!, isError: true),
-                          const SizedBox(height: 12),
-                        ],
-                        if (_saveSuccess != null) ...[
-                          _buildFeedback(_saveSuccess!, isError: false),
-                          const SizedBox(height: 12),
-                        ],
-                        _loading
+                        _controller.isSaving
                             ? const Center(child: CircularProgressIndicator())
                             : ElevatedButton(
                                 key: const Key('profileSaveButton'),
@@ -242,9 +256,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 child: Text(
                                   'Save changes',
                                   style: GoogleFonts.dmSans(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.w500,
-                                      color: FieldifyColors.g100),
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w500,
+                                    color: FieldifyColors.g100,
+                                  ),
                                 ),
                               ),
                       ],
@@ -271,8 +286,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 GestureDetector(
                   onTap: () => Navigator.of(context).pop(),
                   child: Container(
-                    width: 34,
-                    height: 34,
+                    width: 34, height: 34,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       border: Border.all(color: Colors.white.withAlpha(51), width: 1.5),
@@ -284,7 +298,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 Text(
                   'My profile',
                   style: GoogleFonts.dmSans(
-                      fontSize: 15, fontWeight: FontWeight.w500, color: Colors.white),
+                    fontSize: 15, fontWeight: FontWeight.w500, color: Colors.white),
                 ),
               ],
             ),
@@ -305,21 +319,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildSection(String title, Widget content) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title.toUpperCase(),
-          style: GoogleFonts.dmSans(
-              fontSize: 11,
-              fontWeight: FontWeight.w500,
-              color: FieldifyColors.ink3,
-              letterSpacing: 0.44),
-        ),
-        const SizedBox(height: 10),
-        content,
-      ],
+  Widget _buildSectionLabel(String title) {
+    return Text(
+      title.toUpperCase(),
+      style: GoogleFonts.dmSans(
+        fontSize: 11, fontWeight: FontWeight.w500,
+        color: FieldifyColors.ink3, letterSpacing: 0.44,
+      ),
     );
   }
 
@@ -374,6 +380,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildEmailRow() {
+    final email = _controller.profile?.email ?? '';
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
       decoration: BoxDecoration(
@@ -384,10 +391,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       child: Row(
         children: [
           Expanded(
-            child: Text(
-              _service.email,
-              style: GoogleFonts.dmSans(fontSize: 15, color: FieldifyColors.ink3),
-            ),
+            child: Text(email,
+                style: GoogleFonts.dmSans(fontSize: 15, color: FieldifyColors.ink3)),
           ),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -398,7 +403,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             child: Text(
               'Cannot change',
               style: GoogleFonts.dmSans(
-                  fontSize: 10, fontWeight: FontWeight.w500, color: FieldifyColors.g700),
+                fontSize: 10, fontWeight: FontWeight.w500, color: FieldifyColors.g700),
             ),
           ),
         ],
@@ -413,14 +418,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              'ADDRESSES',
-              style: GoogleFonts.dmSans(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w500,
-                  color: FieldifyColors.ink3,
-                  letterSpacing: 0.44),
-            ),
+            _buildSectionLabel('Addresses'),
             GestureDetector(
               key: const Key('profileAddAddressButton'),
               onTap: _addAddress,
@@ -428,11 +426,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 children: [
                   const Icon(Icons.add, size: 14, color: FieldifyColors.g700),
                   const SizedBox(width: 3),
-                  Text(
-                    'Add',
-                    style: GoogleFonts.dmSans(
-                        fontSize: 12, fontWeight: FontWeight.w500, color: FieldifyColors.g700),
-                  ),
+                  Text('Add',
+                      style: GoogleFonts.dmSans(
+                        fontSize: 12, fontWeight: FontWeight.w500, color: FieldifyColors.g700)),
                 ],
               ),
             ),
@@ -451,10 +447,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
               children: [
                 const Icon(Icons.location_on_outlined, size: 18, color: FieldifyColors.ink4),
                 const SizedBox(width: 10),
-                Text(
-                  'No saved addresses',
-                  style: GoogleFonts.dmSans(fontSize: 14, color: FieldifyColors.ink4),
-                ),
+                Text('No saved addresses',
+                    style: GoogleFonts.dmSans(fontSize: 14, color: FieldifyColors.ink4)),
               ],
             ),
           )
@@ -479,32 +473,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           ),
       ],
-    );
-  }
-
-  Widget _buildFeedback(String msg, {required bool isError}) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-      decoration: BoxDecoration(
-        color: isError ? const Color(0xFFFDECEA) : FieldifyColors.g100,
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Row(
-        children: [
-          Icon(
-            isError ? Icons.error_outline : Icons.check_circle_outline,
-            size: 16,
-            color: isError ? const Color(0xFFC0392B) : FieldifyColors.g800,
-          ),
-          const SizedBox(width: 8),
-          Text(
-            msg,
-            style: GoogleFonts.dmSans(
-                fontSize: 13,
-                color: isError ? const Color(0xFFC0392B) : FieldifyColors.g800),
-          ),
-        ],
-      ),
     );
   }
 }
@@ -544,10 +512,8 @@ class _AddressRow extends StatelessWidget {
           const Icon(Icons.location_on_outlined, size: 18, color: FieldifyColors.g700),
           const SizedBox(width: 10),
           Expanded(
-            child: Text(
-              address,
-              style: GoogleFonts.dmSans(fontSize: 13, color: FieldifyColors.ink, height: 1.4),
-            ),
+            child: Text(address,
+                style: GoogleFonts.dmSans(fontSize: 13, color: FieldifyColors.ink, height: 1.4)),
           ),
           GestureDetector(
             onTap: onEdit,

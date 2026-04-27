@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../../core/theme/app_colors.dart';
+import '../../../../../core/supabase/supabase_client.dart';
 import '../../../../../shared/widgets/bottom_nav.dart';
 import '../../../../../shared/widgets/fieldify_painters.dart';
 import '../../../../auth/presentation/widgets/auth_shared.dart';
@@ -9,6 +10,7 @@ import '../../../../home/presentation/widgets/home_action_buttons.dart';
 import '../../../job_history/controllers/job_history_controller.dart';
 import '../../../job_history/presentation/widgets/job_history_view.dart';
 import '../../../request/presentation/screens/request_screen.dart';
+import '../../../profile/presentation/screens/profile_screen.dart';
 
 class ClientHomeScreen extends StatefulWidget {
   final Future<void> Function()? onLogout;
@@ -29,8 +31,41 @@ class ClientHomeScreen extends StatefulWidget {
 class _ClientHomeScreenState extends State<ClientHomeScreen> {
   int _selectedCategory = 0;
   int _selectedNav = 0;
+  String _firstName = '';
 
-  void _onNavTap(int i) => setState(() => _selectedNav = i);
+  @override
+  void initState() {
+    super.initState();
+    _loadName();
+  }
+
+  Future<void> _loadName() async {
+    try {
+      final user = supabase.auth.currentUser;
+      if (user == null) return;
+      final data = await supabase
+          .from('profiles')
+          .select('full_name')
+          .eq('id', user.id)
+          .maybeSingle();
+      if (!mounted) return;
+      final fullName = (data?['full_name'] as String? ?? '').trim();
+      final first = fullName.split(' ').first;
+      setState(() => _firstName = first.isNotEmpty ? first : 'there');
+    } catch (_) {
+      // Supabase not initialized (e.g. in tests) — leave name empty
+    }
+  }
+
+  void _onNavTap(int i) {
+    if (i == 3) {
+      Navigator.of(context)
+          .push(MaterialPageRoute(builder: (_) => const ProfileScreen()))
+          .then((_) => _loadName());
+      return;
+    }
+    setState(() => _selectedNav = i);
+  }
 
   void _openRequestFlow() {
     Navigator.of(context).push(
@@ -178,7 +213,7 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
             ),
           ),
           Text(
-            'Bruno',
+            _firstName.isEmpty ? 'there' : _firstName,
             key: const Key('homeUserNameText'),
             style: GoogleFonts.dmSans(
               fontSize: 24,

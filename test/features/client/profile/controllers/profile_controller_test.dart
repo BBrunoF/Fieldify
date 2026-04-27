@@ -10,7 +10,7 @@ class _FakeProfileRepository extends ProfileRepository {
   final Future<void> Function()? onUpdate;
 
   @override
-  ProfileModel? fetchCurrent() => profile;
+  Future<ProfileModel?> fetchCurrent() async => profile;
 
   @override
   Future<void> updateProfile({
@@ -32,22 +32,24 @@ const _profile = ProfileModel(
 
 void main() {
   group('ProfileController', () {
-    test('profile is loaded from repository on construction', () {
+    test('profile is loaded from repository on construction', () async {
       final controller = ProfileController(
         repository: _FakeProfileRepository(profile: _profile),
       );
 
+      await Future<void>.delayed(Duration.zero); // let async _load() complete
       expect(controller.profile?.fullName, 'Bruno Silva');
       expect(controller.isSaving, isFalse);
       expect(controller.error, isNull);
       expect(controller.saved, isFalse);
     });
 
-    test('profile is null when repository returns null', () {
+    test('profile is null when repository returns null', () async {
       final controller = ProfileController(
         repository: _FakeProfileRepository(profile: null),
       );
 
+      await Future<void>.delayed(Duration.zero);
       expect(controller.profile, isNull);
     });
 

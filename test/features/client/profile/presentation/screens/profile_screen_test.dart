@@ -14,7 +14,7 @@ class _FakeProfileRepository extends ProfileRepository {
   final Future<void> Function()? onUpdate;
 
   @override
-  ProfileModel? fetchCurrent() => profile;
+  Future<ProfileModel?> fetchCurrent() async => profile;
 
   @override
   Future<void> updateProfile({

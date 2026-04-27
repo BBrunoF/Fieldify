@@ -3,11 +3,27 @@ import '../../../../../core/supabase/supabase_client.dart';
 import '../models/profile_model.dart';
 
 class ProfileService {
-  ProfileModel? fetchCurrent() {
+  Future<ProfileModel?> fetchCurrent() async {
     final user = supabase.auth.currentUser;
     if (user == null) return null;
     final meta = Map<String, dynamic>.from(user.userMetadata ?? {});
-    return ProfileModel.fromMeta(meta, user.email ?? '');
+    try {
+      final data = await supabase
+          .from('profiles')
+          .select('full_name, phone')
+          .eq('id', user.id)
+          .maybeSingle();
+      return ProfileModel(
+        fullName: data?['full_name'] as String? ?? meta['full_name'] as String? ?? '',
+        phone: data?['phone'] as String? ?? meta['phone'] as String? ?? '',
+        email: user.email ?? '',
+        addresses: meta['addresses'] is List
+            ? List<String>.from(meta['addresses'] as List)
+            : [],
+      );
+    } catch (_) {
+      return ProfileModel.fromMeta(meta, user.email ?? '');
+    }
   }
 
   Future<void> updateProfile({

@@ -16,9 +16,9 @@ class ProfileRepository {
   ProfileRepository({ProfileService? service})
       : _service = service ?? ProfileService();
 
-  ProfileModel? fetchCurrent() {
+  Future<ProfileModel?> fetchCurrent() async {
     try {
-      return _service.fetchCurrent();
+      return await _service.fetchCurrent();
     } catch (e) {
       throw ProfileFailure(e.toString());
     }

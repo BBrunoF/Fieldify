@@ -12,16 +12,24 @@ class ProfileController extends ChangeNotifier {
 
   ProfileModel? _profile;
   bool _isSaving = false;
+  bool _isLoading = true;
   String? _error;
   bool _saved = false;
 
   ProfileModel? get profile => _profile;
   bool get isSaving => _isSaving;
+  bool get isLoading => _isLoading;
   String? get error => _error;
   bool get saved => _saved;
 
-  void _load() {
-    _profile = _repository.fetchCurrent();
+  Future<void> _load() async {
+    _isLoading = true;
+    try {
+      _profile = await _repository.fetchCurrent();
+    } catch (_) {
+      // profile stays null
+    }
+    _isLoading = false;
     notifyListeners();
   }
 
@@ -43,7 +51,7 @@ class ProfileController extends ChangeNotifier {
         phone: phone,
         addresses: addresses,
       );
-      _profile = _repository.fetchCurrent();
+      _profile = await _repository.fetchCurrent();
       _saved = true;
     } catch (e) {
       _error = e.toString();

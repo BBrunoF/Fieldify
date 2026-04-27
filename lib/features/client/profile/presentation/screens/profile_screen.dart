@@ -48,23 +48,45 @@ class _ProfileScreenState extends State<ProfileScreen> {
   late final TextEditingController _phoneCtrl;
   late List<String> _addresses;
   bool _dirty = false;
+  bool _profileInitialized = false;
+  bool _initializing = false;
 
   @override
   void initState() {
     super.initState();
     _controller = widget.controller ?? ProfileController();
     _ownsController = widget.controller == null;
-    _controller.addListener(_onChanged);
 
+    // Initialize with whatever is already loaded (may be null if async load pending)
     final p = _controller.profile;
+    _profileInitialized = p != null;
     _firstCtrl = TextEditingController(text: p?.firstName ?? '');
     _lastCtrl  = TextEditingController(text: p?.lastName ?? '');
     _phoneCtrl = TextEditingController(text: p?.phone ?? '');
     _addresses = List<String>.from(p?.addresses ?? []);
+
+    _controller.addListener(_onChanged);
   }
 
   void _onChanged() {
     if (!mounted) return;
+
+    // When async profile load completes, populate controllers if user hasn't edited yet
+    if (!_profileInitialized && _controller.profile != null && !_controller.isLoading && !_dirty) {
+      _profileInitialized = true;
+      final p = _controller.profile!;
+      _initializing = true;
+      _firstCtrl.text = p.firstName;
+      _lastCtrl.text = p.lastName;
+      _phoneCtrl.text = p.phone;
+      _initializing = false;
+      setState(() {
+        _addresses = List<String>.from(p.addresses);
+        _dirty = false;
+      });
+      return;
+    }
+
     setState(() {});
 
     if (_controller.error != null) {
@@ -99,6 +121,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _markDirty() {
+    if (_initializing) return;
     if (!_dirty) setState(() => _dirty = true);
   }
 

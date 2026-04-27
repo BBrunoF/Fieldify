@@ -11,7 +11,7 @@ class _FakeProfileService extends ProfileService {
   final Future<void> Function()? onUpdate;
 
   @override
-  ProfileModel? fetchCurrent() => profile;
+  Future<ProfileModel?> fetchCurrent() async => profile;
 
   @override
   Future<void> updateProfile({
@@ -33,20 +33,20 @@ const _profile = ProfileModel(
 
 void main() {
   group('ProfileRepository', () {
-    test('fetchCurrent returns the profile from the service', () {
+    test('fetchCurrent returns the profile from the service', () async {
       final repo = ProfileRepository(
         service: _FakeProfileService(profile: _profile),
       );
 
-      expect(repo.fetchCurrent()?.fullName, 'Bruno Silva');
+      expect((await repo.fetchCurrent())?.fullName, 'Bruno Silva');
     });
 
-    test('fetchCurrent returns null when service returns null', () {
+    test('fetchCurrent returns null when service returns null', () async {
       final repo = ProfileRepository(
         service: _FakeProfileService(profile: null),
       );
 
-      expect(repo.fetchCurrent(), isNull);
+      expect(await repo.fetchCurrent(), isNull);
     });
 
     test('updateProfile completes without error on success', () async {

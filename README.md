@@ -365,11 +365,19 @@ You can find below information and references related with the project managemen
 <img width="1776" height="479" alt="image" src="https://github.com/user-attachments/assets/618e9d66-6a0c-4f1d-871e-c6945de11952" />
 
 
-
-
-
-
 ### Sprint 2
+
+#### Start
+<img width="1804" height="768" alt="image" src="https://github.com/user-attachments/assets/63a11ab5-9635-4afa-8981-f8222f382a38" />
+<img width="1782" height="697" alt="image" src="https://github.com/user-attachments/assets/7fea234f-f945-46b7-8586-b992bc84b83e" />
+<img width="1826" height="710" alt="image" src="https://github.com/user-attachments/assets/3e16ec7d-ce91-4b1b-aba4-da1f9e9a1853" />
+<img width="1773" height="225" alt="image" src="https://github.com/user-attachments/assets/171e3aa7-d61a-4877-8906-9b19aaf85296" />
+
+
+
+
+#### End
+
 
 ### Sprint 3
 

@@ -25,6 +25,7 @@ class ProJobsView extends StatefulWidget {
 class _ProJobsViewState extends State<ProJobsView> {
   ProJobsTab _selected = ProJobsTab.incoming;
   bool _acceptedTabMounted = false;
+  int _incomingRefreshKey = 0;
 
   void _select(ProJobsTab tab) {
     if (_selected == tab) return;
@@ -33,6 +34,18 @@ class _ProJobsViewState extends State<ProJobsView> {
       if (tab == ProJobsTab.accepted) {
         _acceptedTabMounted = true;
       }
+    });
+  }
+
+  Future<void> _refreshIncomingJobs() async {
+    final controller = widget.incomingJobsController;
+    if (controller != null) {
+      await controller.loadJobs();
+      return;
+    }
+
+    setState(() {
+      _incomingRefreshKey++;
     });
   }
 
@@ -48,9 +61,15 @@ class _ProJobsViewState extends State<ProJobsView> {
             child: IndexedStack(
               index: _selected.index,
               children: [
-                IncomingJobsView(controller: widget.incomingJobsController),
+                IncomingJobsView(
+                  key: ValueKey('incomingJobsView_$_incomingRefreshKey'),
+                  controller: widget.incomingJobsController,
+                ),
                 if (_acceptedTabMounted)
-                  AcceptedJobsView(controller: widget.acceptedJobsController)
+                  AcceptedJobsView(
+                    controller: widget.acceptedJobsController,
+                    onJobReturnedToIncoming: _refreshIncomingJobs,
+                  )
                 else
                   const SizedBox.shrink(),
               ],

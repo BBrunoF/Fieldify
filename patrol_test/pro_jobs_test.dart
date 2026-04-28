@@ -198,6 +198,20 @@ Finder _incomingActionFinder({required String title, required String label}) {
   );
 }
 
+Finder _acceptedCardFinder(String title) {
+  return find.ancestor(
+    of: find.text(title),
+    matching: find.byType(AcceptedJobCard),
+  );
+}
+
+Finder _acceptedActionFinder({required String title, required String label}) {
+  return find.descendant(
+    of: _acceptedCardFinder(title),
+    matching: find.text(label),
+  );
+}
+
 Future<void> _waitForIncomingRequest(
   PatrolIntegrationTester $,
   String title,
@@ -240,6 +254,22 @@ Future<void> _waitForAcceptedJob(
     maxScrolls: 80,
   );
   await $(title).waitUntilVisible(timeout: const Duration(seconds: 20));
+}
+
+Future<void> _waitForAcceptedJobToDisappear(
+  PatrolIntegrationTester $,
+  String title,
+) async {
+  final deadline = DateTime.now().add(const Duration(seconds: 20));
+
+  while (DateTime.now().isBefore(deadline)) {
+    await $.pump(const Duration(milliseconds: 250));
+    if (find.text(title).evaluate().isEmpty) {
+      return;
+    }
+  }
+
+  fail('Accepted job "$title" was still visible after cancelling it.');
 }
 
 String _uniqueRequestTitle(String scenario) {
@@ -319,5 +349,44 @@ void main() {
     final firstY = $.tester.getCenter(find.text(firstTitle)).dy;
     final secondY = $.tester.getCenter(find.text(secondTitle)).dy;
     expect(firstY, lessThan(secondY));
+  });
+
+  patrolTest('professional cancellation returns an accepted job to Incoming', (
+    $,
+  ) async {
+    final title = _uniqueRequestTitle('cancel-to-incoming');
+    const description = 'Patrol generated request for pro cancellation.';
+    const address = 'Rua de Santa Catarina 220, Porto';
+
+    await _loginAsClient($);
+    await _submitRequestAsClient(
+      $,
+      title: title,
+      description: description,
+      address: address,
+    );
+    await _returnToHomeAfterSubmission($);
+    await _logoutToLogin($);
+
+    await _loginAsProfessional($);
+    await _openIncomingJobsTab($);
+    await _acceptIncomingRequest($, title);
+
+    await _openAcceptedJobsTab($);
+    await _waitForAcceptedJob($, title);
+    await $(_acceptedActionFinder(title: title, label: 'Cancel job')).tap();
+    await _waitForAcceptedJobToDisappear($, title);
+
+    await $(find.byKey(const Key('proJobsTabIncoming'))).tap();
+    await $(
+      find.byKey(const Key('incomingJobsView')),
+    ).waitUntilVisible(timeout: const Duration(seconds: 20));
+    await _waitForIncomingRequest($, title);
+
+    expect(find.byType(IncomingJobCard), findsWidgets);
+    expect(
+      _incomingActionFinder(title: title, label: 'Accept'),
+      findsOneWidget,
+    );
   });
 }

@@ -23,4 +23,14 @@ class AcceptedJobsRepository {
       throw AcceptedJobsFailure(e.message);
     }
   }
+
+  Future<void> returnJobToPending(String requestId) async {
+    try {
+      await _service.returnJobToPending(requestId);
+    } on AcceptedJobReleaseException catch (e) {
+      throw AcceptedJobsFailure(e.toString());
+    } on PostgrestException catch (e) {
+      throw AcceptedJobsFailure(e.message);
+    }
+  }
 }

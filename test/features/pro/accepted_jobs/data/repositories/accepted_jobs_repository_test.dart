@@ -5,13 +5,19 @@ import 'package:project/features/pro/accepted_jobs/data/services/accepted_jobs_s
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class _FakeAcceptedJobsService extends AcceptedJobsService {
-  _FakeAcceptedJobsService({this.onFetch});
+  _FakeAcceptedJobsService({this.onFetch, this.onReturn});
 
   final Future<List<AcceptedJob>> Function()? onFetch;
+  final Future<void> Function(String requestId)? onReturn;
 
   @override
   Future<List<AcceptedJob>> fetchAcceptedJobs() async {
     return await onFetch?.call() ?? const [];
+  }
+
+  @override
+  Future<void> returnJobToPending(String requestId) async {
+    await onReturn?.call(requestId);
   }
 }
 
@@ -53,6 +59,27 @@ void main() {
             (failure) => failure.message,
             'message',
             'RLS blocked',
+          ),
+        ),
+      );
+    });
+
+    test('maps release failures into AcceptedJobsFailure', () async {
+      final repository = AcceptedJobsRepository(
+        service: _FakeAcceptedJobsService(
+          onReturn: (_) async {
+            throw const AcceptedJobReleaseException();
+          },
+        ),
+      );
+
+      expect(
+        () => repository.returnJobToPending('job-1'),
+        throwsA(
+          isA<AcceptedJobsFailure>().having(
+            (failure) => failure.message,
+            'message',
+            'Could not return this job to incoming requests.',
           ),
         ),
       );

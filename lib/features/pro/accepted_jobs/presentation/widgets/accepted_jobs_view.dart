@@ -6,8 +6,13 @@ import 'accepted_job_card.dart';
 
 class AcceptedJobsView extends StatefulWidget {
   final AcceptedJobsController? controller;
+  final VoidCallback? onJobReturnedToIncoming;
 
-  const AcceptedJobsView({super.key, this.controller});
+  const AcceptedJobsView({
+    super.key,
+    this.controller,
+    this.onJobReturnedToIncoming,
+  });
 
   @override
   State<AcceptedJobsView> createState() => _AcceptedJobsViewState();
@@ -106,6 +111,14 @@ class _AcceptedJobsViewState extends State<AcceptedJobsView> {
                 return AcceptedJobCard(
                   key: ValueKey('acceptedJobCard_${job.id}'),
                   job: job,
+                  onCancel: () async {
+                    final returned = await _controller.returnJobToPending(
+                      job.id,
+                    );
+                    if (returned) {
+                      widget.onJobReturnedToIncoming?.call();
+                    }
+                  },
                 );
               },
             ),

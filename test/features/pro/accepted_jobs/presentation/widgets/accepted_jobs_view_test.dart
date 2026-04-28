@@ -8,13 +8,19 @@ import 'package:project/features/pro/accepted_jobs/presentation/widgets/accepted
 import '../../../../../test_helpers.dart';
 
 class _FakeAcceptedJobsRepository extends AcceptedJobsRepository {
-  _FakeAcceptedJobsRepository({this.onFetch});
+  _FakeAcceptedJobsRepository({this.onFetch, this.onReturn});
 
   final Future<List<AcceptedJob>> Function()? onFetch;
+  final Future<void> Function(String requestId)? onReturn;
 
   @override
   Future<List<AcceptedJob>> fetchAcceptedJobs() async {
     return await onFetch?.call() ?? const [];
+  }
+
+  @override
+  Future<void> returnJobToPending(String requestId) async {
+    await onReturn?.call(requestId);
   }
 }
 
@@ -66,8 +72,41 @@ void main() {
       expect(find.byKey(const Key('acceptedJobsList')), findsOneWidget);
       expect(find.text('Pipe leak'), findsOneWidget);
       expect(find.text('On my way'), findsOneWidget);
+      expect(find.text('Cancel job'), findsOneWidget);
       expect(find.text('Accept'), findsNothing);
       expect(find.text('Reject'), findsNothing);
+    });
+
+    testWidgets('returns accepted jobs to incoming and removes them', (
+      tester,
+    ) async {
+      var callbackCalled = false;
+      final controller = AcceptedJobsController(
+        repository: _FakeAcceptedJobsRepository(
+          onFetch: () async => [_job()],
+          onReturn: (requestId) async {
+            expect(requestId, 'job-1');
+          },
+        ),
+      );
+
+      await pumpTestApp(
+        tester,
+        Scaffold(
+          body: AcceptedJobsView(
+            controller: controller,
+            onJobReturnedToIncoming: () => callbackCalled = true,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Cancel job'));
+      await tester.pumpAndSettle();
+
+      expect(callbackCalled, isTrue);
+      expect(find.byKey(const Key('acceptedJobsEmptyState')), findsOneWidget);
+      expect(find.text('Pipe leak'), findsNothing);
     });
   });
 }

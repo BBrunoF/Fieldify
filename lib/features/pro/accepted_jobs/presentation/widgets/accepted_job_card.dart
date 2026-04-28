@@ -7,14 +7,16 @@ import '../../data/models/accepted_job.dart';
 
 class AcceptedJobCard extends StatelessWidget {
   final AcceptedJob job;
+  final VoidCallback? onCancel;
 
-  const AcceptedJobCard({super.key, required this.job});
+  const AcceptedJobCard({super.key, required this.job, this.onCancel});
 
   String get _statusLabel {
     switch (job.status) {
       case 'accepted':
         return 'Accepted';
       case 'on_my_way':
+      case 'on_the_way':
         return 'On my way';
       case 'in_progress':
         return 'In progress';
@@ -157,6 +159,27 @@ class AcceptedJobCard extends StatelessWidget {
                 ],
               ),
             ],
+            const SizedBox(height: 16),
+            OutlinedButton.icon(
+              key: Key('acceptedJobCancelButton_${job.id}'),
+              onPressed: onCancel,
+              icon: const Icon(Icons.undo_outlined, size: 16),
+              label: Text(
+                'Cancel job',
+                style: GoogleFonts.dmSans(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              style: OutlinedButton.styleFrom(
+                minimumSize: const Size.fromHeight(42),
+                foregroundColor: const Color(0xFFC0392B),
+                side: const BorderSide(color: Color(0xFFF5C6C6)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
           ],
         ),
       ),

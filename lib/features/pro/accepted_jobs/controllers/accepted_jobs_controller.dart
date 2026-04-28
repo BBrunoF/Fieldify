@@ -32,6 +32,19 @@ class AcceptedJobsController extends ChangeNotifier {
     }
   }
 
+  Future<bool> returnJobToPending(String requestId) async {
+    try {
+      await _repository.returnJobToPending(requestId);
+      _jobs = _jobs.where((job) => job.id != requestId).toList();
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _error = e.toString();
+      notifyListeners();
+      return false;
+    }
+  }
+
   void clearError() {
     _error = null;
     notifyListeners();

@@ -5,17 +5,20 @@ import '../../../../../core/theme/app_colors.dart';
 import '../../../../../shared/widgets/bottom_nav.dart';
 import '../../../../auth/presentation/widgets/auth_shared.dart';
 import '../../../../home/presentation/widgets/home_action_buttons.dart';
+import '../../../accepted_jobs/controllers/accepted_jobs_controller.dart';
 import '../../../incoming_jobs/controllers/incoming_jobs_controller.dart';
-import '../../../incoming_jobs/presentation/widgets/incoming_jobs_view.dart';
+import '../../../jobs/presentation/widgets/pro_jobs_view.dart';
 
 class ProHomeScreen extends StatefulWidget {
   final Future<void> Function()? onLogout;
   final IncomingJobsController? incomingJobsController;
+  final AcceptedJobsController? acceptedJobsController;
 
   const ProHomeScreen({
     super.key,
     this.onLogout,
     this.incomingJobsController,
+    this.acceptedJobsController,
   });
 
   @override
@@ -172,7 +175,7 @@ class _ProHomeScreenState extends State<ProHomeScreen> {
           child: Row(
             children: [
               Text(
-                'Incoming jobs',
+                'Jobs',
                 key: const Key('homeJobsHeader'),
                 style: GoogleFonts.dmSans(
                   fontSize: 22,
@@ -187,7 +190,10 @@ class _ProHomeScreenState extends State<ProHomeScreen> {
         Expanded(
           child: Container(
             color: FieldifyColors.surface,
-            child: IncomingJobsView(controller: widget.incomingJobsController),
+            child: ProJobsView(
+              incomingJobsController: widget.incomingJobsController,
+              acceptedJobsController: widget.acceptedJobsController,
+            ),
           ),
         ),
       ],

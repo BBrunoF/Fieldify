@@ -15,7 +15,7 @@ class ProProfileService {
         .from('profiles')
         .select(
           'full_name, avatar_url, '
-          'professional_profiles(nif, bio, verification_status, trades(display_name, standard_rate))',
+          'professional_profiles(nif, bio, verification_status, service_radius_km, credential_urls, trades(display_name, standard_rate))',
         )
         .eq('id', user.id)
         .maybeSingle();
@@ -34,6 +34,11 @@ class ProProfileService {
         ? (tradeData.isNotEmpty ? tradeData.first as Map<String, dynamic> : {})
         : (tradeData as Map<String, dynamic>? ?? {});
 
+    final rawUrls = proRow['credential_urls'];
+    final credentialUrls = rawUrls is List
+        ? rawUrls.map((e) => e.toString()).toList()
+        : <String>[];
+
     return ProProfileModel(
       fullName: (row['full_name'] ?? '') as String,
       nif: (proRow['nif'] ?? '') as String,
@@ -42,13 +47,17 @@ class ProProfileService {
       avatarPath: row['avatar_url'] as String?,
       tradeName: (tradeRow['display_name'] ?? '') as String,
       standardRate: (tradeRow['standard_rate'] as num?)?.toInt() ?? 0,
+      credentialUrls: credentialUrls,
+      serviceRadiusKm: (proRow['service_radius_km'] as num?)?.toInt(),
     );
   }
 
   Future<void> updateProfile({
     required String bio,
+    required int? serviceRadiusKm,
     String? fullName,
     String? nif,
+    List<String>? credentialUrls,
   }) async {
     final user = supabase.auth.currentUser;
     if (user == null) throw const AuthException('Not authenticated');
@@ -63,7 +72,10 @@ class ProProfileService {
 
     await supabase.from('professional_profiles').update({
       'bio': bio.trim(),
+      'service_radius_km': serviceRadiusKm,
       if (!isApproved && nif != null) 'nif': nif.trim(),
+      if (!isApproved && credentialUrls != null)
+        'credential_urls': credentialUrls,
     }).eq('profile_id', user.id);
 
     if (!isApproved && fullName != null && fullName.trim().isNotEmpty) {

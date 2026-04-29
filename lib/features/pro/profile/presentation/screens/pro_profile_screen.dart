@@ -42,6 +42,8 @@ class _ProProfileScreenState extends State<ProProfileScreen> {
   late final TextEditingController _lastCtrl;
   late final TextEditingController _nifCtrl;
   late final TextEditingController _bioCtrl;
+  late final TextEditingController _radiusCtrl;
+  late List<String> _credentialUrls;
 
   bool _dirty = false;
   bool _profileInitialized = false;
@@ -61,6 +63,9 @@ class _ProProfileScreenState extends State<ProProfileScreen> {
     _lastCtrl = TextEditingController(text: p?.lastName ?? '');
     _nifCtrl = TextEditingController(text: p?.nif ?? '');
     _bioCtrl = TextEditingController(text: p?.bio ?? '');
+    _radiusCtrl = TextEditingController(
+        text: p?.serviceRadiusKm != null ? '${p!.serviceRadiusKm}' : '');
+    _credentialUrls = List<String>.from(p?.credentialUrls ?? []);
 
     _controller.addListener(_onChanged);
   }
@@ -79,6 +84,9 @@ class _ProProfileScreenState extends State<ProProfileScreen> {
       _lastCtrl.text = p.lastName;
       _nifCtrl.text = p.nif;
       _bioCtrl.text = p.bio;
+      _radiusCtrl.text =
+          p.serviceRadiusKm != null ? '${p.serviceRadiusKm}' : '';
+      _credentialUrls = List<String>.from(p.credentialUrls);
       _initializing = false;
       setState(() => _dirty = false);
       return;
@@ -115,6 +123,7 @@ class _ProProfileScreenState extends State<ProProfileScreen> {
     _lastCtrl.dispose();
     _nifCtrl.dispose();
     _bioCtrl.dispose();
+    _radiusCtrl.dispose();
     super.dispose();
   }
 
@@ -130,6 +139,8 @@ class _ProProfileScreenState extends State<ProProfileScreen> {
       firstName: _firstCtrl.text,
       lastName: _lastCtrl.text,
       nif: _nifCtrl.text,
+      serviceRadiusKm: int.tryParse(_radiusCtrl.text.trim()),
+      credentialUrls: _credentialUrls,
     );
   }
 
@@ -224,6 +235,14 @@ class _ProProfileScreenState extends State<ProProfileScreen> {
                               _buildSectionLabel('Trade & rate'),
                               const SizedBox(height: 10),
                               _buildTradeInfo(),
+                              const SizedBox(height: 20),
+                              _buildSectionLabel('Service radius'),
+                              const SizedBox(height: 10),
+                              _buildRadiusField(),
+                              const SizedBox(height: 20),
+                              _buildSectionLabel('Credentials'),
+                              const SizedBox(height: 10),
+                              _buildCredentialsField(),
                               const SizedBox(height: 20),
                               _buildSectionLabel('Bio'),
                               const SizedBox(height: 10),
@@ -360,6 +379,7 @@ class _ProProfileScreenState extends State<ProProfileScreen> {
             right: 0,
             bottom: 0,
             child: GestureDetector(
+              key: const Key('proProfileAvatarEditButton'),
               onTap: _controller.isUploadingAvatar ? null : _showPhotoSourceSheet,
               child: Container(
                 width: 28,
@@ -521,6 +541,154 @@ class _ProProfileScreenState extends State<ProProfileScreen> {
     );
   }
 
+  Widget _buildRadiusField() {
+    return TextFormField(
+      key: const Key('proProfileRadiusField'),
+      controller: _radiusCtrl,
+      keyboardType: TextInputType.number,
+      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+      style: GoogleFonts.dmSans(fontSize: 15, color: FieldifyColors.ink),
+      decoration: authInputDecoration(hint: '25').copyWith(
+        suffixText: 'km',
+        suffixStyle:
+            GoogleFonts.dmSans(fontSize: 15, color: FieldifyColors.ink3),
+      ),
+      validator: (v) {
+        if (v == null || v.trim().isEmpty) return null;
+        final n = int.tryParse(v.trim());
+        if (n == null || n <= 0) return 'Enter a valid radius';
+        return null;
+      },
+    );
+  }
+
+  Widget _buildCredentialsField() {
+    final isApproved = _controller.profile?.isApproved ?? false;
+
+    if (isApproved) {
+      return Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: FieldifyColors.border),
+        ),
+        child: _credentialUrls.isEmpty
+            ? Padding(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 14, vertical: 13),
+                child: Text('—',
+                    style: GoogleFonts.dmSans(
+                        fontSize: 15, color: FieldifyColors.ink3)),
+              )
+            : Column(
+                children: [
+                  for (int i = 0; i < _credentialUrls.length; i++) ...[
+                    if (i > 0)
+                      const Divider(height: 1, color: Color(0x14000000)),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 14, vertical: 11),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.insert_drive_file_outlined,
+                              size: 16, color: FieldifyColors.ink3),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              _credentialUrls[i],
+                              style: GoogleFonts.dmSans(
+                                  fontSize: 13, color: FieldifyColors.ink3),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: FieldifyColors.g100,
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              'Cannot change',
+                              style: GoogleFonts.dmSans(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w500,
+                                color: FieldifyColors.g700,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+      );
+    }
+
+    return Column(
+      children: [
+        if (_credentialUrls.isNotEmpty)
+          Container(
+            margin: const EdgeInsets.only(bottom: 10),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: FieldifyColors.border),
+            ),
+            child: Column(
+              children: [
+                for (int i = 0; i < _credentialUrls.length; i++) ...[
+                  if (i > 0)
+                    const Divider(height: 1, color: Color(0x14000000)),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(14, 8, 8, 8),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.insert_drive_file_outlined,
+                            size: 16, color: FieldifyColors.ink3),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            _credentialUrls[i],
+                            style: GoogleFonts.dmSans(
+                                fontSize: 13, color: FieldifyColors.ink),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        IconButton(
+                          key: Key('proProfileRemoveCredential_$i'),
+                          icon: const Icon(Icons.close,
+                              size: 16, color: FieldifyColors.ink3),
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                          onPressed: () {
+                            setState(() {
+                              _credentialUrls.removeAt(i);
+                              _dirty = true;
+                            });
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        _AddCredentialRow(
+          onAdd: (url) {
+            setState(() {
+              _credentialUrls.add(url);
+              _dirty = true;
+            });
+          },
+        ),
+      ],
+    );
+  }
+
   Widget _buildBioField() {
     return TextFormField(
       key: const Key('proProfileBioField'),
@@ -644,6 +812,64 @@ class _InfoRow extends StatelessWidget {
                   color: FieldifyColors.ink)),
         ],
       ),
+    );
+  }
+}
+
+class _AddCredentialRow extends StatefulWidget {
+  final void Function(String url) onAdd;
+  const _AddCredentialRow({required this.onAdd});
+
+  @override
+  State<_AddCredentialRow> createState() => _AddCredentialRowState();
+}
+
+class _AddCredentialRowState extends State<_AddCredentialRow> {
+  final _ctrl = TextEditingController();
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    final url = _ctrl.text.trim();
+    if (url.isEmpty) return;
+    widget.onAdd(url);
+    _ctrl.clear();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: TextFormField(
+            key: const Key('proProfileAddCredentialField'),
+            controller: _ctrl,
+            keyboardType: TextInputType.url,
+            style: GoogleFonts.dmSans(fontSize: 15, color: FieldifyColors.ink),
+            decoration: authInputDecoration(hint: 'Credential URL…'),
+            onFieldSubmitted: (_) => _submit(),
+          ),
+        ),
+        const SizedBox(width: 8),
+        GestureDetector(
+          key: const Key('proProfileAddCredentialButton'),
+          onTap: _submit,
+          child: Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: FieldifyColors.g800,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child:
+                const Icon(Icons.add, color: FieldifyColors.g100, size: 20),
+          ),
+        ),
+      ],
     );
   }
 }

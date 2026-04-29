@@ -6,6 +6,8 @@ class ProProfileModel {
   final String? avatarPath;
   final String tradeName;
   final int standardRate;
+  final List<String> credentialUrls;
+  final int? serviceRadiusKm;
 
   const ProProfileModel({
     required this.fullName,
@@ -15,6 +17,8 @@ class ProProfileModel {
     required this.avatarPath,
     required this.tradeName,
     required this.standardRate,
+    required this.credentialUrls,
+    this.serviceRadiusKm,
   });
 
   bool get isApproved => verificationStatus == 'approved';
@@ -45,6 +49,8 @@ class ProProfileModel {
     String? avatarPath,
     String? tradeName,
     int? standardRate,
+    List<String>? credentialUrls,
+    int? serviceRadiusKm,
   }) {
     return ProProfileModel(
       fullName: fullName ?? this.fullName,
@@ -54,6 +60,8 @@ class ProProfileModel {
       avatarPath: avatarPath ?? this.avatarPath,
       tradeName: tradeName ?? this.tradeName,
       standardRate: standardRate ?? this.standardRate,
+      credentialUrls: credentialUrls ?? this.credentialUrls,
+      serviceRadiusKm: serviceRadiusKm ?? this.serviceRadiusKm,
     );
   }
 }

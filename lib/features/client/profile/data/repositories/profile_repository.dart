@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/profile_model.dart';
 import '../services/profile_service.dart';
@@ -42,5 +43,19 @@ class ProfileRepository {
     } catch (e) {
       throw ProfileFailure(e.toString());
     }
+  }
+
+  Future<String> uploadAvatar({required File file}) async {
+    try {
+      return await _service.uploadAvatar(file: file);
+    } on AuthException catch (e) {
+      throw ProfileFailure(e.message);
+    } catch (e) {
+      throw ProfileFailure(e.toString());
+    }
+  }
+
+  Future<String?> getSignedAvatarUrl(String path) async {
+    return await _service.getSignedAvatarUrl(path);
   }
 }

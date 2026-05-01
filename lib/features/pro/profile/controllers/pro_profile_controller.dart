@@ -31,13 +31,15 @@ class ProProfileController extends ChangeNotifier {
     _isLoading = true;
     try {
       _profile = await _repository.fetchCurrent();
-      if (_profile?.avatarPath != null) {
-        _avatarSignedUrl =
-            await _repository.getSignedAvatarUrl(_profile!.avatarPath!);
-      }
     } catch (_) {}
     _isLoading = false;
     notifyListeners();
+    if (_profile?.avatarPath != null) {
+      _repository.getSignedAvatarUrl(_profile!.avatarPath!).then((url) {
+        _avatarSignedUrl = url;
+        notifyListeners();
+      }).ignore();
+    }
   }
 
   Future<void> saveProfile({

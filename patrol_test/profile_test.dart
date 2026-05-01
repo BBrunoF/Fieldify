@@ -115,10 +115,10 @@ void main() {
     await $(find.byKey(const Key('profilePhoneField'))).enterText(newPhone);
     await $.pumpAndTrySettle();
 
+    await $(find.byKey(const Key('profileSaveButton'))).scrollTo();
     await $(find.byKey(const Key('profileSaveButton'))).tap();
-    await $.pumpAndTrySettle(timeout: const Duration(seconds: 15));
-
-    expect(find.text('Profile updated'), findsOneWidget);
+    await $(find.text('Profile updated'))
+        .waitUntilVisible(timeout: const Duration(seconds: 15));
   });
 
   patrolTest('client can add a new address', ($) async {
@@ -152,15 +152,14 @@ void main() {
     await $(find.byKey(const Key('profileLastNameField'))).enterText('Test');
     await $.pumpAndTrySettle();
 
+    await $(find.byKey(const Key('profileSaveButton'))).scrollTo();
     await $(find.byKey(const Key('profileSaveButton'))).tap();
-    await $.pumpAndTrySettle(timeout: const Duration(seconds: 15));
-
-    expect(find.text('Profile updated'), findsOneWidget);
+    await $(find.text('Profile updated'))
+        .waitUntilVisible(timeout: const Duration(seconds: 15));
 
     final backButton = find.byType(GestureDetector).first;
     await $(backButton).tap();
-    await $.pumpAndTrySettle(timeout: const Duration(seconds: 15));
-
-    expect(find.byType(HomeScreen), findsOneWidget);
+    await $(find.byType(HomeScreen))
+        .waitUntilVisible(timeout: const Duration(seconds: 10));
   });
 }

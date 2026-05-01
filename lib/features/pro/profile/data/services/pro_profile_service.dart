@@ -68,15 +68,23 @@ class ProProfileService {
         .eq('profile_id', user.id)
         .maybeSingle();
 
-    final isApproved = (proRow?['verification_status'] ?? '') == 'approved';
+    if (proRow == null) throw const AuthException('Professional profile not found');
 
-    await supabase.from('professional_profiles').update({
-      'bio': bio.trim(),
-      'service_radius_km': serviceRadiusKm,
-      if (!isApproved && nif != null) 'nif': nif.trim(),
-      if (!isApproved && credentialUrls != null)
-        'credential_urls': credentialUrls,
-    }).eq('profile_id', user.id);
+    final isApproved = (proRow['verification_status'] ?? '') == 'approved';
+
+    final updated = await supabase
+        .from('professional_profiles')
+        .update({
+          'bio': bio.trim(),
+          'service_radius_km': serviceRadiusKm,
+          if (!isApproved && nif != null) 'nif': nif.trim(),
+          if (!isApproved && credentialUrls != null)
+            'credential_urls': credentialUrls,
+        })
+        .eq('profile_id', user.id)
+        .select('profile_id');
+
+    if (updated.isEmpty) throw const AuthException('Update failed — check Supabase RLS policies');
 
     if (!isApproved && fullName != null && fullName.trim().isNotEmpty) {
       await supabase

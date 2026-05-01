@@ -140,6 +140,7 @@ void main() {
       await tester.enterText(
           find.byKey(const Key('profileFirstNameField')), 'A');
       await tester.pump();
+      await tester.ensureVisible(find.byKey(const Key('profileSaveButton')));
       await tester.tap(find.byKey(const Key('profileSaveButton')));
       await tester.pump();
 
@@ -156,6 +157,7 @@ void main() {
       await tester.enterText(
           find.byKey(const Key('profilePhoneField')), '123');
       await tester.pump();
+      await tester.ensureVisible(find.byKey(const Key('profileSaveButton')));
       await tester.tap(find.byKey(const Key('profileSaveButton')));
       await tester.pump();
 
@@ -206,6 +208,7 @@ void main() {
       await tester.enterText(
           find.byKey(const Key('profileFirstNameField')), 'Ana');
       await tester.pump();
+      await tester.ensureVisible(find.byKey(const Key('profileSaveButton')));
       await tester.tap(find.byKey(const Key('profileSaveButton')));
       await tester.pumpAndSettle();
 
@@ -227,6 +230,7 @@ void main() {
       await tester.enterText(
           find.byKey(const Key('profileFirstNameField')), 'Ana');
       await tester.pump();
+      await tester.ensureVisible(find.byKey(const Key('profileSaveButton')));
       await tester.tap(find.byKey(const Key('profileSaveButton')));
       await tester.pumpAndSettle();
 
@@ -249,6 +253,7 @@ void main() {
       await tester.enterText(
           find.byKey(const Key('profileFirstNameField')), 'Ana');
       await tester.pump();
+      await tester.ensureVisible(find.byKey(const Key('profileSaveButton')));
       await tester.tap(find.byKey(const Key('profileSaveButton')));
       await tester.pumpAndSettle();
 

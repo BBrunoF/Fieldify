@@ -48,6 +48,17 @@ Future<void> _openProProfileScreen(PatrolIntegrationTester $) async {
   await $.pumpAndTrySettle(timeout: const Duration(seconds: 10));
 }
 
+// Scrolls the bio field into view, clears it, then enters the given text.
+// Required because the bio field is at the bottom of a long scrollable form
+// and may already contain the target value from a previous test run.
+Future<void> _enterBioText(PatrolIntegrationTester $, String text) async {
+  await $(find.byKey(const Key('proProfileBioField'))).scrollTo();
+  await $(find.byKey(const Key('proProfileBioField'))).enterText('');
+  await $.pumpAndTrySettle();
+  await $(find.byKey(const Key('proProfileBioField'))).enterText(text);
+  await $.pumpAndTrySettle();
+}
+
 void main() {
   patrolSetUp(_signOutIfNeeded);
   patrolTearDown(_signOutIfNeeded);
@@ -78,9 +89,7 @@ void main() {
     await _loginAsPro($);
     await _openProProfileScreen($);
 
-    await $(find.byKey(const Key('proProfileBioField')))
-        .enterText('Updated bio for testing');
-    await $.pumpAndTrySettle();
+    await _enterBioText($, 'Updated bio for testing');
 
     final button = $(find.byKey(const Key('proProfileSaveButton')))
         .first
@@ -95,6 +104,8 @@ void main() {
     await _openProProfileScreen($);
 
     await $(find.byKey(const Key('proProfileRadiusField'))).tap();
+    await $(find.byKey(const Key('proProfileRadiusField'))).enterText('');
+    await $.pumpAndTrySettle();
     await $(find.byKey(const Key('proProfileRadiusField'))).enterText('30');
     await $.pumpAndTrySettle();
 
@@ -110,9 +121,7 @@ void main() {
     await _loginAsPro($);
     await _openProProfileScreen($);
 
-    await $(find.byKey(const Key('proProfileBioField')))
-        .enterText('Experienced plumber with 10 years of service.');
-    await $.pumpAndTrySettle();
+    await _enterBioText($, 'Experienced plumber with 10 years of service.');
 
     await $(find.byKey(const Key('proProfileSaveButton'))).scrollTo();
     await $(find.byKey(const Key('proProfileSaveButton'))).tap();
@@ -126,6 +135,8 @@ void main() {
     await _openProProfileScreen($);
 
     await $(find.byKey(const Key('proProfileRadiusField'))).tap();
+    await $(find.byKey(const Key('proProfileRadiusField'))).enterText('');
+    await $.pumpAndTrySettle();
     await $(find.byKey(const Key('proProfileRadiusField'))).enterText('20');
     await $.pumpAndTrySettle();
 
@@ -139,9 +150,7 @@ void main() {
     await _loginAsPro($);
     await _openProProfileScreen($);
 
-    await $(find.byKey(const Key('proProfileBioField')))
-        .enterText('Bio after save test.');
-    await $.pumpAndTrySettle();
+    await _enterBioText($, 'Bio after save test.');
 
     await $(find.byKey(const Key('proProfileSaveButton'))).scrollTo();
     await $(find.byKey(const Key('proProfileSaveButton'))).tap();
@@ -160,9 +169,7 @@ void main() {
     await _loginAsPro($);
     await _openProProfileScreen($);
 
-    await $(find.byKey(const Key('proProfileBioField')))
-        .enterText('Back nav test bio.');
-    await $.pumpAndTrySettle();
+    await _enterBioText($, 'Back nav test bio.');
 
     await $(find.byKey(const Key('proProfileSaveButton'))).scrollTo();
     await $(find.byKey(const Key('proProfileSaveButton'))).tap();

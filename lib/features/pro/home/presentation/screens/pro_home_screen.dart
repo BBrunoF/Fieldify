@@ -7,6 +7,7 @@ import '../../../../auth/presentation/widgets/auth_shared.dart';
 import '../../../../home/presentation/widgets/home_action_buttons.dart';
 import '../../../accepted_jobs/controllers/accepted_jobs_controller.dart';
 import '../../../incoming_jobs/controllers/incoming_jobs_controller.dart';
+import '../../../profile/presentation/screens/pro_profile_screen.dart';
 import '../../../jobs/presentation/widgets/pro_jobs_view.dart';
 
 class ProHomeScreen extends StatefulWidget {
@@ -28,7 +29,15 @@ class ProHomeScreen extends StatefulWidget {
 class _ProHomeScreenState extends State<ProHomeScreen> {
   int _selectedNav = 0;
 
-  void _onNavTap(int i) => setState(() => _selectedNav = i);
+  void _onNavTap(int i) {
+    if (i == 3) {
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => const ProProfileScreen()),
+      );
+      return;
+    }
+    setState(() => _selectedNav = i);
+  }
 
   @override
   Widget build(BuildContext context) {

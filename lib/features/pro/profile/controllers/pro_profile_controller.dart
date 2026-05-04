@@ -1,28 +1,28 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
-import '../data/models/profile_model.dart';
-import '../data/repositories/profile_repository.dart';
+import '../data/models/pro_profile_model.dart';
+import '../data/repositories/pro_profile_repository.dart';
 
-class ProfileController extends ChangeNotifier {
-  final ProfileRepository _repository;
+class ProProfileController extends ChangeNotifier {
+  final ProProfileRepository _repository;
 
-  ProfileController({ProfileRepository? repository})
-      : _repository = repository ?? ProfileRepository() {
+  ProProfileController({ProProfileRepository? repository})
+      : _repository = repository ?? ProProfileRepository() {
     _load();
   }
 
-  ProfileModel? _profile;
+  ProProfileModel? _profile;
   String? _avatarSignedUrl;
-  bool _isSaving = false;
   bool _isLoading = true;
+  bool _isSaving = false;
   bool _isUploadingAvatar = false;
   String? _error;
   bool _saved = false;
 
-  ProfileModel? get profile => _profile;
+  ProProfileModel? get profile => _profile;
   String? get avatarSignedUrl => _avatarSignedUrl;
-  bool get isSaving => _isSaving;
   bool get isLoading => _isLoading;
+  bool get isSaving => _isSaving;
   bool get isUploadingAvatar => _isUploadingAvatar;
   String? get error => _error;
   bool get saved => _saved;
@@ -35,18 +35,16 @@ class ProfileController extends ChangeNotifier {
         _avatarSignedUrl =
             await _repository.getSignedAvatarUrl(_profile!.avatarPath!);
       }
-    } catch (_) {
-      // profile stays null
-    }
+    } catch (_) {}
     _isLoading = false;
     notifyListeners();
   }
 
-  Future<void> saveAll({
+  Future<void> saveProfile({
+    required String bio,
     required String firstName,
     required String lastName,
-    required String phone,
-    required List<String> addresses,
+    required String nif,
   }) async {
     _isSaving = true;
     _error = null;
@@ -54,11 +52,11 @@ class ProfileController extends ChangeNotifier {
     notifyListeners();
 
     try {
+      final fullName = '${firstName.trim()} ${lastName.trim()}';
       await _repository.updateProfile(
-        firstName: firstName,
-        lastName: lastName,
-        phone: phone,
-        addresses: addresses,
+        bio: bio,
+        fullName: _profile?.isApproved == true ? null : fullName,
+        nif: _profile?.isApproved == true ? null : nif,
       );
       _profile = await _repository.fetchCurrent();
       _saved = true;
@@ -68,11 +66,6 @@ class ProfileController extends ChangeNotifier {
       _isSaving = false;
       notifyListeners();
     }
-  }
-
-  void clearError() {
-    _error = null;
-    notifyListeners();
   }
 
   Future<void> uploadAvatar(File file) async {
@@ -90,6 +83,11 @@ class ProfileController extends ChangeNotifier {
       _isUploadingAvatar = false;
       notifyListeners();
     }
+  }
+
+  void clearError() {
+    _error = null;
+    notifyListeners();
   }
 
   void clearSaved() {

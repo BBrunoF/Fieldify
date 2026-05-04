@@ -3,6 +3,7 @@ import '../../../../core/supabase/supabase_client.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../client/home/presentation/screens/client_home_screen.dart';
 import '../../../client/job_history/controllers/job_history_controller.dart';
+import '../../../pro/accepted_jobs/controllers/accepted_jobs_controller.dart';
 import '../../../pro/home/presentation/screens/pro_home_screen.dart';
 import '../../../pro/incoming_jobs/controllers/incoming_jobs_controller.dart';
 
@@ -11,6 +12,7 @@ class HomeScreen extends StatefulWidget {
   final Future<void> Function()? onLogout;
   final WidgetBuilder? requestScreenBuilder;
   final IncomingJobsController? incomingJobsController;
+  final AcceptedJobsController? acceptedJobsController;
   final JobHistoryController? jobHistoryController;
 
   const HomeScreen({
@@ -19,6 +21,7 @@ class HomeScreen extends StatefulWidget {
     this.onLogout,
     this.requestScreenBuilder,
     this.incomingJobsController,
+    this.acceptedJobsController,
     this.jobHistoryController,
   });
 
@@ -74,6 +77,7 @@ class _HomeScreenState extends State<HomeScreen> {
       return ProHomeScreen(
         onLogout: widget.onLogout,
         incomingJobsController: widget.incomingJobsController,
+        acceptedJobsController: widget.acceptedJobsController,
       );
     }
 

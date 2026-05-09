@@ -31,7 +31,7 @@ class ProActionBar extends StatelessWidget {
           _ghost('Message client', onMessage),
           _primary('Start heading over', onMarkOnTheWay),
         ]);
-      case JobStatus.onTheWay:
+      case JobStatus.onMyWay:
         return _Bar([
           _ghost('Message client', onMessage),
           _primary("I've arrived — start job", onMarkInProgress),

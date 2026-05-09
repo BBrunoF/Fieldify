@@ -13,8 +13,8 @@ class StatusPill extends StatelessWidget {
         return 'Pending';
       case JobStatus.accepted:
         return 'Accepted';
-      case JobStatus.onTheWay:
-        return 'On the way';
+      case JobStatus.onMyWay:
+        return 'On my way';
       case JobStatus.inProgress:
         return 'In progress';
       case JobStatus.completed:
@@ -27,10 +27,10 @@ class StatusPill extends StatelessWidget {
   ({Color bg, Color fg}) get _colors {
     switch (status) {
       case JobStatus.pending:
-        return (bg: Colors.white.withOpacity(0.15), fg: FieldifyColors.g200);
+        return (bg: Colors.white.withValues(alpha: 0.15), fg: FieldifyColors.g200);
       case JobStatus.accepted:
         return (bg: const Color(0xFFEEF2FF), fg: const Color(0xFF4338CA));
-      case JobStatus.onTheWay:
+      case JobStatus.onMyWay:
         return (bg: const Color(0xFFFAEEDA), fg: const Color(0xFF854F0B));
       case JobStatus.inProgress:
       case JobStatus.completed:

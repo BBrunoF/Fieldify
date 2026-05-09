@@ -1,4 +1,4 @@
-class AcceptedJob {
+class ProJob {
   final String id;
   final String title;
   final String description;
@@ -7,8 +7,9 @@ class AcceptedJob {
   final DateTime? createdAt;
   final DateTime? acceptedAt;
   final String clientId;
+  final bool isRejected;
 
-  const AcceptedJob({
+  const ProJob({
     required this.id,
     required this.title,
     required this.description,
@@ -17,10 +18,14 @@ class AcceptedJob {
     required this.createdAt,
     required this.acceptedAt,
     required this.clientId,
+    this.isRejected = false,
   });
 
-  factory AcceptedJob.fromJson(Map<String, dynamic> json) {
-    return AcceptedJob(
+  factory ProJob.fromJson(
+    Map<String, dynamic> json, {
+    bool isRejected = false,
+  }) {
+    return ProJob(
       id: json['id'] as String,
       title: (json['title'] ?? '') as String,
       description: (json['description'] ?? '') as String,
@@ -33,6 +38,7 @@ class AcceptedJob {
           ? DateTime.tryParse(json['accepted_at'] as String)
           : null,
       clientId: (json['client_id'] ?? '') as String,
+      isRejected: isRejected,
     );
   }
 }

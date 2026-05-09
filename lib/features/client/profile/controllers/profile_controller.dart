@@ -96,4 +96,6 @@ class ProfileController extends ChangeNotifier {
     _saved = false;
     notifyListeners();
   }
+
+  Future<void> reload() => _load();
 }

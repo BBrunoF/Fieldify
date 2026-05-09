@@ -1,9 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:project/features/pro/accepted_jobs/data/models/accepted_job.dart';
+import 'package:project/features/pro/jobs/data/models/pro_job.dart';
 
 void main() {
-  test('AcceptedJob.fromJson maps accepted job data', () {
-    final job = AcceptedJob.fromJson({
+  test('ProJob.fromJson maps accepted job data', () {
+    final job = ProJob.fromJson({
       'id': 'job-1',
       'title': 'Install sink',
       'description': 'Fit the new bathroom sink',

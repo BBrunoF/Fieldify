@@ -41,7 +41,7 @@ class _PhotoViewerState extends State<PhotoViewer> {
             child: Image.network(
               widget.urls[i],
               fit: BoxFit.contain,
-              errorBuilder: (_, __, ___) => const Icon(
+              errorBuilder: (_, _, _) => const Icon(
                 Icons.broken_image_outlined,
                 color: Colors.white54,
                 size: 48,

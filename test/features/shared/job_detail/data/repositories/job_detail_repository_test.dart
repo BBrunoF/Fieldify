@@ -8,15 +8,11 @@ class _FakeJobDetailService extends JobDetailService {
   _FakeJobDetailService({
     this.onFetch,
     this.onMarkOnTheWay,
-    this.onMarkInProgress,
-    this.onMarkCompleted,
     this.onCancel,
   });
 
   final Future<JobDetail> Function(String id, ViewerRole role)? onFetch;
   final Future<void> Function(String id)? onMarkOnTheWay;
-  final Future<void> Function(String id)? onMarkInProgress;
-  final Future<void> Function(String id)? onMarkCompleted;
   final Future<void> Function(String id, String? reason)? onCancel;
 
   @override
@@ -29,12 +25,10 @@ class _FakeJobDetailService extends JobDetailService {
       onMarkOnTheWay?.call(jobId) ?? Future.value();
 
   @override
-  Future<void> markInProgress(String jobId) =>
-      onMarkInProgress?.call(jobId) ?? Future.value();
+  Future<void> markInProgress(String jobId) => Future.value();
 
   @override
-  Future<void> markCompleted(String jobId) =>
-      onMarkCompleted?.call(jobId) ?? Future.value();
+  Future<void> markCompleted(String jobId) => Future.value();
 
   @override
   Future<void> cancelJob(String jobId, {String? reason}) =>
@@ -76,7 +70,7 @@ void main() {
         () async {
       final repo = JobDetailRepository(
         service: _FakeJobDetailService(
-          onFetch: (_, __) async =>
+          onFetch: (_, _) async =>
               throw PostgrestException(message: 'db offline'),
         ),
       );
@@ -92,7 +86,7 @@ void main() {
         () async {
       final repo = JobDetailRepository(
         service: _FakeJobDetailService(
-          onFetch: (_, __) async =>
+          onFetch: (_, _) async =>
               throw const StorageException('signed-url failed'),
         ),
       );

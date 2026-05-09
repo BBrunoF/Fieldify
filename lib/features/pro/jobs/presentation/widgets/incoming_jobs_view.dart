@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../../core/theme/app_colors.dart';
-import '../../controllers/incoming_jobs_controller.dart';
+import '../../controllers/pro_jobs_controller.dart';
 import 'incoming_job_card.dart';
 
 class IncomingJobsView extends StatefulWidget {
-  final IncomingJobsController? controller;
+  final ProJobsController? controller;
 
   const IncomingJobsView({super.key, this.controller});
 
@@ -14,16 +14,18 @@ class IncomingJobsView extends StatefulWidget {
 }
 
 class _IncomingJobsViewState extends State<IncomingJobsView> {
-  late final IncomingJobsController _controller;
+  late final ProJobsController _controller;
   late final bool _ownsController;
 
   @override
   void initState() {
     super.initState();
-    _controller = widget.controller ?? IncomingJobsController();
+    _controller = widget.controller ?? ProJobsController();
     _ownsController = widget.controller == null;
     _controller.addListener(_onChanged);
-    _controller.loadJobs();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _controller.loadIncomingJobs();
+    });
   }
 
   void _onChanged() {
@@ -41,13 +43,11 @@ class _IncomingJobsViewState extends State<IncomingJobsView> {
   @override
   void dispose() {
     _controller.removeListener(_onChanged);
-    if (_ownsController) {
-      _controller.dispose();
-    }
+    if (_ownsController) _controller.dispose();
     super.dispose();
   }
 
-  Future<void> _refresh() => _controller.loadJobs();
+  Future<void> _refresh() => _controller.loadIncomingJobs();
 
   @override
   Widget build(BuildContext context) {
@@ -83,7 +83,7 @@ class _IncomingJobsViewState extends State<IncomingJobsView> {
         Expanded(
           child: RefreshIndicator(
             onRefresh: _refresh,
-            child: _controller.isLoading
+            child: _controller.isLoadingIncoming
                 ? ListView(
                     physics: const AlwaysScrollableScrollPhysics(),
                     key: const Key('incomingJobsLoadingState'),
@@ -92,7 +92,7 @@ class _IncomingJobsViewState extends State<IncomingJobsView> {
                       Center(child: CircularProgressIndicator()),
                     ],
                   )
-                : _controller.jobs.isEmpty
+                : _controller.incomingJobs.isEmpty
                 ? ListView(
                     key: const Key('incomingJobsEmptyState'),
                     physics: const AlwaysScrollableScrollPhysics(),
@@ -133,10 +133,10 @@ class _IncomingJobsViewState extends State<IncomingJobsView> {
                     key: const Key('incomingJobsList'),
                     physics: const AlwaysScrollableScrollPhysics(),
                     padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
-                    itemCount: _controller.jobs.length,
+                    itemCount: _controller.incomingJobs.length,
                     separatorBuilder: (_, index) => const SizedBox(height: 12),
                     itemBuilder: (context, index) {
-                      final job = _controller.jobs[index];
+                      final job = _controller.incomingJobs[index];
                       return IncomingJobCard(
                         key: ValueKey('incomingJobCard_${job.id}'),
                         job: job,

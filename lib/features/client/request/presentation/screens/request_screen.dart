@@ -4,29 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../../core/theme/app_colors.dart';
-import '../../../../auth/presentation/widgets/auth_shared.dart';
+import '../../../../../shared/utils/date_format_utils.dart';
 import '../../../../../shared/widgets/fieldify_painters.dart';
+import '../../../../auth/presentation/widgets/auth_shared.dart';
 import '../../controllers/request_controller.dart';
 import '../../data/models/trade_model.dart';
-
-// ── Data ──────────────────────────────────────────────────────────────────────
-
-ServiceIconType _iconForTrade(String slug) {
-  switch (slug) {
-    case 'plumbing':
-      return ServiceIconType.plumbing;
-    case 'electrical':
-      return ServiceIconType.electrical;
-    case 'carpentry':
-      return ServiceIconType.carpentry;
-    case 'hvac':
-      return ServiceIconType.hvac;
-    case 'painting':
-      return ServiceIconType.painting;
-    default:
-      return ServiceIconType.other;
-  }
-}
+import '../trade_icon_mapper.dart';
 
 const _stepLabels = ['Category', 'Details', 'Location', 'Confirm'];
 const _btnLabels = ['Continue', 'Continue', 'Continue', 'Submit request'];
@@ -449,7 +432,7 @@ Future<void> _showPhotoSourceSheet() async {
                             child: CustomPaint(
                               size: const Size(22, 22),
                               painter: ServiceIconPainter(
-                                icon: _iconForTrade(c.slug),
+                                icon: iconForTrade(c.slug),
                                 color: selected
                                     ? FieldifyColors.g100
                                     : FieldifyColors.g800,
@@ -808,7 +791,7 @@ Future<void> _showPhotoSourceSheet() async {
                                   ),
                                 ),
                                 child: Text(
-                                  '${_date.year}-${_date.month.toString().padLeft(2, '0')}-${_date.day.toString().padLeft(2, '0')}',
+                                  formatDateYmd(_date),
                                   style: _inputTextStyle,
                                 ),
                               ),
@@ -1030,7 +1013,7 @@ Future<void> _showPhotoSourceSheet() async {
       child: Column(
         children: [
           _PriceRow('Rate', '€$rate / h'),
-          _PriceRow('Platform fee', '10%'),
+          _PriceRow('Platform fee', '${Trade.platformFeePercent}%'),
           const Divider(height: 1, color: Color(0x14000000)),
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 10),

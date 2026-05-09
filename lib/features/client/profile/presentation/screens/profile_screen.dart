@@ -70,6 +70,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _addresses = List<String>.from(p?.addresses ?? []);
 
     _controller.addListener(_onChanged);
+    _firstCtrl.addListener(_markDirty);
+    _lastCtrl.addListener(_markDirty);
+    _phoneCtrl.addListener(_markDirty);
   }
 
   void _onChanged() {
@@ -118,6 +121,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void dispose() {
     _controller.removeListener(_onChanged);
     if (_ownsController) _controller.dispose();
+    _firstCtrl.removeListener(_markDirty);
+    _lastCtrl.removeListener(_markDirty);
+    _phoneCtrl.removeListener(_markDirty);
     _firstCtrl.dispose();
     _lastCtrl.dispose();
     _phoneCtrl.dispose();

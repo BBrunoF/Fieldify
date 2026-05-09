@@ -17,6 +17,8 @@ class RequestRepository {
   RequestRepository({RequestService? service})
     : _service = service ?? RequestService();
 
+  String? getCurrentUserId() => _service.getCurrentUserId();
+
   Future<void> submitRequest(Map<String, dynamic> data) async {
     try {
       await _service.submitRequest(data);

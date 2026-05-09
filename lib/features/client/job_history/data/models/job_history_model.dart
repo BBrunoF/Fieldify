@@ -23,8 +23,38 @@ class ClientJob {
     required this.tradeName,
   });
 
-  bool get isPast =>
-      status == 'completed' || status == 'cancelled';
+  bool get isPast => status == 'completed' || status == 'cancelled';
+
+  String get proInitials {
+    final source = (proId ?? '').replaceAll('-', '');
+    if (source.length >= 2) return source.substring(0, 2).toUpperCase();
+    return 'PR';
+  }
+
+  String get statusLabel {
+    switch (status) {
+      case 'pending':
+        return 'Pending';
+      case 'accepted':
+        return 'Accepted';
+      case 'on_the_way':
+        return 'On the way';
+      case 'in_progress':
+        return 'In progress';
+      case 'completed':
+        return 'Completed';
+      case 'cancelled':
+        return 'Cancelled';
+      default:
+        return status.isEmpty ? '—' : status;
+    }
+  }
+
+  String get displaySubtitle {
+    if (proId == null) return tradeName ?? 'Awaiting professional';
+    if (tradeName == null || tradeName!.isEmpty) return 'Assigned professional';
+    return 'Assigned pro · $tradeName';
+  }
 
   ClientJob copyWith({String? tradeName}) {
     return ClientJob(

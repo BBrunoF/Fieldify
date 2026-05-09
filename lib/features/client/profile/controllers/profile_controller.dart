@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import '../data/models/profile_model.dart';
 import '../data/repositories/profile_repository.dart';
@@ -11,14 +12,18 @@ class ProfileController extends ChangeNotifier {
   }
 
   ProfileModel? _profile;
+  String? _avatarSignedUrl;
   bool _isSaving = false;
   bool _isLoading = true;
+  bool _isUploadingAvatar = false;
   String? _error;
   bool _saved = false;
 
   ProfileModel? get profile => _profile;
+  String? get avatarSignedUrl => _avatarSignedUrl;
   bool get isSaving => _isSaving;
   bool get isLoading => _isLoading;
+  bool get isUploadingAvatar => _isUploadingAvatar;
   String? get error => _error;
   bool get saved => _saved;
 
@@ -26,6 +31,10 @@ class ProfileController extends ChangeNotifier {
     _isLoading = true;
     try {
       _profile = await _repository.fetchCurrent();
+      if (_profile?.avatarPath != null) {
+        _avatarSignedUrl =
+            await _repository.getSignedAvatarUrl(_profile!.avatarPath!);
+      }
     } catch (_) {
       // profile stays null
     }
@@ -66,8 +75,27 @@ class ProfileController extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> uploadAvatar(File file) async {
+    _isUploadingAvatar = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      final path = await _repository.uploadAvatar(file: file);
+      _profile = _profile?.copyWith(avatarPath: path);
+      _avatarSignedUrl = await _repository.getSignedAvatarUrl(path);
+    } catch (e) {
+      _error = e.toString();
+    } finally {
+      _isUploadingAvatar = false;
+      notifyListeners();
+    }
+  }
+
   void clearSaved() {
     _saved = false;
     notifyListeners();
   }
+
+  Future<void> reload() => _load();
 }

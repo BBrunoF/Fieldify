@@ -44,7 +44,7 @@ class PhotoGallery extends StatelessWidget {
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
               itemCount: urls.length,
-              separatorBuilder: (_, __) => const SizedBox(width: 8),
+              separatorBuilder: (_, _) => const SizedBox(width: 8),
               itemBuilder: (context, i) => GestureDetector(
                 onTap: () => _openViewer(context, i),
                 child: ClipRRect(
@@ -54,7 +54,7 @@ class PhotoGallery extends StatelessWidget {
                     width: 92,
                     height: 92,
                     fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(
+                    errorBuilder: (_, _, _) => Container(
                       width: 92,
                       height: 92,
                       color: FieldifyColors.surface,

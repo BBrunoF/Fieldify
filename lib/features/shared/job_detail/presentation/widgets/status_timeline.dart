@@ -77,7 +77,7 @@ class StatusTimeline extends StatelessWidget {
       sub: t.startedAt != null ? _fmt(t.startedAt) : null,
       state: t.startedAt != null
           ? (s == JobStatus.inProgress ? TimelineState.active : TimelineState.done)
-          : (s == JobStatus.onTheWay ? TimelineState.active : TimelineState.pending),
+          : (s == JobStatus.onMyWay ? TimelineState.active : TimelineState.pending),
     ));
 
     entries.add(TimelineEntry(

@@ -1,6 +1,8 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../auth/presentation/widgets/auth_shared.dart';
 import '../../controllers/profile_controller.dart';
@@ -51,6 +53,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   bool _profileInitialized = false;
   bool _initializing = false;
 
+  final _picker = ImagePicker();
+
   @override
   void initState() {
     super.initState();
@@ -66,6 +70,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _addresses = List<String>.from(p?.addresses ?? []);
 
     _controller.addListener(_onChanged);
+    _firstCtrl.addListener(_markDirty);
+    _lastCtrl.addListener(_markDirty);
+    _phoneCtrl.addListener(_markDirty);
   }
 
   void _onChanged() {
@@ -114,6 +121,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void dispose() {
     _controller.removeListener(_onChanged);
     if (_ownsController) _controller.dispose();
+    _firstCtrl.removeListener(_markDirty);
+    _lastCtrl.removeListener(_markDirty);
+    _phoneCtrl.removeListener(_markDirty);
     _firstCtrl.dispose();
     _lastCtrl.dispose();
     _phoneCtrl.dispose();
@@ -149,6 +159,61 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   void _removeAddress(int i) {
     setState(() { _addresses.removeAt(i); _dirty = true; });
+  }
+
+  Future<void> _pickAvatar(ImageSource source) async {
+    final picked = await _picker.pickImage(
+      source: source,
+      maxWidth: 800,
+      imageQuality: 85,
+    );
+    if (picked == null) return;
+    await _controller.uploadAvatar(File(picked.path));
+  }
+
+  Future<void> _showPhotoSourceSheet() async {
+    final source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => SafeArea(
+        child: Container(
+          decoration: const BoxDecoration(
+            color: FieldifyColors.surface,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Center(
+                child: Container(
+                  width: 36,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: FieldifyColors.ink4,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              _PhotoSourceTile(
+                icon: Icons.camera_alt_outlined,
+                label: 'Camera',
+                onTap: () => Navigator.pop(ctx, ImageSource.camera),
+              ),
+              const SizedBox(height: 10),
+              _PhotoSourceTile(
+                icon: Icons.photo_library_outlined,
+                label: 'Photo library',
+                onTap: () => Navigator.pop(ctx, ImageSource.gallery),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    if (source == null || !mounted) return;
+    await _pickAvatar(source);
   }
 
   void _showAddressSheet(String? initial, void Function(String) onSave) {
@@ -252,6 +317,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        _buildAvatar(),
+                        const SizedBox(height: 24),
                         _buildSectionLabel('Personal details'),
                         const SizedBox(height: 10),
                         _buildPersonalFields(),
@@ -293,6 +360,66 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildAvatar() {
+    final initials = _controller.profile?.initials ?? '?';
+    return Center(
+      child: Stack(
+        children: [
+          Container(
+            width: 88,
+            height: 88,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: FieldifyColors.g800,
+              border: Border.all(color: FieldifyColors.surface, width: 3),
+            ),
+            child: ClipOval(
+              child: _controller.isUploadingAvatar
+                  ? const Center(
+                      child: SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(
+                          color: FieldifyColors.g100,
+                          strokeWidth: 2,
+                        ),
+                      ),
+                    )
+                  : _controller.avatarSignedUrl != null
+                      ? Image.network(
+                          _controller.avatarSignedUrl!,
+                          fit: BoxFit.cover,
+                          errorBuilder: (ctx, e, s) =>
+                              _AvatarInitialsWidget(initials),
+                        )
+                      : _AvatarInitialsWidget(initials),
+            ),
+          ),
+          Positioned(
+            right: 0,
+            bottom: 0,
+            child: GestureDetector(
+              onTap: _controller.isUploadingAvatar
+                  ? null
+                  : _showPhotoSourceSheet,
+              child: Container(
+                width: 28,
+                height: 28,
+                decoration: BoxDecoration(
+                  color: FieldifyColors.g700,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: FieldifyColors.surface, width: 2),
+                ),
+                child: const Icon(Icons.camera_alt,
+                    size: 13, color: Colors.white),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -501,6 +628,57 @@ class _ProfileScreenState extends State<ProfileScreen> {
 }
 
 // ── Small widgets ─────────────────────────────────────────────────────────────
+
+class _AvatarInitialsWidget extends StatelessWidget {
+  final String initials;
+  const _AvatarInitialsWidget(this.initials);
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Text(
+        initials,
+        style: GoogleFonts.dmSans(
+          fontSize: 28,
+          fontWeight: FontWeight.w500,
+          color: FieldifyColors.g100,
+        ),
+      ),
+    );
+  }
+}
+
+class _PhotoSourceTile extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+  const _PhotoSourceTile(
+      {required this.icon, required this.label, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: FieldifyColors.border),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, size: 20, color: FieldifyColors.ink2),
+            const SizedBox(width: 12),
+            Text(label,
+                style: GoogleFonts.dmSans(
+                    fontSize: 15, color: FieldifyColors.ink)),
+          ],
+        ),
+      ),
+    );
+  }
+}
 
 class _LabeledField extends StatelessWidget {
   final String label;

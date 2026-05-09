@@ -1,22 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../../core/theme/app_colors.dart';
-import '../../../accepted_jobs/controllers/accepted_jobs_controller.dart';
-import '../../../accepted_jobs/presentation/widgets/accepted_jobs_view.dart';
-import '../../../incoming_jobs/controllers/incoming_jobs_controller.dart';
-import '../../../incoming_jobs/presentation/widgets/incoming_jobs_view.dart';
+import '../../controllers/pro_jobs_controller.dart';
+import 'accepted_jobs_view.dart';
+import 'incoming_jobs_view.dart';
 
 enum ProJobsTab { incoming, accepted }
 
 class ProJobsView extends StatefulWidget {
-  final IncomingJobsController? incomingJobsController;
-  final AcceptedJobsController? acceptedJobsController;
+  final ProJobsController? controller;
 
-  const ProJobsView({
-    super.key,
-    this.incomingJobsController,
-    this.acceptedJobsController,
-  });
+  const ProJobsView({super.key, this.controller});
 
   @override
   State<ProJobsView> createState() => _ProJobsViewState();
@@ -38,12 +32,11 @@ class _ProJobsViewState extends State<ProJobsView> {
   }
 
   Future<void> _refreshIncomingJobs() async {
-    final controller = widget.incomingJobsController;
+    final controller = widget.controller;
     if (controller != null) {
-      await controller.loadJobs();
+      await controller.loadIncomingJobs();
       return;
     }
-
     setState(() {
       _incomingRefreshKey++;
     });
@@ -63,11 +56,11 @@ class _ProJobsViewState extends State<ProJobsView> {
               children: [
                 IncomingJobsView(
                   key: ValueKey('incomingJobsView_$_incomingRefreshKey'),
-                  controller: widget.incomingJobsController,
+                  controller: widget.controller,
                 ),
                 if (_acceptedTabMounted)
                   AcceptedJobsView(
-                    controller: widget.acceptedJobsController,
+                    controller: widget.controller,
                     onJobReturnedToIncoming: _refreshIncomingJobs,
                   )
                 else

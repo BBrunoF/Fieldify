@@ -6,16 +6,10 @@ import 'package:project/features/shared/job_detail/data/repositories/job_detail_
 class _FakeRepo extends JobDetailRepository {
   _FakeRepo({
     this.onFetch,
-    this.onMarkOnTheWay,
-    this.onMarkInProgress,
-    this.onMarkCompleted,
     this.onCancel,
   });
 
   final Future<JobDetail> Function(String id, ViewerRole role)? onFetch;
-  final Future<void> Function(String id)? onMarkOnTheWay;
-  final Future<void> Function(String id)? onMarkInProgress;
-  final Future<void> Function(String id)? onMarkCompleted;
   final Future<void> Function(String id, String? reason)? onCancel;
 
   int fetchCalls = 0;
@@ -34,19 +28,19 @@ class _FakeRepo extends JobDetailRepository {
   @override
   Future<void> markOnTheWay(String jobId) {
     onTheWayCalls++;
-    return onMarkOnTheWay?.call(jobId) ?? Future.value();
+    return Future.value();
   }
 
   @override
   Future<void> markInProgress(String jobId) {
     inProgressCalls++;
-    return onMarkInProgress?.call(jobId) ?? Future.value();
+    return Future.value();
   }
 
   @override
   Future<void> markCompleted(String jobId) {
     completedCalls++;
-    return onMarkCompleted?.call(jobId) ?? Future.value();
+    return Future.value();
   }
 
   @override
@@ -96,7 +90,7 @@ void main() {
         jobId: 'j1',
         viewerRole: ViewerRole.client,
         repo: _FakeRepo(
-          onFetch: (_, __) async => throw const JobDetailFailure('nope'),
+          onFetch: (_, _) async => throw const JobDetailFailure('nope'),
         ),
       );
 
@@ -109,7 +103,7 @@ void main() {
       final controller = JobDetailController(
         jobId: 'j1',
         viewerRole: ViewerRole.client,
-        repo: _FakeRepo(onFetch: (_, __) async => throw StateError('boom')),
+        repo: _FakeRepo(onFetch: (_, _) async => throw StateError('boom')),
       );
 
       await controller.load();
@@ -132,7 +126,7 @@ void main() {
 
       expect(repo.onTheWayCalls, 1);
       expect(repo.fetchCalls, 1); // refetch after mutation
-      expect(controller.detail?.status, JobStatus.onTheWay);
+      expect(controller.detail?.status, JobStatus.onMyWay);
     });
 
     test('pro-only methods are no-ops when viewer is client', () async {
@@ -186,7 +180,7 @@ void main() {
 
     test('exposes JobDetailFailure message on mutation error', () async {
       final repo = _FakeRepo(
-        onCancel: (_, __) async => throw const JobDetailFailure('rls blocked'),
+        onCancel: (_, _) async => throw const JobDetailFailure('rls blocked'),
       );
       final controller = JobDetailController(
         jobId: 'j1',
@@ -203,7 +197,7 @@ void main() {
   test('re-entrant action calls are dropped', () async {
     var completed = 0;
     final repo = _FakeRepo(
-      onCancel: (_, __) async {
+      onCancel: (_, _) async {
         await Future<void>.delayed(const Duration(milliseconds: 30));
         completed++;
       },

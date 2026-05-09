@@ -5,20 +5,18 @@ import '../../../../../core/theme/app_colors.dart';
 import '../../../../../shared/widgets/bottom_nav.dart';
 import '../../../../auth/presentation/widgets/auth_shared.dart';
 import '../../../../home/presentation/widgets/home_action_buttons.dart';
-import '../../../accepted_jobs/controllers/accepted_jobs_controller.dart';
-import '../../../incoming_jobs/controllers/incoming_jobs_controller.dart';
+import '../../../jobs/controllers/pro_jobs_controller.dart';
 import '../../../jobs/presentation/widgets/pro_jobs_view.dart';
+import '../../../profile/presentation/screens/pro_profile_screen.dart';
 
 class ProHomeScreen extends StatefulWidget {
   final Future<void> Function()? onLogout;
-  final IncomingJobsController? incomingJobsController;
-  final AcceptedJobsController? acceptedJobsController;
+  final ProJobsController? jobsController;
 
   const ProHomeScreen({
     super.key,
     this.onLogout,
-    this.incomingJobsController,
-    this.acceptedJobsController,
+    this.jobsController,
   });
 
   @override
@@ -28,7 +26,15 @@ class ProHomeScreen extends StatefulWidget {
 class _ProHomeScreenState extends State<ProHomeScreen> {
   int _selectedNav = 0;
 
-  void _onNavTap(int i) => setState(() => _selectedNav = i);
+  void _onNavTap(int i) {
+    if (i == 3) {
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => const ProProfileScreen()),
+      );
+      return;
+    }
+    setState(() => _selectedNav = i);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -190,10 +196,7 @@ class _ProHomeScreenState extends State<ProHomeScreen> {
         Expanded(
           child: Container(
             color: FieldifyColors.surface,
-            child: ProJobsView(
-              incomingJobsController: widget.incomingJobsController,
-              acceptedJobsController: widget.acceptedJobsController,
-            ),
+            child: ProJobsView(controller: widget.jobsController),
           ),
         ),
       ],

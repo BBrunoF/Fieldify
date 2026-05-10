@@ -27,9 +27,9 @@ It is organised by the following activities:
   * [Sprint 2](#Sprint-2)
   * [Sprint 3](#Sprint-3)
   * [Final Release](#Final-Release)
-* [Documentation](#Documentation)
-  *[Sprint Artifacts](#Sprint-Artifacts)
-  *[Development](#Development) 
+* [Documentation](#documentation)
+   * [Sprint Artifacts](#sprint-artifacts)
+   * [Development](#development)
 
 Contributions are expected to be made exclusively by the initial team, but we may open them to the community, after the course, in all areas and topics: requirements, technologies, development, experimentation, testing, etc.
 

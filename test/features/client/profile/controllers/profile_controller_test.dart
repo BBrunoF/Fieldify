@@ -8,13 +8,11 @@ class _FakeProfileRepository extends ProfileRepository {
   _FakeProfileRepository({
     this.profile,
     this.onUpdate,
-    this.uploadedPath = 'uid/avatar.jpg',
     this.throwOnUpload = false,
   });
 
   final ProfileModel? profile;
   final Future<void> Function()? onUpdate;
-  final String uploadedPath;
   final bool throwOnUpload;
 
   @override
@@ -33,7 +31,7 @@ class _FakeProfileRepository extends ProfileRepository {
   @override
   Future<String> uploadAvatar({required File file}) async {
     if (throwOnUpload) throw Exception('Upload failed');
-    return uploadedPath;
+    return 'uid/avatar.jpg';
   }
 
   @override

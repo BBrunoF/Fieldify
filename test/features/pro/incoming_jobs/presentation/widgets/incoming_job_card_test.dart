@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:project/features/pro/incoming_jobs/data/models/incoming_job.dart';
-import 'package:project/features/pro/incoming_jobs/presentation/widgets/incoming_job_card.dart';
+import 'package:project/features/pro/jobs/data/models/pro_job.dart';
+import 'package:project/features/pro/jobs/presentation/widgets/incoming_job_card.dart';
 
 import '../../../../../test_helpers.dart';
 
@@ -14,13 +14,14 @@ void main() {
     await pumpTestApp(
       tester,
       IncomingJobCard(
-        job: const IncomingJob(
+        job: const ProJob(
           id: 'job-1',
           title: '',
           description: '',
           addressText: '',
           status: 'pending',
           createdAt: null,
+          acceptedAt: null,
           clientId: 'client-1',
           isRejected: true,
         ),

@@ -3,10 +3,10 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../shared/job_detail/data/models/job_detail_model.dart';
 import '../../../../shared/job_detail/presentation/screens/job_detail_screen.dart';
-import '../../data/models/accepted_job.dart';
+import '../../data/models/pro_job.dart';
 
 class AcceptedJobCard extends StatelessWidget {
-  final AcceptedJob job;
+  final ProJob job;
   final VoidCallback? onCancel;
 
   const AcceptedJobCard({super.key, required this.job, this.onCancel});

@@ -67,7 +67,7 @@ class JobDetailService {
     await supabase
         .from('service_requests')
         .update({
-          'status': JobStatus.onTheWay.dbValue,
+          'status': JobStatus.onMyWay.dbValue,
           'on_my_way_at': DateTime.now().toUtc().toIso8601String(),
         })
         .eq('id', jobId);
@@ -99,7 +99,7 @@ class JobDetailService {
         .update({
           'status': JobStatus.cancelled.dbValue,
           'cancelled_at': DateTime.now().toUtc().toIso8601String(),
-          if (reason != null) 'cancel_reason': reason,
+          'cancel_reason': ?reason,
         })
         .eq('id', jobId);
   }

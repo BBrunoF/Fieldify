@@ -2,7 +2,10 @@ import 'dart:io';
 import '../../../../../core/supabase/supabase_client.dart';
 
 const _photosBucket = 'service-request-photos';
+
 class RequestService {
+  String? getCurrentUserId() => supabase.auth.currentUser?.id;
+
   Future<void> submitRequest(Map<String, dynamic> data) async {
     await supabase.from('service_requests').insert(data);
   }

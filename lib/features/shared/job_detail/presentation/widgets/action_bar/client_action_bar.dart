@@ -27,11 +27,11 @@ class ClientActionBar extends StatelessWidget {
       case JobStatus.pending:
         return _Bar([_danger('Cancel request', onCancel)]);
       case JobStatus.accepted:
-      case JobStatus.onTheWay:
+      case JobStatus.onMyWay:
         return _Bar([
           _ghost('Message', onMessage),
           _danger(
-            detail.status == JobStatus.onTheWay
+            detail.status == JobStatus.onMyWay
                 ? 'Cancel — fee applies'
                 : 'Cancel job',
             onCancel,

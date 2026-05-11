@@ -1,6 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../../core/supabase/supabase_client.dart';
-import '../models/incoming_job.dart';
+import '../models/pro_job.dart';
 
 class JobAlreadyTakenException implements Exception {
   const JobAlreadyTakenException();
@@ -14,14 +14,25 @@ class ProfessionalProfileMissingException implements Exception {
   String toString() => 'Professional profile not set up.';
 }
 
-class IncomingJobsService {
-  Future<List<IncomingJob>> fetchIncomingJobs({
+class ProJobReleaseException implements Exception {
+  const ProJobReleaseException();
+  @override
+  String toString() => 'Could not return this job to incoming requests.';
+}
+
+class ProJobsService {
+  static const acceptedStatuses = [
+    'accepted',
+    'on_my_way',
+    'on_the_way',
+    'in_progress',
+  ];
+
+  Future<List<ProJob>> fetchIncomingJobs({
     bool includeRejected = false,
   }) async {
     final user = supabase.auth.currentUser;
-    if (user == null) {
-      throw const AuthException('No authenticated user.');
-    }
+    if (user == null) throw const AuthException('No authenticated user.');
 
     final proProfile = await supabase
         .from('professional_profiles')
@@ -58,7 +69,7 @@ class IncomingJobsService {
 
     return (result as List)
         .map(
-          (json) => IncomingJob.fromJson(
+          (json) => ProJob.fromJson(
             json as Map<String, dynamic>,
             isRejected: rejectedIds.contains(json['id']),
           ),
@@ -66,11 +77,25 @@ class IncomingJobsService {
         .toList();
   }
 
+  Future<List<ProJob>> fetchAcceptedJobs() async {
+    final user = supabase.auth.currentUser;
+    if (user == null) throw const AuthException('No authenticated user.');
+
+    final result = await supabase
+        .from('service_requests')
+        .select()
+        .eq('pro_id', user.id)
+        .inFilter('status', acceptedStatuses)
+        .order('accepted_at', ascending: true);
+
+    return (result as List)
+        .map((json) => ProJob.fromJson(json as Map<String, dynamic>))
+        .toList();
+  }
+
   Future<void> acceptJob(String requestId) async {
     final user = supabase.auth.currentUser;
-    if (user == null) {
-      throw const AuthException('No authenticated user.');
-    }
+    if (user == null) throw const AuthException('No authenticated user.');
 
     final updated = await supabase
         .from('service_requests')
@@ -83,9 +108,7 @@ class IncomingJobsService {
         .eq('status', 'pending')
         .select();
 
-    if ((updated as List).isEmpty) {
-      throw const JobAlreadyTakenException();
-    }
+    if ((updated as List).isEmpty) throw const JobAlreadyTakenException();
 
     await supabase
         .from('service_request_rejections')
@@ -96,13 +119,48 @@ class IncomingJobsService {
 
   Future<void> rejectJob(String requestId) async {
     final user = supabase.auth.currentUser;
-    if (user == null) {
-      throw const AuthException('No authenticated user.');
-    }
+    if (user == null) throw const AuthException('No authenticated user.');
 
     await supabase.from('service_request_rejections').upsert({
       'pro_id': user.id,
       'request_id': requestId,
     });
+  }
+
+  Future<void> returnJobToPending(String requestId) async {
+    final user = supabase.auth.currentUser;
+    if (user == null) throw const AuthException('No authenticated user.');
+
+    final updated = await supabase
+        .from('service_requests')
+        .update({
+          'status': 'pending',
+          'accepted_at': null,
+          'on_my_way_at': null,
+          'started_at': null,
+          'completed_at': null,
+          'cancelled_at': null,
+          'cancel_reason': null,
+        })
+        .eq('id', requestId)
+        .eq('pro_id', user.id)
+        .inFilter('status', acceptedStatuses)
+        .select();
+
+    if ((updated as List).isEmpty) throw const ProJobReleaseException();
+
+    // Best-effort: clear pro_id now that status is pending.
+    // Requires the RLS UPDATE policy to permit pro_id=null on owned rows.
+    try {
+      await supabase
+          .from('service_requests')
+          .update({'pro_id': null})
+          .eq('id', requestId)
+          .eq('pro_id', user.id)
+          .eq('status', 'pending');
+    } on PostgrestException {
+      // RLS blocks pro_id clear — fix the UPDATE policy to allow
+      // setting pro_id=null when OLD.pro_id = auth.uid().
+    }
   }
 }

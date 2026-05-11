@@ -1,19 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../../core/theme/app_colors.dart';
-import '../../../accepted_jobs/controllers/accepted_jobs_controller.dart';
-import '../../../jobs/presentation/widgets/pro_jobs_view.dart';
-import '../../controllers/incoming_jobs_controller.dart';
+import '../../controllers/pro_jobs_controller.dart';
+import '../widgets/pro_jobs_view.dart';
 
 class IncomingJobsScreen extends StatelessWidget {
-  final IncomingJobsController? controller;
-  final AcceptedJobsController? acceptedJobsController;
+  final ProJobsController? controller;
 
-  const IncomingJobsScreen({
-    super.key,
-    this.controller,
-    this.acceptedJobsController,
-  });
+  const IncomingJobsScreen({super.key, this.controller});
 
   @override
   Widget build(BuildContext context) {
@@ -30,10 +24,7 @@ class IncomingJobsScreen extends StatelessWidget {
           style: GoogleFonts.dmSans(fontWeight: FontWeight.w500),
         ),
       ),
-      body: ProJobsView(
-        incomingJobsController: controller,
-        acceptedJobsController: acceptedJobsController,
-      ),
+      body: ProJobsView(controller: controller),
     );
   }
 }

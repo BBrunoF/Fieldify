@@ -27,6 +27,10 @@ It is organised by the following activities:
   * [Sprint 2](#Sprint-2)
   * [Sprint 3](#Sprint-3)
   * [Final Release](#Final-Release)
+* [Documentation](#documentation)
+   * [Sprint Artifacts](#sprint-artifacts)
+   * [Development](#development)
+   * [Team](#Team)
 
 Contributions are expected to be made exclusively by the initial team, but we may open them to the community, after the course, in all areas and topics: requirements, technologies, development, experimentation, testing, etc.
 
@@ -385,3 +389,18 @@ You can find below information and references related with the project managemen
 
 ### Final Release
 
+
+
+## Documentation
+
+### Sprint Artifacts
+- [Changelog](docs/CHANGELOG.md)
+- [Sprint Retrospective](docs/RETROSPECTIVE_SPRINT.md)
+- [Bug Tracking](docs/BUG_TRACKING.md)
+
+### Development
+- [Setup Guide](docs/SETUP.md)
+- [AI Usage](docs/AI_usage.md)
+
+### Team
+- [Happiness Meters](docs/HAPPINESS_METERS.md)

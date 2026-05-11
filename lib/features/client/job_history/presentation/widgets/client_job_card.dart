@@ -4,78 +4,12 @@ import '../../../../../core/theme/app_colors.dart';
 import '../../../../shared/job_detail/data/models/job_detail_model.dart';
 import '../../../../shared/job_detail/presentation/screens/job_detail_screen.dart';
 import '../../data/models/job_history_model.dart';
+import '../job_status_style.dart';
 
 class ClientJobCard extends StatelessWidget {
   final ClientJob job;
 
   const ClientJobCard({super.key, required this.job});
-
-  String get _initials {
-    final source = (job.proId ?? '').replaceAll('-', '');
-    if (source.length >= 2) {
-      return source.substring(0, 2).toUpperCase();
-    }
-    return 'PR';
-  }
-
-  String get _statusLabel {
-    switch (job.status) {
-      case 'pending':
-        return 'Pending';
-      case 'accepted':
-        return 'Accepted';
-      case 'on_the_way':
-        return 'On the way';
-      case 'in_progress':
-        return 'In progress';
-      case 'completed':
-        return 'Completed';
-      case 'cancelled':
-        return 'Cancelled';
-      default:
-        return job.status.isEmpty ? '—' : job.status;
-    }
-  }
-
-  Color get _statusBgColor {
-    switch (job.status) {
-      case 'on_the_way':
-        return const Color(0xFFF6E8D7);
-      case 'completed':
-        return FieldifyColors.g100;
-      case 'cancelled':
-        return const Color(0xFFF3D7D7);
-      case 'in_progress':
-      case 'accepted':
-      default:
-        return FieldifyColors.g100;
-    }
-  }
-
-  Color get _statusFgColor {
-    switch (job.status) {
-      case 'on_the_way':
-        return const Color(0xFF9A5D14);
-      case 'cancelled':
-        return const Color(0xFF8A1F1F);
-      case 'completed':
-      case 'in_progress':
-      case 'accepted':
-      default:
-        return FieldifyColors.g800;
-    }
-  }
-
-  String get _subtitle {
-    final trade = job.tradeName;
-    if (job.proId == null) {
-      return trade ?? 'Awaiting professional';
-    }
-    if (trade == null || trade.isEmpty) {
-      return 'Assigned professional';
-    }
-    return 'Assigned pro · $trade';
-  }
 
   void _openDetail(BuildContext context) {
     Navigator.of(context).push(
@@ -86,12 +20,6 @@ class ClientJobCard extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  String _formatElapsed(Duration d) {
-    final h = d.inHours;
-    final m = d.inMinutes.remainder(60);
-    return '${h}h  ${m.toString().padLeft(2, '0')}m';
   }
 
   @override
@@ -124,7 +52,7 @@ class ClientJobCard extends StatelessWidget {
                   ),
                   child: Center(
                     child: Text(
-                      _initials,
+                      job.proInitials,
                       style: GoogleFonts.dmSans(
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
@@ -151,7 +79,7 @@ class ClientJobCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        _subtitle,
+                        job.displaySubtitle,
                         style: GoogleFonts.dmSans(
                           fontSize: 12,
                           color: FieldifyColors.ink3,
@@ -167,16 +95,16 @@ class ClientJobCard extends StatelessWidget {
                     vertical: 5,
                   ),
                   decoration: BoxDecoration(
-                    color: _statusBgColor,
+                    color: JobStatusStyle.bgColor(job.status),
                     borderRadius: BorderRadius.circular(999),
                   ),
                   child: Text(
-                    _statusLabel,
+                    job.statusLabel,
                     key: Key('clientJobStatus_${job.id}'),
                     style: GoogleFonts.dmSans(
                       fontSize: 10,
                       fontWeight: FontWeight.w600,
-                      color: _statusFgColor,
+                      color: JobStatusStyle.fgColor(job.status),
                       letterSpacing: 0.3,
                     ),
                   ),
@@ -204,7 +132,9 @@ class ClientJobCard extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    _formatElapsed(DateTime.now().difference(anchor)),
+                    JobStatusStyle.formatElapsed(
+                      DateTime.now().difference(anchor),
+                    ),
                     style: GoogleFonts.dmMono(
                       fontSize: 13,
                       fontWeight: FontWeight.w500,

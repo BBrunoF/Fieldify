@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../../core/theme/app_colors.dart';
-import '../../controllers/accepted_jobs_controller.dart';
+import '../../controllers/pro_jobs_controller.dart';
 import 'accepted_job_card.dart';
 
 class AcceptedJobsView extends StatefulWidget {
-  final AcceptedJobsController? controller;
+  final ProJobsController? controller;
   final VoidCallback? onJobReturnedToIncoming;
 
   const AcceptedJobsView({
@@ -19,16 +19,18 @@ class AcceptedJobsView extends StatefulWidget {
 }
 
 class _AcceptedJobsViewState extends State<AcceptedJobsView> {
-  late final AcceptedJobsController _controller;
+  late final ProJobsController _controller;
   late final bool _ownsController;
 
   @override
   void initState() {
     super.initState();
-    _controller = widget.controller ?? AcceptedJobsController();
+    _controller = widget.controller ?? ProJobsController();
     _ownsController = widget.controller == null;
     _controller.addListener(_onChanged);
-    _controller.loadJobs();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _controller.loadAcceptedJobs();
+    });
   }
 
   void _onChanged() {
@@ -46,19 +48,17 @@ class _AcceptedJobsViewState extends State<AcceptedJobsView> {
   @override
   void dispose() {
     _controller.removeListener(_onChanged);
-    if (_ownsController) {
-      _controller.dispose();
-    }
+    if (_ownsController) _controller.dispose();
     super.dispose();
   }
 
-  Future<void> _refresh() => _controller.loadJobs();
+  Future<void> _refresh() => _controller.loadAcceptedJobs();
 
   @override
   Widget build(BuildContext context) {
     return RefreshIndicator(
       onRefresh: _refresh,
-      child: _controller.isLoading
+      child: _controller.isLoadingAccepted
           ? ListView(
               key: const Key('acceptedJobsLoadingState'),
               physics: const AlwaysScrollableScrollPhysics(),
@@ -67,7 +67,7 @@ class _AcceptedJobsViewState extends State<AcceptedJobsView> {
                 Center(child: CircularProgressIndicator()),
               ],
             )
-          : _controller.jobs.isEmpty
+          : _controller.acceptedJobs.isEmpty
           ? ListView(
               key: const Key('acceptedJobsEmptyState'),
               physics: const AlwaysScrollableScrollPhysics(),
@@ -104,17 +104,16 @@ class _AcceptedJobsViewState extends State<AcceptedJobsView> {
               key: const Key('acceptedJobsList'),
               physics: const AlwaysScrollableScrollPhysics(),
               padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-              itemCount: _controller.jobs.length,
+              itemCount: _controller.acceptedJobs.length,
               separatorBuilder: (_, index) => const SizedBox(height: 12),
               itemBuilder: (context, index) {
-                final job = _controller.jobs[index];
+                final job = _controller.acceptedJobs[index];
                 return AcceptedJobCard(
                   key: ValueKey('acceptedJobCard_${job.id}'),
                   job: job,
                   onCancel: () async {
-                    final returned = await _controller.returnJobToPending(
-                      job.id,
-                    );
+                    final returned =
+                        await _controller.returnJobToPending(job.id);
                     if (returned) {
                       widget.onJobReturnedToIncoming?.call();
                     }

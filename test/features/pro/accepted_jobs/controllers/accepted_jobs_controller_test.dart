@@ -1,16 +1,16 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:project/features/pro/accepted_jobs/controllers/accepted_jobs_controller.dart';
-import 'package:project/features/pro/accepted_jobs/data/models/accepted_job.dart';
-import 'package:project/features/pro/accepted_jobs/data/repositories/accepted_jobs_repository.dart';
+import 'package:project/features/pro/jobs/controllers/pro_jobs_controller.dart';
+import 'package:project/features/pro/jobs/data/models/pro_job.dart';
+import 'package:project/features/pro/jobs/data/repositories/pro_jobs_repository.dart';
 
-class _FakeAcceptedJobsRepository extends AcceptedJobsRepository {
-  _FakeAcceptedJobsRepository({this.onFetch, this.onReturn});
+class _FakeProJobsRepository extends ProJobsRepository {
+  _FakeProJobsRepository({this.onFetch, this.onReturn});
 
-  final Future<List<AcceptedJob>> Function()? onFetch;
+  final Future<List<ProJob>> Function()? onFetch;
   final Future<void> Function(String requestId)? onReturn;
 
   @override
-  Future<List<AcceptedJob>> fetchAcceptedJobs() async {
+  Future<List<ProJob>> fetchAcceptedJobs() async {
     return await onFetch?.call() ?? const [];
   }
 
@@ -20,7 +20,7 @@ class _FakeAcceptedJobsRepository extends AcceptedJobsRepository {
   }
 }
 
-const _job = AcceptedJob(
+const _job = ProJob(
   id: 'job-1',
   title: 'Pipe leak',
   description: 'Water under the sink',
@@ -32,39 +32,39 @@ const _job = AcceptedJob(
 );
 
 void main() {
-  group('AcceptedJobsController', () {
+  group('ProJobsController (accepted)', () {
     test('loads accepted jobs', () async {
-      final controller = AcceptedJobsController(
-        repository: _FakeAcceptedJobsRepository(
+      final controller = ProJobsController(
+        repository: _FakeProJobsRepository(
           onFetch: () async => const [_job],
         ),
       );
 
-      await controller.loadJobs();
+      await controller.loadAcceptedJobs();
 
-      expect(controller.jobs, hasLength(1));
-      expect(controller.isLoading, isFalse);
+      expect(controller.acceptedJobs, hasLength(1));
+      expect(controller.isLoadingAccepted, isFalse);
       expect(controller.error, isNull);
     });
 
     test('stores errors and clears stale jobs when loading fails', () async {
-      final controller = AcceptedJobsController(
-        repository: _FakeAcceptedJobsRepository(
+      final controller = ProJobsController(
+        repository: _FakeProJobsRepository(
           onFetch: () async {
-            throw const AcceptedJobsFailure('Could not load accepted jobs');
+            throw const ProJobsFailure('Could not load accepted jobs');
           },
         ),
       );
 
-      await controller.loadJobs();
+      await controller.loadAcceptedJobs();
 
-      expect(controller.jobs, isEmpty);
+      expect(controller.acceptedJobs, isEmpty);
       expect(controller.error, 'Could not load accepted jobs');
     });
 
     test('removes a job after returning it to incoming requests', () async {
-      final controller = AcceptedJobsController(
-        repository: _FakeAcceptedJobsRepository(
+      final controller = ProJobsController(
+        repository: _FakeProJobsRepository(
           onFetch: () async => const [_job],
           onReturn: (requestId) async {
             expect(requestId, 'job-1');
@@ -72,29 +72,29 @@ void main() {
         ),
       );
 
-      await controller.loadJobs();
+      await controller.loadAcceptedJobs();
       final returned = await controller.returnJobToPending('job-1');
 
       expect(returned, isTrue);
-      expect(controller.jobs, isEmpty);
+      expect(controller.acceptedJobs, isEmpty);
       expect(controller.error, isNull);
     });
 
     test('stores errors when returning a job fails', () async {
-      final controller = AcceptedJobsController(
-        repository: _FakeAcceptedJobsRepository(
+      final controller = ProJobsController(
+        repository: _FakeProJobsRepository(
           onFetch: () async => const [_job],
           onReturn: (_) async {
-            throw const AcceptedJobsFailure('Could not release job');
+            throw const ProJobsFailure('Could not release job');
           },
         ),
       );
 
-      await controller.loadJobs();
+      await controller.loadAcceptedJobs();
       final returned = await controller.returnJobToPending('job-1');
 
       expect(returned, isFalse);
-      expect(controller.jobs, hasLength(1));
+      expect(controller.acceptedJobs, hasLength(1));
       expect(controller.error, 'Could not release job');
     });
   });

@@ -3,7 +3,7 @@ enum ViewerRole { client, pro }
 enum JobStatus {
   pending,
   accepted,
-  onTheWay,
+  onMyWay,
   inProgress,
   completed,
   cancelled;
@@ -14,8 +14,9 @@ enum JobStatus {
         return JobStatus.pending;
       case 'accepted':
         return JobStatus.accepted;
+      case 'on_my_way':
       case 'on_the_way':
-        return JobStatus.onTheWay;
+        return JobStatus.onMyWay;
       case 'in_progress':
         return JobStatus.inProgress;
       case 'completed':
@@ -33,8 +34,8 @@ enum JobStatus {
         return 'pending';
       case JobStatus.accepted:
         return 'accepted';
-      case JobStatus.onTheWay:
-        return 'on_the_way';
+      case JobStatus.onMyWay:
+        return 'on_my_way';
       case JobStatus.inProgress:
         return 'in_progress';
       case JobStatus.completed:

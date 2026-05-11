@@ -152,7 +152,7 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
         add(StatusTimeline(detail: detail));
         break;
 
-      case JobStatus.onTheWay:
+      case JobStatus.onMyWay:
         if (detail.counterparty != null) add(CounterpartyCard(info: detail.counterparty!));
         add(const MapMiniCard(etaLabel: 'ETA coming soon'));
         add(const NoticeBanner(

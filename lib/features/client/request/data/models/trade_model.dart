@@ -1,4 +1,6 @@
 class Trade {
+  static const int platformFeePercent = 10;
+
   final int id;
   final String slug;
   final String displayName;

@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:project/features/home/presentation/screens/home_screen.dart';
-import 'package:project/features/pro/incoming_jobs/controllers/incoming_jobs_controller.dart';
-import 'package:project/features/pro/incoming_jobs/data/models/incoming_job.dart';
-import 'package:project/features/pro/incoming_jobs/data/repositories/incoming_jobs_repository.dart';
+import 'package:project/features/pro/jobs/controllers/pro_jobs_controller.dart';
+import 'package:project/features/pro/jobs/data/models/pro_job.dart';
+import 'package:project/features/pro/jobs/data/repositories/pro_jobs_repository.dart';
 
 import '../../../../test_helpers.dart';
 
-class _FakeIncomingJobsRepository extends IncomingJobsRepository {
+class _FakeProJobsRepository extends ProJobsRepository {
   @override
-  Future<List<IncomingJob>> fetchIncomingJobs({
+  Future<List<ProJob>> fetchIncomingJobs({
     bool includeRejected = false,
   }) async {
     return const [];
@@ -43,15 +43,15 @@ void main() {
     testWidgets('professional users can open the incoming jobs tab', (
       tester,
     ) async {
-      final controller = IncomingJobsController(
-        repository: _FakeIncomingJobsRepository(),
+      final controller = ProJobsController(
+        repository: _FakeProJobsRepository(),
       );
 
       await pumpTestApp(
         tester,
         HomeScreen(
           loadProfessionalRole: () async => true,
-          incomingJobsController: controller,
+          proJobsController: controller,
         ),
       );
       await tester.pumpAndSettle();

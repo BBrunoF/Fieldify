@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:project/features/client/profile/controllers/profile_controller.dart';
@@ -31,6 +32,12 @@ class _FakeProfileRepository extends ProfileRepository {
       addresses: addresses,
     );
   }
+
+  @override
+  Future<String> uploadAvatar({required File file}) async => 'uid/avatar.jpg';
+
+  @override
+  Future<String?> getSignedAvatarUrl(String path) async => null;
 }
 
 ProfileController _controller({

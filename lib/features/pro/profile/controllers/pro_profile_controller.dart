@@ -31,13 +31,15 @@ class ProProfileController extends ChangeNotifier {
     _isLoading = true;
     try {
       _profile = await _repository.fetchCurrent();
-      if (_profile?.avatarPath != null) {
-        _avatarSignedUrl =
-            await _repository.getSignedAvatarUrl(_profile!.avatarPath!);
-      }
     } catch (_) {}
     _isLoading = false;
     notifyListeners();
+    if (_profile?.avatarPath != null) {
+      _repository.getSignedAvatarUrl(_profile!.avatarPath!).then((url) {
+        _avatarSignedUrl = url;
+        notifyListeners();
+      }).ignore();
+    }
   }
 
   Future<void> saveProfile({
@@ -45,6 +47,8 @@ class ProProfileController extends ChangeNotifier {
     required String firstName,
     required String lastName,
     required String nif,
+    required int? serviceRadiusKm,
+    List<String>? credentialUrls,
   }) async {
     _isSaving = true;
     _error = null;
@@ -55,8 +59,10 @@ class ProProfileController extends ChangeNotifier {
       final fullName = '${firstName.trim()} ${lastName.trim()}';
       await _repository.updateProfile(
         bio: bio,
+        serviceRadiusKm: serviceRadiusKm,
         fullName: _profile?.isApproved == true ? null : fullName,
         nif: _profile?.isApproved == true ? null : nif,
+        credentialUrls: _profile?.isApproved == true ? null : credentialUrls,
       );
       _profile = await _repository.fetchCurrent();
       _saved = true;

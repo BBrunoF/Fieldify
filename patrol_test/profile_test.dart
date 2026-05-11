@@ -48,6 +48,7 @@ Future<void> _openProfileScreen(PatrolIntegrationTester $) async {
   await $(find.byType(ProfileScreen)).waitUntilVisible(
     timeout: const Duration(seconds: 20),
   );
+  await $.pumpAndTrySettle(timeout: const Duration(seconds: 10));
 }
 
 void main() {
@@ -112,6 +113,8 @@ void main() {
 
     const newPhone = '912888777';
     await $(find.byKey(const Key('profilePhoneField'))).tap();
+    await $(find.byKey(const Key('profilePhoneField'))).enterText('');
+    await $.pumpAndTrySettle();
     await $(find.byKey(const Key('profilePhoneField'))).enterText(newPhone);
     await $.pumpAndTrySettle();
 
@@ -146,9 +149,12 @@ void main() {
     await _openProfileScreen($);
 
     await $(find.byKey(const Key('profileFirstNameField'))).tap();
-    await $(find.byKey(const Key('profileFirstNameField')))
-        .enterText('Patrol');
+    await $(find.byKey(const Key('profileFirstNameField'))).enterText('');
+    await $.pumpAndTrySettle();
+    await $(find.byKey(const Key('profileFirstNameField'))).enterText('Patrol');
     await $(find.byKey(const Key('profileLastNameField'))).tap();
+    await $(find.byKey(const Key('profileLastNameField'))).enterText('');
+    await $.pumpAndTrySettle();
     await $(find.byKey(const Key('profileLastNameField'))).enterText('Test');
     await $.pumpAndTrySettle();
 
@@ -159,8 +165,7 @@ void main() {
 
     final backButton = find.byType(GestureDetector).first;
     await $(backButton).tap();
-    await $.pumpAndTrySettle(timeout: const Duration(seconds: 15));
-
-    expect(find.byType(HomeScreen), findsOneWidget);
+    await $(find.byType(HomeScreen))
+        .waitUntilVisible(timeout: const Duration(seconds: 10));
   });
 }

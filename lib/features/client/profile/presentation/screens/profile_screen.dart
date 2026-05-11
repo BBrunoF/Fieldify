@@ -403,6 +403,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             right: 0,
             bottom: 0,
             child: GestureDetector(
+              key: const Key('profileAvatarEditButton'),
               onTap: _controller.isUploadingAvatar
                   ? null
                   : _showPhotoSourceSheet,

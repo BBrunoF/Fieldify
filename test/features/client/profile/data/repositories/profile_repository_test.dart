@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:project/features/client/profile/data/models/profile_model.dart';
@@ -5,10 +6,17 @@ import 'package:project/features/client/profile/data/repositories/profile_reposi
 import 'package:project/features/client/profile/data/services/profile_service.dart';
 
 class _FakeProfileService extends ProfileService {
-  _FakeProfileService({this.profile, this.onUpdate});
+  _FakeProfileService({
+    this.profile,
+    this.onUpdate,
+    this.onUpload,
+    this.throwOn,
+  });
 
   final ProfileModel? profile;
   final Future<void> Function()? onUpdate;
+  final Future<String> Function()? onUpload;
+  final Exception? throwOn;
 
   @override
   Future<ProfileModel?> fetchCurrent() async => profile;
@@ -20,8 +28,19 @@ class _FakeProfileService extends ProfileService {
     required String phone,
     required List<String> addresses,
   }) async {
+    if (throwOn != null) throw throwOn!;
     await onUpdate?.call();
   }
+
+  @override
+  Future<String> uploadAvatar({required File file}) async {
+    if (throwOn != null) throw throwOn!;
+    if (onUpload != null) return onUpload!();
+    return 'uid/avatar.jpg';
+  }
+
+  @override
+  Future<String?> getSignedAvatarUrl(String path) async => null;
 }
 
 const _profile = ProfileModel(
@@ -105,6 +124,54 @@ void main() {
         ),
         throwsA(isA<ProfileFailure>()),
       );
+    });
+
+    test('uploadAvatar returns path on success', () async {
+      final repo = ProfileRepository(
+        service: _FakeProfileService(
+          onUpload: () async => 'uid/avatar.jpg',
+        ),
+      );
+
+      final path = await repo.uploadAvatar(file: File('fake.jpg'));
+      expect(path, 'uid/avatar.jpg');
+    });
+
+    test('uploadAvatar wraps AuthException in ProfileFailure', () async {
+      final repo = ProfileRepository(
+        service: _FakeProfileService(
+          throwOn: const AuthException('Not authenticated'),
+        ),
+      );
+
+      await expectLater(
+        () => repo.uploadAvatar(file: File('fake.jpg')),
+        throwsA(
+          isA<ProfileFailure>().having(
+            (e) => e.message,
+            'message',
+            'Not authenticated',
+          ),
+        ),
+      );
+    });
+
+    test('uploadAvatar wraps generic exceptions in ProfileFailure', () async {
+      final repo = ProfileRepository(
+        service: _FakeProfileService(
+          throwOn: Exception('storage error'),
+        ),
+      );
+
+      await expectLater(
+        () => repo.uploadAvatar(file: File('fake.jpg')),
+        throwsA(isA<ProfileFailure>()),
+      );
+    });
+
+    test('getSignedAvatarUrl returns null when service returns null', () async {
+      final repo = ProfileRepository(service: _FakeProfileService());
+      expect(await repo.getSignedAvatarUrl('uid/avatar.jpg'), isNull);
     });
   });
 }

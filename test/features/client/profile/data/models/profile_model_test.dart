@@ -84,5 +84,45 @@ void main() {
       expect(updated.addresses, hasLength(2));
       expect(updated.addresses.first, 'New street 42, Porto');
     });
+
+    test('copyWith updates avatarPath', () {
+      const original = ProfileModel(
+        fullName: 'Bruno Silva',
+        phone: '912000000',
+        email: 'bruno@example.com',
+        addresses: [],
+      );
+
+      final updated = original.copyWith(avatarPath: 'uid/avatar.jpg');
+      expect(updated.avatarPath, 'uid/avatar.jpg');
+    });
+
+    test('copyWith preserves avatarPath when not specified', () {
+      const original = ProfileModel(
+        fullName: 'Bruno Silva',
+        phone: '912000000',
+        email: 'bruno@example.com',
+        addresses: [],
+        avatarPath: 'uid/avatar.jpg',
+      );
+
+      final updated = original.copyWith(phone: '913000000');
+      expect(updated.avatarPath, 'uid/avatar.jpg');
+    });
+
+    test('initials returns two uppercase letters for a full name', () {
+      final model = ProfileModel.fromMeta({'full_name': 'Bruno Silva'}, '');
+      expect(model.initials, 'BS');
+    });
+
+    test('initials returns one letter when there is no last name', () {
+      final model = ProfileModel.fromMeta({'full_name': 'Bruno'}, '');
+      expect(model.initials, 'B');
+    });
+
+    test('initials returns ? when fullName is empty', () {
+      final model = ProfileModel.fromMeta({'full_name': ''}, '');
+      expect(model.initials, '?');
+    });
   });
 }

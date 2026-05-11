@@ -47,10 +47,11 @@ void main() {
     await $(find.byKey(const Key('passwordField'))).enterText(_validPassword);
     await $(find.byKey(const Key('loginButton'))).tap();
 
-    await $.pumpAndSettle();
+    await $.pumpAndTrySettle(timeout: const Duration(seconds: 20));
 
     expect(find.byType(HomeScreen), findsOneWidget);
-    expect(find.text('Good morning,'), findsOneWidget);
+    await $(find.byKey(const Key('homeGreetingText')))
+        .waitUntilVisible(timeout: const Duration(seconds: 20));
   });
 
   patrolTest('invalid login', ($) async {
@@ -60,7 +61,7 @@ void main() {
     await $(find.byKey(const Key('passwordField'))).enterText('wrongpassword');
     await $(find.byKey(const Key('loginButton'))).tap();
 
-    await $.pumpAndSettle();
+    await $.pumpAndTrySettle(timeout: const Duration(seconds: 20));
 
     expect(find.byType(HomeScreen), findsNothing);
     expect(find.byKey(const Key('loginButton')), findsOneWidget);

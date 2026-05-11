@@ -1,13 +1,21 @@
+import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:project/features/client/profile/controllers/profile_controller.dart';
 import 'package:project/features/client/profile/data/models/profile_model.dart';
 import 'package:project/features/client/profile/data/repositories/profile_repository.dart';
 
 class _FakeProfileRepository extends ProfileRepository {
-  _FakeProfileRepository({this.profile, this.onUpdate});
+  _FakeProfileRepository({
+    this.profile,
+    this.onUpdate,
+    this.uploadedPath = 'uid/avatar.jpg',
+    this.throwOnUpload = false,
+  });
 
   final ProfileModel? profile;
   final Future<void> Function()? onUpdate;
+  final String uploadedPath;
+  final bool throwOnUpload;
 
   @override
   Future<ProfileModel?> fetchCurrent() async => profile;
@@ -21,6 +29,15 @@ class _FakeProfileRepository extends ProfileRepository {
   }) async {
     await onUpdate?.call();
   }
+
+  @override
+  Future<String> uploadAvatar({required File file}) async {
+    if (throwOnUpload) throw Exception('Upload failed');
+    return uploadedPath;
+  }
+
+  @override
+  Future<String?> getSignedAvatarUrl(String path) async => null;
 }
 
 const _profile = ProfileModel(
@@ -152,6 +169,36 @@ void main() {
       expect(controller.saved, isTrue);
       controller.clearSaved();
       expect(controller.saved, isFalse);
+    });
+
+    test('uploadAvatar sets isUploadingAvatar to true then false', () async {
+      final uploadingStates = <bool>[];
+
+      final controller = ProfileController(
+        repository: _FakeProfileRepository(profile: _profile),
+      );
+      controller.addListener(
+        () => uploadingStates.add(controller.isUploadingAvatar),
+      );
+
+      await controller.uploadAvatar(File('fake.jpg'));
+
+      expect(uploadingStates.first, isTrue);
+      expect(uploadingStates.last, isFalse);
+    });
+
+    test('uploadAvatar stores error on failure', () async {
+      final controller = ProfileController(
+        repository: _FakeProfileRepository(
+          profile: _profile,
+          throwOnUpload: true,
+        ),
+      );
+
+      await controller.uploadAvatar(File('fake.jpg'));
+
+      expect(controller.error, isNotNull);
+      expect(controller.isUploadingAvatar, isFalse);
     });
 
     test('notifyListeners is called on saveAll completion', () async {

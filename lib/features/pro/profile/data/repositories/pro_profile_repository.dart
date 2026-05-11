@@ -27,11 +27,19 @@ class ProProfileRepository {
 
   Future<void> updateProfile({
     required String bio,
+    required int? serviceRadiusKm,
     String? fullName,
     String? nif,
+    List<String>? credentialUrls,
   }) async {
     try {
-      await _service.updateProfile(bio: bio, fullName: fullName, nif: nif);
+      await _service.updateProfile(
+        bio: bio,
+        serviceRadiusKm: serviceRadiusKm,
+        fullName: fullName,
+        nif: nif,
+        credentialUrls: credentialUrls,
+      );
     } on AuthException catch (e) {
       throw ProProfileFailure(e.message);
     } catch (e) {

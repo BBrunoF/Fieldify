@@ -28,11 +28,11 @@
 
 | Member | Attendance | Helpfulness | Efficiency | Initiative | Quality |
 |--------|-----------|-------------|------------|------------|---------|
-| Bruno Rafael Bessa Freitas | | | | | |
-| Tiago Morais Amaral (self) | | | | | |
-| Tomás Manuel Almeida Ribeiro | | | | | |
-| João António Neiva Amaro | | | | | |
-| José Pedro Rocha da Costa | | | | | |
+| Bruno Rafael Bessa Freitas |⭐️|⭐️|⭐️|⭐️|⭐️|
+| Tiago Morais Amaral (self) |⭐️  |⭐️ |⭐️ |😊 |⭐️|
+| Tomás Manuel Almeida Ribeiro |⭐️  |⭐️ |⭐️ |😊 |⭐️|
+| João António Neiva Amaro |⭐️  |⭐️ |⭐️ |😊 |⭐️|
+| José Pedro Rocha da Costa | ⭐️ |⭐️ |⭐️ | 😊|⭐️|
 
 ### Evaluated by: Tomás Manuel Almeida Ribeiro
 

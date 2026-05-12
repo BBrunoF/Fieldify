@@ -60,4 +60,24 @@ class JobDetailRepository {
       throw JobDetailFailure(e.message);
     }
   }
+
+  Future<void> submitReview({
+    required String jobId,
+    required String clientId,
+    required String proId,
+    required int rating,
+    String? comment,
+  }) async {
+    try {
+      await _service.submitReview(
+        jobId: jobId,
+        clientId: clientId,
+        proId: proId,
+        rating: rating,
+        comment: comment,
+      );
+    } on PostgrestException catch (e) {
+      throw JobDetailFailure(e.message);
+    }
+  }
 }

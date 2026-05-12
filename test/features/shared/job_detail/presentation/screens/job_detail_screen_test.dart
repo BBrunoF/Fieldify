@@ -30,6 +30,7 @@ JobDetail _detail({
   String title = 'Leaking pipe',
   List<String> photoUrls = const [],
   Map<String, dynamic>? counterparty,
+  Map<String, dynamic>? reviewRow,
 }) {
   return JobDetail.fromJson(
     jobRow: {
@@ -58,6 +59,7 @@ JobDetail _detail({
         },
     viewerRole: role,
     photoUrls: photoUrls,
+    reviewRow: reviewRow,
   );
 }
 
@@ -120,6 +122,66 @@ void main() {
 
       expect(find.text('Submit review'), findsOneWidget);
       expect(find.text('Completed'), findsOneWidget);
+    });
+
+    testWidgets('completed state with existing review hides action and shows stars',
+        (tester) async {
+      final controller = JobDetailController(
+        jobId: 'j1',
+        viewerRole: ViewerRole.client,
+        repo: _FakeRepo(
+          detail: _detail(
+            status: 'completed',
+            role: ViewerRole.client,
+            reviewRow: const {
+              'id': 'r1',
+              'request_id': 'j1',
+              'client_id': 'c1',
+              'pro_id': 'p1',
+              'rating': 4,
+              'comment': 'Quick and tidy',
+              'created_at': '2026-04-11T09:00:00Z',
+            },
+          ),
+        ),
+      );
+
+      await pumpTestApp(tester, _wrap(controller));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Review submitted'), findsOneWidget);
+      expect(find.text('Submit review'), findsNothing);
+      expect(
+        find.text('Quick and tidy', skipOffstage: false),
+        findsOneWidget,
+      );
+      expect(
+        find.text('Your review of Manuel Ferreira', skipOffstage: false),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('tapping Submit review opens the review sheet',
+        (tester) async {
+      final controller = JobDetailController(
+        jobId: 'j1',
+        viewerRole: ViewerRole.client,
+        repo: _FakeRepo(
+          detail: _detail(status: 'completed', role: ViewerRole.client),
+        ),
+      );
+
+      await pumpTestApp(tester, _wrap(controller));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Submit review'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Rate Manuel Ferreira'), findsOneWidget);
+      expect(
+        find.byKey(const Key('reviewSheet.submitButton')),
+        findsOneWidget,
+      );
     });
 
     testWidgets('cancelled state shows new-request button', (tester) async {

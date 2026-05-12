@@ -18,6 +18,9 @@ class ProProfileController extends ChangeNotifier {
   bool _isUploadingAvatar = false;
   String? _error;
   bool _saved = false;
+  List<ProReview> _reviews = const [];
+  ProRatingSummary _ratingSummary = ProRatingSummary.empty;
+  bool _isLoadingReviews = false;
 
   ProProfileModel? get profile => _profile;
   String? get avatarSignedUrl => _avatarSignedUrl;
@@ -26,6 +29,9 @@ class ProProfileController extends ChangeNotifier {
   bool get isUploadingAvatar => _isUploadingAvatar;
   String? get error => _error;
   bool get saved => _saved;
+  List<ProReview> get reviews => _reviews;
+  ProRatingSummary get ratingSummary => _ratingSummary;
+  bool get isLoadingReviews => _isLoadingReviews;
 
   Future<void> _load() async {
     _isLoading = true;
@@ -39,6 +45,24 @@ class ProProfileController extends ChangeNotifier {
         _avatarSignedUrl = url;
         notifyListeners();
       }).ignore();
+    }
+    if (_profile != null) {
+      loadReviews().ignore();
+    }
+  }
+
+  Future<void> loadReviews() async {
+    _isLoadingReviews = true;
+    notifyListeners();
+    try {
+      _reviews = await _repository.fetchCurrentReviews();
+      _ratingSummary = ProRatingSummary.fromReviews(_reviews);
+    } catch (_) {
+      _reviews = const [];
+      _ratingSummary = ProRatingSummary.empty;
+    } finally {
+      _isLoadingReviews = false;
+      notifyListeners();
     }
   }
 

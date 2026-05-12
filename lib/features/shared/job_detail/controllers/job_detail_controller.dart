@@ -56,6 +56,28 @@ class JobDetailController extends ChangeNotifier {
     await _runAction(() => _repo.cancelJob(jobId, reason: reason));
   }
 
+  Future<void> submitReview({required int rating, String? comment}) async {
+    if (viewerRole != ViewerRole.client) return;
+    final current = _detail;
+    if (current == null) return;
+    if (current.status != JobStatus.completed) return;
+    if (current.review != null) return;
+    final proId = current.proId;
+    if (proId == null) return;
+    if (rating < 1 || rating > 5) {
+      _error = 'Please pick a rating between 1 and 5.';
+      notifyListeners();
+      return;
+    }
+    await _runAction(() => _repo.submitReview(
+          jobId: jobId,
+          clientId: current.clientId,
+          proId: proId,
+          rating: rating,
+          comment: comment,
+        ));
+  }
+
   Future<void> _runProAction(Future<void> Function() action) async {
     if (viewerRole != ViewerRole.pro) return;
     await _runAction(action);

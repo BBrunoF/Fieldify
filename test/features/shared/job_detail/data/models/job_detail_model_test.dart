@@ -178,6 +178,61 @@ void main() {
       expect(detail.viewerRole, ViewerRole.client);
     });
 
+    test('parses review row when provided', () {
+      final detail = JobDetail.fromJson(
+        jobRow: const {
+          'id': 'j1',
+          'title': 'x',
+          'description': '',
+          'address_text': '',
+          'status': 'completed',
+          'client_id': 'c1',
+          'pro_id': 'p1',
+          'trade_id': 1,
+          'trades': {'id': 1, 'display_name': 'g', 'standard_rate': 0},
+          'created_at': '2026-04-10T09:00:00Z',
+        },
+        counterpartyRow: null,
+        viewerRole: ViewerRole.client,
+        photoUrls: const [],
+        reviewRow: const {
+          'id': 'r1',
+          'request_id': 'j1',
+          'client_id': 'c1',
+          'pro_id': 'p1',
+          'rating': 4,
+          'comment': 'solid',
+          'created_at': '2026-04-11T09:00:00Z',
+        },
+      );
+
+      expect(detail.review, isNotNull);
+      expect(detail.review!.rating, 4);
+      expect(detail.review!.comment, 'solid');
+    });
+
+    test('leaves review null when no review row provided', () {
+      final detail = JobDetail.fromJson(
+        jobRow: const {
+          'id': 'j1',
+          'title': 'x',
+          'description': '',
+          'address_text': '',
+          'status': 'completed',
+          'client_id': 'c1',
+          'pro_id': 'p1',
+          'trade_id': 1,
+          'trades': {'id': 1, 'display_name': 'g', 'standard_rate': 0},
+          'created_at': '2026-04-10T09:00:00Z',
+        },
+        counterpartyRow: null,
+        viewerRole: ViewerRole.client,
+        photoUrls: const [],
+      );
+
+      expect(detail.review, isNull);
+    });
+
     test('leaves counterparty null when no counterparty row provided', () {
       final detail = JobDetail.fromJson(
         jobRow: const {

@@ -187,7 +187,10 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
         add(JobDetailsCard(detail: detail));
         if (detail.photoUrls.isNotEmpty) add(PhotoGallery(urls: detail.photoUrls));
         if (detail.viewerRole == ViewerRole.client && detail.counterparty != null) {
-          add(ReviewCard(counterpartyName: detail.counterparty!.fullName));
+          add(ReviewCard(
+            counterpartyName: detail.counterparty!.fullName,
+            review: detail.review,
+          ));
         }
         add(StatusTimeline(detail: detail));
         break;

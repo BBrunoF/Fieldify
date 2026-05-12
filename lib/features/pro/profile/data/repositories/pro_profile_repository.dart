@@ -60,4 +60,34 @@ class ProProfileRepository {
   Future<String?> getSignedAvatarUrl(String path) async {
     return await _service.getSignedAvatarUrl(path);
   }
+
+  Future<List<ProReview>> fetchProviderReviews(String proId) async {
+    try {
+      return await _service.fetchProviderReviews(proId);
+    } on PostgrestException catch (e) {
+      throw ProProfileFailure(e.message);
+    } catch (e) {
+      throw ProProfileFailure(e.toString());
+    }
+  }
+
+  Future<ProRatingSummary> getProviderRating(String proId) async {
+    try {
+      return await _service.getProviderRating(proId);
+    } on PostgrestException catch (e) {
+      throw ProProfileFailure(e.message);
+    } catch (e) {
+      throw ProProfileFailure(e.toString());
+    }
+  }
+
+  Future<List<ProReview>> fetchCurrentReviews() async {
+    try {
+      return await _service.fetchCurrentReviews();
+    } on PostgrestException catch (e) {
+      throw ProProfileFailure(e.message);
+    } catch (e) {
+      throw ProProfileFailure(e.toString());
+    }
+  }
 }

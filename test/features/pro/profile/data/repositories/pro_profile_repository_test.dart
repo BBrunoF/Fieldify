@@ -11,12 +11,16 @@ class _FakeProProfileService extends ProProfileService {
     this.onUpdate,
     this.uploadedPath = 'uid/avatar.jpg',
     this.throwOn,
+    this.reviews = const [],
+    this.throwOnReviews,
   });
 
   final ProProfileModel? profile;
   final Future<void> Function()? onUpdate;
   final String uploadedPath;
   final Exception? throwOn;
+  final List<ProReview> reviews;
+  final Exception? throwOnReviews;
 
   @override
   Future<ProProfileModel?> fetchCurrent() async {
@@ -44,6 +48,24 @@ class _FakeProProfileService extends ProProfileService {
 
   @override
   Future<String?> getSignedAvatarUrl(String path) async => null;
+
+  @override
+  Future<List<ProReview>> fetchProviderReviews(String proId) async {
+    if (throwOnReviews != null) throw throwOnReviews!;
+    return reviews;
+  }
+
+  @override
+  Future<ProRatingSummary> getProviderRating(String proId) async {
+    if (throwOnReviews != null) throw throwOnReviews!;
+    return ProRatingSummary.fromReviews(reviews);
+  }
+
+  @override
+  Future<List<ProReview>> fetchCurrentReviews() async {
+    if (throwOnReviews != null) throw throwOnReviews!;
+    return reviews;
+  }
 }
 
 const _profile = ProProfileModel(
@@ -191,6 +213,88 @@ void main() {
 
       expect(await repo.getSignedAvatarUrl('uid/avatar.jpg'), isNull);
     });
+
+    test('getProviderRating returns the average and count from reviews',
+        () async {
+      final reviews = [
+        ProReview(
+          id: 'r1',
+          rating: 5,
+          comment: null,
+          clientName: 'A',
+          createdAt: DateTime(2026, 4, 1),
+        ),
+        ProReview(
+          id: 'r2',
+          rating: 4,
+          comment: null,
+          clientName: 'B',
+          createdAt: DateTime(2026, 4, 2),
+        ),
+        ProReview(
+          id: 'r3',
+          rating: 3,
+          comment: null,
+          clientName: 'C',
+          createdAt: DateTime(2026, 4, 3),
+        ),
+      ];
+
+      final repo = ProProfileRepository(
+        service: _FakeProProfileService(reviews: reviews),
+      );
+
+      final summary = await repo.getProviderRating('pro1');
+      expect(summary.count, 3);
+      expect(summary.average, 4.0);
+    });
+
+    test('getProviderRating returns empty summary when no reviews exist',
+        () async {
+      final repo = ProProfileRepository(
+        service: _FakeProProfileService(reviews: const []),
+      );
+
+      final summary = await repo.getProviderRating('pro1');
+      expect(summary.count, 0);
+      expect(summary.average, 0);
+    });
+
+    test('getProviderRating wraps PostgrestException in ProProfileFailure',
+        () async {
+      final repo = ProProfileRepository(
+        service: _FakeProProfileService(
+          throwOnReviews: PostgrestException(message: 'db down'),
+        ),
+      );
+
+      await expectLater(
+        () => repo.getProviderRating('pro1'),
+        throwsA(isA<ProProfileFailure>()
+            .having((e) => e.message, 'message', 'db down')),
+      );
+    });
+
+    test('fetchProviderReviews returns the service list', () async {
+      final reviews = [
+        ProReview(
+          id: 'r1',
+          rating: 5,
+          comment: 'Great job',
+          clientName: 'João',
+          createdAt: DateTime(2026, 4, 1),
+        ),
+      ];
+
+      final repo = ProProfileRepository(
+        service: _FakeProProfileService(reviews: reviews),
+      );
+
+      final result = await repo.fetchProviderReviews('pro1');
+      expect(result, hasLength(1));
+      expect(result.first.rating, 5);
+      expect(result.first.clientName, 'João');
+    });
   });
 }
 
@@ -230,4 +334,14 @@ class _CapturingService extends ProProfileService {
 
   @override
   Future<String?> getSignedAvatarUrl(String path) async => null;
+
+  @override
+  Future<List<ProReview>> fetchProviderReviews(String proId) async => const [];
+
+  @override
+  Future<List<ProReview>> fetchCurrentReviews() async => const [];
+
+  @override
+  Future<ProRatingSummary> getProviderRating(String proId) async =>
+      ProRatingSummary.empty;
 }

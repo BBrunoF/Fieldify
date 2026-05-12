@@ -40,7 +40,13 @@ class ClientActionBar extends StatelessWidget {
       case JobStatus.inProgress:
         return _Bar([_ghost('Message', onMessage)]);
       case JobStatus.completed:
-        return _Bar([_primary('Submit review', onSubmitReview)]);
+        final hasReview = detail.review != null;
+        return _Bar([
+          _primary(
+            hasReview ? 'Review submitted' : 'Submit review',
+            hasReview ? null : onSubmitReview,
+          ),
+        ]);
       case JobStatus.cancelled:
         return _Bar([_primary('Submit a new request', onSubmitNewRequest)]);
     }

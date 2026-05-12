@@ -35,6 +35,9 @@ class _FakeProProfileRepository extends ProProfileRepository {
 
   @override
   Future<String?> getSignedAvatarUrl(String path) async => null;
+
+  @override
+  Future<List<ProReview>> fetchCurrentReviews() async => const [];
 }
 
 ProProfileController _controller({
@@ -485,5 +488,91 @@ void main() {
 
       expect(find.text('BS'), findsOneWidget);
     });
+
+    testWidgets('shows the client reviews section with no-reviews state',
+        (tester) async {
+      await pumpTestApp(
+        tester,
+        ProProfileScreen(controller: _controller(profile: _pending)),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('CLIENT REVIEWS'), findsOneWidget);
+      expect(
+        find.text('No reviews yet', skipOffstage: false),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('shows average rating and review tiles when reviews exist',
+        (tester) async {
+      final controller = ProProfileController(
+        repository: _ReviewingRepository(
+          profile: _pending,
+          reviews: [
+            ProReview(
+              id: 'r1',
+              rating: 5,
+              comment: 'Excellent work',
+              clientName: 'João Silva',
+              createdAt: DateTime(2026, 4, 11),
+            ),
+            ProReview(
+              id: 'r2',
+              rating: 3,
+              comment: null,
+              clientName: 'Maria Pinto',
+              createdAt: DateTime(2026, 4, 12),
+            ),
+          ],
+        ),
+      );
+
+      await pumpTestApp(
+        tester,
+        ProProfileScreen(controller: controller),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('4.0'), findsOneWidget);
+      expect(find.text('2 reviews'), findsOneWidget);
+      expect(
+        find.text('Excellent work', skipOffstage: false),
+        findsOneWidget,
+      );
+      expect(
+        find.text('João Silva', skipOffstage: false),
+        findsOneWidget,
+      );
+    });
   });
+}
+
+class _ReviewingRepository extends ProProfileRepository {
+  _ReviewingRepository({required this.profile, this.reviews = const []});
+
+  final ProProfileModel profile;
+  final List<ProReview> reviews;
+
+  @override
+  Future<ProProfileModel?> fetchCurrent() async => profile;
+
+  @override
+  Future<void> updateProfile({
+    required String bio,
+    required int? serviceRadiusKm,
+    String? fullName,
+    String? nif,
+    List<String>? credentialUrls,
+  }) async {}
+
+  @override
+  Future<String> uploadAvatar({required File file}) async =>
+      'uid/avatar.jpg';
+
+  @override
+  Future<String?> getSignedAvatarUrl(String path) async => null;
+
+  @override
+  Future<List<ProReview>> fetchCurrentReviews() async => reviews;
 }

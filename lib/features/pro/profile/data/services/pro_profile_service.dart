@@ -122,4 +122,27 @@ class ProProfileService {
       return null;
     }
   }
+
+  Future<List<ProReview>> fetchProviderReviews(String proId) async {
+    final rows = await supabase
+        .from('reviews')
+        .select('id, rating, comment, created_at, profiles!client_id(full_name)')
+        .eq('pro_id', proId)
+        .order('created_at', ascending: false);
+
+    return (rows as List)
+        .map((row) => ProReview.fromJson(row as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<ProRatingSummary> getProviderRating(String proId) async {
+    final reviews = await fetchProviderReviews(proId);
+    return ProRatingSummary.fromReviews(reviews);
+  }
+
+  Future<List<ProReview>> fetchCurrentReviews() async {
+    final user = supabase.auth.currentUser;
+    if (user == null) return const [];
+    return fetchProviderReviews(user.id);
+  }
 }

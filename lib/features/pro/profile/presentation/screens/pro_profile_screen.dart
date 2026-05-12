@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../auth/presentation/widgets/auth_shared.dart';
 import '../../controllers/pro_profile_controller.dart';
+import '../widgets/pro_reviews_section.dart';
 
 // ── Validation ─────────────────────────────────────────────────────────────────
 
@@ -247,6 +248,14 @@ class _ProProfileScreenState extends State<ProProfileScreen> {
                               _buildSectionLabel('Bio'),
                               const SizedBox(height: 10),
                               _buildBioField(),
+                              const SizedBox(height: 20),
+                              _buildSectionLabel('Client reviews'),
+                              const SizedBox(height: 10),
+                              ProReviewsSection(
+                                summary: _controller.ratingSummary,
+                                reviews: _controller.reviews,
+                                isLoading: _controller.isLoadingReviews,
+                              ),
                               const SizedBox(height: 28),
                               _controller.isSaving
                                   ? const Center(

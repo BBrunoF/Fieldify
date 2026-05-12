@@ -15,7 +15,6 @@ enum JobStatus {
       case 'accepted':
         return JobStatus.accepted;
       case 'on_my_way':
-      case 'on_the_way':
         return JobStatus.onMyWay;
       case 'in_progress':
         return JobStatus.inProgress;

@@ -261,8 +261,9 @@ void main() {
       );
       await controller.load();
 
-      await controller.submitReview(rating: 5, comment: 'great');
+      final ok = await controller.submitReview(rating: 5, comment: 'great');
 
+      expect(ok, isTrue);
       expect(repo.submitReviewCalls, 1);
       expect(capturedRating, 5);
       expect(capturedComment, 'great');
@@ -342,7 +343,7 @@ void main() {
       expect(repo.submitReviewCalls, 0);
     });
 
-    test('exposes JobDetailFailure message on submit error', () async {
+    test('exposes a friendly message on submit error', () async {
       final repo = _FakeRepo(
         onFetch: (id, _) async =>
             _detail(id, status: 'completed', proId: 'p1'),
@@ -356,8 +357,9 @@ void main() {
       );
       await controller.load();
 
-      await controller.submitReview(rating: 5);
-      expect(controller.error, 'rls blocked');
+      final ok = await controller.submitReview(rating: 5);
+      expect(ok, isFalse);
+      expect(controller.error, "Couldn't submit your review. Please try again.");
     });
   });
 

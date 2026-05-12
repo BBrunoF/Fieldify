@@ -139,7 +139,7 @@ class _StarsRow extends StatelessWidget {
 
 class ReviewSubmissionSheet extends StatefulWidget {
   final String counterpartyName;
-  final Future<void> Function(int rating, String? comment) onSubmit;
+  final Future<String?> Function(int rating, String? comment) onSubmit;
   final bool Function() isBusy;
 
   const ReviewSubmissionSheet({
@@ -152,7 +152,7 @@ class ReviewSubmissionSheet extends StatefulWidget {
   static Future<bool?> show(
     BuildContext context, {
     required String counterpartyName,
-    required Future<void> Function(int rating, String? comment) onSubmit,
+    required Future<String?> Function(int rating, String? comment) onSubmit,
     required bool Function() isBusy,
   }) {
     return showModalBottomSheet<bool>(
@@ -192,17 +192,16 @@ class _ReviewSubmissionSheetState extends State<ReviewSubmissionSheet> {
       _submitting = true;
       _error = null;
     });
-    try {
-      await widget.onSubmit(_rating, _commentController.text);
-      if (!mounted) return;
+    final error = await widget.onSubmit(_rating, _commentController.text);
+    if (!mounted) return;
+    if (error == null) {
       Navigator.of(context).pop(true);
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _submitting = false;
-        _error = e.toString();
-      });
+      return;
     }
+    setState(() {
+      _submitting = false;
+      _error = error;
+    });
   }
 
   @override

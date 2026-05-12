@@ -14,6 +14,10 @@ class JobDetailActionBar extends StatelessWidget {
     if (detail == null) return;
     if (detail.review != null) return;
     final counterparty = detail.counterparty;
+    assert(
+      counterparty != null,
+      'Cannot open review sheet without counterparty for job ${detail.id}',
+    );
     if (counterparty == null) return;
 
     await ReviewSubmissionSheet.show(
@@ -21,11 +25,12 @@ class JobDetailActionBar extends StatelessWidget {
       counterpartyName: counterparty.fullName,
       isBusy: () => controller.isPerformingAction,
       onSubmit: (rating, comment) async {
-        await controller.submitReview(rating: rating, comment: comment);
-        final error = controller.error;
-        if (error != null) {
-          throw Exception(error);
-        }
+        final ok = await controller.submitReview(
+          rating: rating,
+          comment: comment,
+        );
+        if (ok) return null;
+        return controller.error ?? "Couldn't submit your review. Please try again.";
       },
     );
   }

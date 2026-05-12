@@ -142,7 +142,7 @@ void main() {
   group('Pro-only transitions', () {
     test('markOnTheWay runs and refreshes when viewer is pro', () async {
       final repo = _FakeRepo(
-        onFetch: (id, _) async => _detail(id, status: 'on_the_way'),
+        onFetch: (id, _) async => _detail(id, status: 'on_my_way'),
       );
       final controller = JobDetailController(
         jobId: 'j1',

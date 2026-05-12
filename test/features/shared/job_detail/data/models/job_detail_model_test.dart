@@ -6,7 +6,7 @@ void main() {
     test('fromDb maps every known value', () {
       expect(JobStatus.fromDb('pending'), JobStatus.pending);
       expect(JobStatus.fromDb('accepted'), JobStatus.accepted);
-      expect(JobStatus.fromDb('on_the_way'), JobStatus.onMyWay);
+      expect(JobStatus.fromDb('on_my_way'), JobStatus.onMyWay);
       expect(JobStatus.fromDb('in_progress'), JobStatus.inProgress);
       expect(JobStatus.fromDb('completed'), JobStatus.completed);
       expect(JobStatus.fromDb('cancelled'), JobStatus.cancelled);

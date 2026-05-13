@@ -23,7 +23,7 @@
 
 ## [Sprint 2] - May 2026
 
-### Added (18 points)
+### Added (21 points)
 - [US10] Client Profile Management
 - [US17] Job Cancellation (Pro)
 - [US15] Job Status Controller

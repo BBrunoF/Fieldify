@@ -52,7 +52,7 @@ Sprint 2 took place during May 2026. A defining characteristic of this sprint wa
 ## What Could Be Improved
 - **Backlog Debt Accumulation:** This sprint was heavily burdened by carry-overs from Sprint 1 (US17, US15, US05, US09, US03), reducing the team's ability to focus on new feature development
 - **Persistent Carry-Overs:** [US09] and [US03] were not completed for the second consecutive sprint, indicating consistent underestimation of their complexity
-- **Planning Accuracy:** The volume of carry-over work was not fully accounted for when committing to Sprint 2 scope, resulting in [US08] being pushed to the next sprint
+- **Planning Accuracy:** The volume of carry-over work was not fully accounted for when committing to Sprint 2 scope, resulting in [US09], [US03] being pushed to the next sprint
 
 ## Strategy and Verifiable Action Points
 ### Carry-Over Prioritisation Policy

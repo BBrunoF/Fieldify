@@ -392,8 +392,6 @@ You can find below information and references related with the project managemen
 
 ### Sprint 3
 
-### Sprint 4
-
 ### Final Release
 
 

@@ -61,8 +61,40 @@
 
 ### Sprint 2
 
-#### [PBI ID] - [PBI Name]
-- **Tool:** [ferramenta]
-- **Prompt:** "[prompt que usaste]"
-- **Output:** [breve descrição do que foi gerado]
-- **Commit:** [link para o commit]
+---
+
+#### US10, US15, US17, US05 — Code Structure Refactor & Architecture Fixes
+- **Tool:** Claude (Claude Code)
+- **Prompt:** "create a new branch from main called codeStructureMaintenance, because once merged i want to fix some things when it comes to the code structure"
+- **Output:** Massive 68-file refactor across the entire codebase: consolidated `pro/accepted_jobs/` and `pro/incoming_jobs/` into a single `pro/jobs/` feature with unified `ProJobsController`, `ProJob` model, `ProJobsRepository`, and `ProJobsService`; created missing `home/` pipeline (`HomeController` → `HomeRepository` → `HomeService`) removing direct Supabase calls from `home_screen.dart`; removed Supabase imports from `client_home_screen.dart` (now uses `ProfileController`) and `home_action_buttons.dart` (now purely UI); extracted status-to-color/label mapping from `ClientJobCard` into `JobStatusStyle` utility; extracted trade icon mapping into `TradeIconMapper`; created `date_format_utils.dart` in shared utils; updated all import paths and all corresponding unit, widget, and Patrol tests.
+- **Commit:** [`61c63ff`](https://github.com/LEIC-ES-2025-26-2LEIC02/T1/commit/61c63ff) (branch `codeStructureMaintenance`, merged via [PR #55](https://github.com/LEIC-ES-2025-26-2LEIC02/T1/pull/55))
+
+#### US15 — Google Maps & Geolocation Integration
+- **Tool:** Claude (Claude Code)
+- **Prompt:** "Plan the Google Maps integration for the Flutter app" → followed by implementation of the full location feature pipeline
+- **Output:** Implemented full feature-first pipeline for location: `HomeMapController` (manages map state + user location), `UserLocation` model, `LocationRepository` (handles permissions + coordinate fetching), `LocationService` (geolocation calls); added `google_maps_flutter` and `geolocator` dependencies to `pubspec.yaml`; configured Android `AndroidManifest.xml` and iOS `Info.plist` with location permissions; registered `GeolocatorPlugin` in platform-specific files; updated `client_home_screen.dart` to display an interactive map widget. 13 files changed, 369 additions.
+- **Commit:** [`be02d16`](https://github.com/LEIC-ES-2025-26-2LEIC02/T1/commit/be02d16) (branch `mapIntegration`)
+
+#### US09 — Stripe Integration Design Spec
+- **Tool:** Claude (Claude Code)
+- **Prompt:** "explain to me how u would normally implement stripe to this project tech stack"
+- **Output:** Authored a full marketplace payment architecture design spec: `flutter_stripe` + 5 Supabase Edge Functions (`create-setup-intent`, `create-connect-account`, `create-payment-intent`, `capture-payment-intent`, `stripe-webhook`); Stripe Connect Express for pro payouts; authorise-then-capture model (`capture_method: "manual"`) with a single `PaymentIntent` per job; `SetupIntent` card collection at request screen step 4; hold authorised on submit, capture on pro "Mark Complete"; `payments` table schema with `authorised | captured | cancelled | refunded` status and `amount_authorised`/`amount_charged` split; `payment_methods` table populated by `setup_intent.succeeded` webhook. Saved as `docs/superpowers/specs/2026-05-11-stripe-integration-design.md`.
+- **Commit:** [`0b4a000`](https://github.com/LEIC-ES-2025-26-2LEIC02/T1/commit/0b4a000)
+
+#### US08 — Review Submission Enhancement & RLS Policies
+- **Tool:** Claude (Claude Code)
+- **Prompt:** "Add RLS policies for job detail reviews" → followed by enhancing the review submission process with error handling and validation
+- **Output:** Enhanced `JobDetailController` with review submission error handling and input validation; updated `ReviewCard` widget and `JobDetailActionBar` for proper review flow; added/verified RLS policies on the reviews table for secure read/write access; fixed status string mismatch (`on_the_way` → `on_my_way`) in tests; updated `job_detail_controller_test.dart`.
+- **Commit:** [`0835d6b`](https://github.com/LEIC-ES-2025-26-2LEIC02/T1/commit/0835d6b), [`e06cc1b`](https://github.com/LEIC-ES-2025-26-2LEIC02/T1/commit/e06cc1b) (branch `reviewimplement`, merged via [PR #57](https://github.com/LEIC-ES-2025-26-2LEIC02/T1/pull/57))
+
+#### Merge Conflict Resolution & Test Maintenance
+- **Tool:** Claude (Claude Code)
+- **Prompt:** "Fix the unresolved merge conflicts and clean up stale test parameters"
+- **Output:** Removed leftover conflict markers from `test_bundle.dart` (smoke_test reference from origin/main side had no matching import); dropped unused `uploadedPath` param from `_FakeProfileRepository` in `profile_controller_test.dart` to clear `unused_element_parameter` lint; reordered test imports and groups for consistency across the test suite.
+- **Commit:** [`d15242c`](https://github.com/LEIC-ES-2025-26-2LEIC02/T1/commit/d15242c), [`5c9f805`](https://github.com/LEIC-ES-2025-26-2LEIC02/T1/commit/5c9f805)
+
+#### Architecture Audit — Feature Pipeline Violations
+- **Tool:** Claude (Claude Code)
+- **Prompt:** "analyze every feature and create a list of every instance where that feature pipeline is broken, basically anything out of place. A screen calling a db, or something that shouldn't be where it is"
+- **Output:** Systematic audit of all 56 `.dart` files across 10 feature modules, identifying 30 architectural violations in 8 categories: 3 direct Supabase calls remaining in presentation layer, 2 features missing pipeline layers entirely, 7 cross-feature coupling issues (e.g., 4 features importing `auth_shared.dart` from the auth feature), 7 instances of business logic in widgets (status mapping, cost calculation, timeline state machine), 5 services doing repository-level work (JSON→model mapping), 4 repositories acting as thin passthroughs, 7 repositories importing `supabase_flutter` types directly, and 1 missing model (`user_model.dart` still a TODO). Produced a prioritised fix list.
+- **Commit:** *(no commit — analysis only)*

@@ -37,15 +37,6 @@ Any User Story exceeding 5 story points must be broken
 into sub-tasks completable in 1–3 days. No task in 
 "In Progress" should remain stagnant for more than 72 hours.
 
-## Individual Assessment
-
-| Member | Self Score (0-10) | Justification |
-|--------|-------------------|---------------|
-| Tiago Morais Amaral | 7 | The managemnet could be better |
-| Bruno Rafael Bessa Freitas | 7 | Could have been more efficient |
-| Tomás Manuel Almeida Ribeiro | 7 | Could have done more |
-| João António Neiva Amaro | 8 | It was ok |
-| José Pedro Rocha da Costa  | 9 | Amazing |
 
 
 # Sprint 2

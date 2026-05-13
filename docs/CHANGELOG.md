@@ -38,7 +38,6 @@
 - Sprint 2 review document
 - Hapinnes matters document
   
-[US09] Automatic Payment Processing
 ### Not Completed (moved to Sprint 2)
 - [US09] Automatic Payment Processing
 - [US03] Service Request Submission

@@ -45,6 +45,7 @@ class ClientActionBar extends StatelessWidget {
           _primary(
             hasReview ? 'Review submitted' : 'Submit review',
             hasReview ? null : onSubmitReview,
+            key: const Key('clientActionBar.submitReviewButton'),
           ),
         ]);
       case JobStatus.cancelled:
@@ -52,8 +53,14 @@ class ClientActionBar extends StatelessWidget {
     }
   }
 
-  Widget _primary(String label, VoidCallback? onTap) =>
-      _ActionButton(label: label, onTap: onTap, kind: _Kind.primary, busy: isBusy);
+  Widget _primary(String label, VoidCallback? onTap, {Key? key}) =>
+      _ActionButton(
+        key: key,
+        label: label,
+        onTap: onTap,
+        kind: _Kind.primary,
+        busy: isBusy,
+      );
   Widget _ghost(String label, VoidCallback? onTap) =>
       _ActionButton(label: label, onTap: onTap, kind: _Kind.ghost, busy: false);
   Widget _danger(String label, VoidCallback? onTap) =>
@@ -93,6 +100,7 @@ class _ActionButton extends StatelessWidget {
   final _Kind kind;
   final bool busy;
   const _ActionButton({
+    super.key,
     required this.label,
     required this.onTap,
     required this.kind,

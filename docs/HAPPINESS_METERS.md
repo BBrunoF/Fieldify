@@ -17,46 +17,46 @@
 
 | Member | Rating |
 |--------|--------|
+| João António Neiva Amaro | ⭐️ |
+| José Pedro Rocha da Costa | ⭐️ |
 | Tiago Morais Amaral | ⭐️ |
 | Tomás Manuel Almeida Ribeiro | ⭐️ |
-| João António Neiva Amaro | ⭐️ |
-| José Pedro Rocha da Costa | ⭐️ |
-
-### Evaluated by: Tiago Morais Amaral
-
-| Member | Rating |
-|--------|--------|
-| Bruno Rafael Bessa Freitas | ⭐️ |
-| Tomás Manuel Almeida Ribeiro | ⭐️ |
-| João António Neiva Amaro | ⭐️ |
-| José Pedro Rocha da Costa | ⭐️ |
-
-### Evaluated by: Tomás Manuel Almeida Ribeiro
-
-| Member | Rating |
-|--------|--------|
-| Bruno Rafael Bessa Freitas | ⭐️ |
-| Tiago Morais Amaral | ⭐️ |
-| João António Neiva Amaro | ⭐️ |
-| José Pedro Rocha da Costa | ⭐️ |
 
 ### Evaluated by: João António Neiva Amaro
 
 | Member | Rating |
 |--------|--------|
 | Bruno Rafael Bessa Freitas | ⭐️ |
+| José Pedro Rocha da Costa | ⭐️ |
 | Tiago Morais Amaral | ⭐️ |
 | Tomás Manuel Almeida Ribeiro | ⭐️ |
-| José Pedro Rocha da Costa | ⭐️ |
 
 ### Evaluated by: José Pedro Rocha da Costa
 
 | Member | Rating |
 |--------|--------|
 | Bruno Rafael Bessa Freitas | ⭐️ |
+| João António Neiva Amaro | ⭐️ |
 | Tiago Morais Amaral | ⭐️ |
 | Tomás Manuel Almeida Ribeiro | ⭐️ |
+
+### Evaluated by: Tiago Morais Amaral
+
+| Member | Rating |
+|--------|--------|
+| Bruno Rafael Bessa Freitas | ⭐️ |
 | João António Neiva Amaro | ⭐️ |
+| José Pedro Rocha da Costa | ⭐️ |
+| Tomás Manuel Almeida Ribeiro | ⭐️ |
+
+### Evaluated by: Tomás Manuel Almeida Ribeiro
+
+| Member | Rating |
+|--------|--------|
+| Bruno Rafael Bessa Freitas | ⭐️ |
+| João António Neiva Amaro | ⭐️ |
+| José Pedro Rocha da Costa | ⭐️ |
+| Tiago Morais Amaral | ⭐️ |
 
 ---
 
@@ -66,43 +66,43 @@
 
 | Member | Rating |
 |--------|--------|
+| João António Neiva Amaro | |
+| José Pedro Rocha da Costa | |
 | Tiago Morais Amaral | |
 | Tomás Manuel Almeida Ribeiro | |
-| João António Neiva Amaro | |
-| José Pedro Rocha da Costa | |
-
-### Evaluated by: Tiago Morais Amaral
-
-| Member | Rating |
-|--------|--------|
-| Bruno Rafael Bessa Freitas | |
-| Tomás Manuel Almeida Ribeiro | |
-| João António Neiva Amaro | |
-| José Pedro Rocha da Costa | |
-
-### Evaluated by: Tomás Manuel Almeida Ribeiro
-
-| Member | Rating |
-|--------|--------|
-| Bruno Rafael Bessa Freitas | |
-| Tiago Morais Amaral | |
-| João António Neiva Amaro | |
-| José Pedro Rocha da Costa | |
 
 ### Evaluated by: João António Neiva Amaro
 
 | Member | Rating |
 |--------|--------|
 | Bruno Rafael Bessa Freitas | |
+| José Pedro Rocha da Costa | |
 | Tiago Morais Amaral | |
 | Tomás Manuel Almeida Ribeiro | |
-| José Pedro Rocha da Costa | |
 
 ### Evaluated by: José Pedro Rocha da Costa
 
 | Member | Rating |
 |--------|--------|
 | Bruno Rafael Bessa Freitas | |
+| João António Neiva Amaro | |
 | Tiago Morais Amaral | |
 | Tomás Manuel Almeida Ribeiro | |
+
+### Evaluated by: Tiago Morais Amaral
+
+| Member | Rating |
+|--------|--------|
+| Bruno Rafael Bessa Freitas | |
 | João António Neiva Amaro | |
+| José Pedro Rocha da Costa | |
+| Tomás Manuel Almeida Ribeiro | |
+
+### Evaluated by: Tomás Manuel Almeida Ribeiro
+
+| Member | Rating |
+|--------|--------|
+| Bruno Rafael Bessa Freitas | |
+| João António Neiva Amaro | |
+| José Pedro Rocha da Costa | |
+| Tiago Morais Amaral | |

@@ -42,25 +42,6 @@ into sub-tasks completable in 1–3 days. No task in
 ## Sprint Overview
 Sprint 2 took place during May 2026. A defining characteristic of this sprint was the need to carry over and complete a significant number of unfinished items from Sprint 1, in addition to tackling new user stories planned for this iteration. Despite this added pressure, the team successfully delivered 18 story points across 5 user stories.
 
-## Completed User Stories (18 points)
-- [US10] Client Profile Management
-- [US17] Job Cancellation (Pro) — carried over from Sprint 1
-- [US15] Job Status Controller — carried over from Sprint 1
-- [US20] Pro Profile & Rates
-- [US05] Job History & Tracking — carried over from Sprint 1
-
-## Tasks Completed
-- Unit and integration tests
-- User acceptance tests (UAT)
-- Log, track and verify defects
-- Sprint 2 review document
-- Happiness Matters document
-
-## Items Not Completed (moved to Sprint 3)
-- [US09] Automatic Payment Processing — carried over again from Sprint 1
-- [US03] Service Request Submission — carried over from Sprint 1
-- [US08] Rate & Review System
-
 ## What Went Well
 - Successfully closed out the majority of Sprint 1 carry-over items, preventing further technical debt accumulation
 - Team applied the Early Start Policy defined in the Sprint 1 retrospective, ensuring critical PBIs began early in the sprint

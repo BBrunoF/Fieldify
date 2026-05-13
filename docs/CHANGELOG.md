@@ -1,5 +1,5 @@
 # Changelog
-
+---
 ## [Sprint 1] - April 2026
 
 ### Added (13 points)
@@ -20,7 +20,7 @@
 - [US15] Job Status Controller
 - [US10] Client Profile Management
 
-
+---
 ## [Sprint 2] - May 2026
 
 ### Added (21 points)
@@ -39,7 +39,15 @@
 - Sprint 2 review document
 - Hapinnes matters document
   
-### Not Completed (moved to Sprint 2)
+### Not Completed (moved to Sprint 3)
 - [US09] Automatic Payment Processing
 - [US03] Service Request Submission
 
+---
+## [Sprint 3] - May 2026
+
+### Added 
+
+### Tasks Completed
+
+### Not Completed (moved to Sprint 2)

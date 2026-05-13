@@ -29,6 +29,7 @@
 - [US15] Job Status Controller
 - [US20] Pro Profile & Rates
 - [US05] Job History & Tracking
+- [US08] Rate & Review System
 
 
 ### Tasks Completed
@@ -41,5 +42,4 @@
 ### Not Completed (moved to Sprint 2)
 - [US09] Automatic Payment Processing
 - [US03] Service Request Submission
-- [US08] Rate & Review System
 

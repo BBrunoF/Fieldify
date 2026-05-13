@@ -349,8 +349,10 @@ You can find below information and references related with the project managemen
     * list of a few improvements to implement next Sprint;
 
 -->
+---
 
 ### Sprint 0
+---
 
 ### Sprint 1
 
@@ -368,6 +370,7 @@ You can find below information and references related with the project managemen
 <img width="1755" height="707" alt="image" src="https://github.com/user-attachments/assets/bb7fa582-49c3-44d1-becf-0e6b9b7b88da" />
 <img width="1776" height="479" alt="image" src="https://github.com/user-attachments/assets/618e9d66-6a0c-4f1d-871e-c6945de11952" />
 
+---
 
 ### Sprint 2
 
@@ -378,10 +381,14 @@ You can find below information and references related with the project managemen
 <img width="1773" height="225" alt="image" src="https://github.com/user-attachments/assets/171e3aa7-d61a-4877-8906-9b19aaf85296" />
 
 
-
-
 #### End
 
+<img width="1463" height="610" alt="image" src="https://github.com/user-attachments/assets/f9b0f756-05e2-47ef-85d7-4a52671f40bd" />
+<img width="1441" height="562" alt="image" src="https://github.com/user-attachments/assets/b6a5b0c9-31dc-423e-9205-60f64e4092f7" />
+<img width="1438" height="517" alt="image" src="https://github.com/user-attachments/assets/84f0d489-c54e-412b-b4ee-a85370aab2cf" />
+
+
+---
 
 ### Sprint 3
 

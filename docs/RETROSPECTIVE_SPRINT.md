@@ -37,6 +37,7 @@ Any User Story exceeding 5 story points must be broken
 into sub-tasks completable in 1–3 days. No task in 
 "In Progress" should remain stagnant for more than 72 hours.
 
+---
 # Sprint Review - Sprint 2
 
 ## Sprint Overview

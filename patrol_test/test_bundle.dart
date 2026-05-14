@@ -9,14 +9,7 @@ import 'package:patrol/src/platform/contracts/contracts.dart';
 import 'package:test_api/src/backend/invoker.dart';
 
 // START: GENERATED TEST IMPORTS
-import 'job_detail_test.dart' as job_detail_test;
-import 'job_history_test.dart' as job_history_test;
-import 'login_test.dart' as login_test;
-import 'pro_jobs_test.dart' as pro_jobs_test;
-import 'pro_profile_test.dart' as pro_profile_test;
-import 'profile_test.dart' as profile_test;
-import 'request_test.dart' as request_test;
-import 'smoke_test.dart' as smoke_test;
+import 'review_test.dart' as __review_test;
 // END: GENERATED TEST IMPORTS
 
 Future<void> main() async {
@@ -79,14 +72,7 @@ Future<void> main() async {
   });
 
 // START: GENERATED TEST GROUPS
-  group('job_detail_test', job_detail_test.main);
-  group('job_history_test', job_history_test.main);
-  group('login_test', login_test.main);
-  group('pro_jobs_test', pro_jobs_test.main);
-  group('pro_profile_test', pro_profile_test.main);
-  group('profile_test', profile_test.main);
-  group('request_test', request_test.main);
-  group('smoke_test', smoke_test.main);
+  group('.review_test', __review_test.main);
 // END: GENERATED TEST GROUPS
 
   final dartTestGroup = await testExplorationCompleter.future;

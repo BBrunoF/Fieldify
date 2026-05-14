@@ -347,7 +347,7 @@ void main() {
     'submitted review appears on the provider profile screen',
     ($) async {
       final title = _uniqueTitle('visible');
-      const comment = 'Patrol UAT — visible on profile.';
+      final comment = 'Patrol UAT — visible on profile. ($title)';
 
       await _setupCompletedJob($, title: title);
 

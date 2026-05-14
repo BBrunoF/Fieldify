@@ -61,6 +61,8 @@ class ProProfileModel {
   final int standardRate;
   final List<String> credentialUrls;
   final int? serviceRadiusKm;
+  final String? stripeAccountId;
+  final bool stripeOnboardingComplete;
 
   const ProProfileModel({
     required this.fullName,
@@ -72,9 +74,12 @@ class ProProfileModel {
     required this.standardRate,
     required this.credentialUrls,
     this.serviceRadiusKm,
+    this.stripeAccountId,
+    this.stripeOnboardingComplete = false,
   });
 
   bool get isApproved => verificationStatus == 'approved';
+  bool get hasStripeAccount => stripeAccountId != null;
 
   String get firstName {
     final parts = fullName.trim().split(' ');
@@ -104,6 +109,8 @@ class ProProfileModel {
     int? standardRate,
     List<String>? credentialUrls,
     int? serviceRadiusKm,
+    String? stripeAccountId,
+    bool? stripeOnboardingComplete,
   }) {
     return ProProfileModel(
       fullName: fullName ?? this.fullName,
@@ -115,6 +122,9 @@ class ProProfileModel {
       standardRate: standardRate ?? this.standardRate,
       credentialUrls: credentialUrls ?? this.credentialUrls,
       serviceRadiusKm: serviceRadiusKm ?? this.serviceRadiusKm,
+      stripeAccountId: stripeAccountId ?? this.stripeAccountId,
+      stripeOnboardingComplete:
+          stripeOnboardingComplete ?? this.stripeOnboardingComplete,
     );
   }
 }

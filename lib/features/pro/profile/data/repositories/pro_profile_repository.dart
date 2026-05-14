@@ -90,4 +90,14 @@ class ProProfileRepository {
       throw ProProfileFailure(e.toString());
     }
   }
+
+  Future<String> connectStripe() async {
+    try {
+      return await _service.createConnectAccount();
+    } on AuthException catch (e) {
+      throw ProProfileFailure(e.message);
+    } catch (e) {
+      throw ProProfileFailure(e.toString());
+    }
+  }
 }

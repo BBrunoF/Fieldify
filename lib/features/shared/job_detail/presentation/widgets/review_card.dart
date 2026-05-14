@@ -123,6 +123,7 @@ class _StarsRow extends StatelessWidget {
         return Padding(
           padding: const EdgeInsets.only(right: 4),
           child: InkResponse(
+            key: Key('reviewSheet.starButton_$value'),
             onTap: () => onChanged?.call(value),
             radius: 22,
             child: Semantics(
@@ -260,6 +261,7 @@ class _ReviewSubmissionSheetState extends State<ReviewSubmissionSheet> {
               ),
               const SizedBox(height: 18),
               TextField(
+                key: const Key('reviewSheet.commentField'),
                 controller: _commentController,
                 minLines: 3,
                 maxLines: 5,

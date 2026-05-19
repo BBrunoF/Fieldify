@@ -59,20 +59,23 @@ class _IncomingJobsViewState extends State<IncomingJobsView> {
           child: Row(
             children: [
               Expanded(
-                child: CheckboxListTile(
-                  key: const Key('incomingJobsShowRejectedCheckbox'),
-                  contentPadding: EdgeInsets.zero,
-                  value: _controller.showRejected,
-                  onChanged: (value) {
-                    _controller.setShowRejected(value ?? false);
-                  },
-                  controlAffinity: ListTileControlAffinity.leading,
-                  title: Text(
-                    'See rejected',
-                    style: GoogleFonts.dmSans(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                      color: FieldifyColors.ink2,
+                child: Material(
+                  color: Colors.transparent,
+                  child: CheckboxListTile(
+                    key: const Key('incomingJobsShowRejectedCheckbox'),
+                    contentPadding: EdgeInsets.zero,
+                    value: _controller.showRejected,
+                    onChanged: (value) {
+                      _controller.setShowRejected(value ?? false);
+                    },
+                    controlAffinity: ListTileControlAffinity.leading,
+                    title: Text(
+                      'See rejected',
+                      style: GoogleFonts.dmSans(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: FieldifyColors.ink2,
+                      ),
                     ),
                   ),
                 ),

@@ -99,3 +99,9 @@
 - **Prompt:** "analyze every feature and create a list of every instance where that feature pipeline is broken, basically anything out of place. A screen calling a db, or something that shouldn't be where it is"
 - **Output:** Systematic audit of all 56 `.dart` files across 10 feature modules, identifying 30 architectural violations in 8 categories: 3 direct Supabase calls remaining in presentation layer, 2 features missing pipeline layers entirely, 7 cross-feature coupling issues (e.g., 4 features importing `auth_shared.dart` from the auth feature), 7 instances of business logic in widgets (status mapping, cost calculation, timeline state machine), 5 services doing repository-level work (JSON→model mapping), 4 repositories acting as thin passthroughs, 7 repositories importing `supabase_flutter` types directly, and 1 missing model (`user_model.dart` still a TODO). Produced a prioritised fix list.
 - **Commit:** *(no commit — analysis only)*
+
+---
+
+### Sprint 3
+
+---

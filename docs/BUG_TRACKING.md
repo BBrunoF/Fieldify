@@ -12,3 +12,5 @@
 ## Sprint 2
 
 No bugs reported during this sprint.
+
+## Sprint 3

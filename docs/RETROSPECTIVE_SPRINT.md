@@ -62,3 +62,7 @@ Any user story carried over more than once must be treated as the highest priori
 Before committing to Sprint 3 scope, the team will explicitly account for existing carry-over stories in the velocity calculation. New stories only added if remaining capacity allows.
 ### Root Cause Analysis for Persistent Blockers
 For stories carried over more than once ([US09], [US03]), a brief root cause session will be held at the start of Sprint 3 to identify blockers and define a concrete resolution plan.
+
+
+# Sprint Review - Sprint 3
+

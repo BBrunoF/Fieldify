@@ -8,6 +8,7 @@ import '../../../../home/presentation/widgets/home_action_buttons.dart';
 import '../../../jobs/controllers/pro_jobs_controller.dart';
 import '../../../jobs/presentation/widgets/pro_jobs_view.dart';
 import '../../../profile/presentation/screens/pro_profile_screen.dart';
+import '../../../../shared/chat/presentation/screens/inbox_screen.dart';
 
 class ProHomeScreen extends StatefulWidget {
   final Future<void> Function()? onLogout;
@@ -27,6 +28,12 @@ class _ProHomeScreenState extends State<ProHomeScreen> {
   int _selectedNav = 0;
 
   void _onNavTap(int i) {
+    if (i == 2) {
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => const InboxScreen()),
+      );
+      return;
+    }
     if (i == 3) {
       Navigator.of(context).push(
         MaterialPageRoute(builder: (_) => const ProProfileScreen()),

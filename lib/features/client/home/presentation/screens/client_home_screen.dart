@@ -11,6 +11,7 @@ import '../../../job_history/presentation/widgets/job_history_view.dart';
 import '../../../profile/controllers/profile_controller.dart';
 import '../../../profile/presentation/screens/profile_screen.dart';
 import '../../../request/presentation/screens/request_screen.dart';
+import '../../../../shared/chat/presentation/screens/inbox_screen.dart';
 
 class ClientHomeScreen extends StatefulWidget {
   final Future<void> Function()? onLogout;
@@ -56,6 +57,12 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
   }
 
   void _onNavTap(int i) {
+    if (i == 2) {
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => const InboxScreen()),
+      );
+      return;
+    }
     if (i == 3) {
       Navigator.of(context)
           .push(MaterialPageRoute(builder: (_) => const ProfileScreen()))

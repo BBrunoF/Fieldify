@@ -239,6 +239,37 @@ Future<void> _sendChatMessage(
   await $(content).waitUntilVisible(timeout: const Duration(seconds: 20));
 }
 
+/// Proposes a reschedule from the chat composer. The native date and time
+/// pickers open in sequence; we accept their defaults (tomorrow at the top of
+/// the current hour, which is always in the future) by tapping "OK" twice.
+/// Leaves the chat showing the freshly created reschedule card.
+Future<void> _proposeReschedule(PatrolIntegrationTester $) async {
+  await $(find.byKey(const Key('proposeRescheduleButton'))).tap();
+
+  // Date picker.
+  await $(find.text('OK')).waitUntilVisible(timeout: const Duration(seconds: 20));
+  await $(find.text('OK')).tap();
+
+  // Time picker.
+  await $(find.text('OK')).waitUntilVisible(timeout: const Duration(seconds: 20));
+  await $(find.text('OK')).tap();
+
+  await $(
+    find.text('RESCHEDULE REQUEST'),
+  ).waitUntilVisible(timeout: const Duration(seconds: 20));
+}
+
+Future<void> _respondToReschedule(
+  PatrolIntegrationTester $, {
+  required bool accept,
+}) async {
+  final buttonKey = accept ? 'rescheduleAcceptButton' : 'rescheduleRejectButton';
+  await $(
+    find.byKey(Key(buttonKey)),
+  ).waitUntilVisible(timeout: const Duration(seconds: 30));
+  await $(find.byKey(Key(buttonKey))).tap();
+}
+
 Future<void> _leaveChatToHome(PatrolIntegrationTester $) async {
   if (find.byKey(const Key('chatBackButton')).evaluate().isNotEmpty) {
     await $(find.byKey(const Key('chatBackButton'))).tap();
@@ -313,6 +344,93 @@ void main() {
 
       await _sendChatMessage($, messageFromClient);
       expect(find.text(messageFromClient), findsOneWidget);
+    },
+  );
+
+  patrolTest(
+    'professional proposes a reschedule and the client accepts it',
+    ($) async {
+      final title = _uniqueChatTitle('reschedule-accept');
+      const description = 'Patrol generated request for reschedule accept.';
+      const address = 'Rua de Cedofeita 100, Porto';
+
+      // 1. Client submits a request.
+      await _loginAsClient($);
+      await _submitRequestAsClient(
+        $,
+        title: title,
+        description: description,
+        address: address,
+      );
+      await _logoutToLogin($);
+
+      // 2. Professional accepts the job and proposes a reschedule.
+      await _loginAsProfessional($);
+      await _openIncomingJobsTab($);
+      await _acceptIncomingRequest($, title);
+
+      await _openMessagesTab($);
+      await _openConversationByTitle($, title);
+      await _proposeReschedule($);
+      // The proposer sees a pending card, not the accept/decline buttons.
+      expect(find.text('Waiting for a response…'), findsOneWidget);
+      expect(find.byKey(const Key('rescheduleAcceptButton')), findsNothing);
+
+      await _leaveChatToHome($);
+      await _logoutToLogin($);
+
+      // 3. Client opens the chat, sees the proposal and accepts it.
+      await _loginAsClient($);
+      await _openMessagesTab($);
+      await _openConversationByTitle($, title);
+      await _respondToReschedule($, accept: true);
+
+      await $(
+        find.text('Accepted — schedule updated'),
+      ).waitUntilVisible(timeout: const Duration(seconds: 30));
+      expect(find.text('Accepted — schedule updated'), findsOneWidget);
+    },
+  );
+
+  patrolTest(
+    'professional proposes a reschedule and the client declines it',
+    ($) async {
+      final title = _uniqueChatTitle('reschedule-decline');
+      const description = 'Patrol generated request for reschedule decline.';
+      const address = 'Rua de Cedofeita 100, Porto';
+
+      // 1. Client submits a request.
+      await _loginAsClient($);
+      await _submitRequestAsClient(
+        $,
+        title: title,
+        description: description,
+        address: address,
+      );
+      await _logoutToLogin($);
+
+      // 2. Professional accepts the job and proposes a reschedule.
+      await _loginAsProfessional($);
+      await _openIncomingJobsTab($);
+      await _acceptIncomingRequest($, title);
+
+      await _openMessagesTab($);
+      await _openConversationByTitle($, title);
+      await _proposeReschedule($);
+
+      await _leaveChatToHome($);
+      await _logoutToLogin($);
+
+      // 3. Client opens the chat, sees the proposal and declines it.
+      await _loginAsClient($);
+      await _openMessagesTab($);
+      await _openConversationByTitle($, title);
+      await _respondToReschedule($, accept: false);
+
+      await $(
+        find.text('Declined — original time kept'),
+      ).waitUntilVisible(timeout: const Duration(seconds: 30));
+      expect(find.text('Declined — original time kept'), findsOneWidget);
     },
   );
 }

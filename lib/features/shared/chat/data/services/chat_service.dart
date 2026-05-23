@@ -19,12 +19,16 @@ class ChatService {
 
     final requests = await supabase
         .from('service_requests')
-        .select('id, title, status, client_id, pro_id, created_at')
+        .select('id, title, status, client_id, pro_id, accepted_at, created_at')
         .or('client_id.eq.$uid,pro_id.eq.$uid')
-        .not('pro_id', 'is', null)
         .neq('status', 'pending');
 
-    final rows = (requests as List).cast<Map<String, dynamic>>();
+    // Drop rows that never got a pro assigned (e.g. cancelled-while-pending).
+    // Doing this client-side avoids PostgREST quirks combining .or() + .not().
+    final rows = (requests as List)
+        .cast<Map<String, dynamic>>()
+        .where((r) => r['pro_id'] != null)
+        .toList();
     if (rows.isEmpty) return const [];
 
     final counterpartyIds = <String>{};
@@ -61,11 +65,22 @@ class ChatService {
         lastMessageAt: last?.message.createdAt,
         lastMessageFromMe: last?.message.senderId == uid,
         unreadCount: 0,
+        jobAcceptedAt: _parseDate(r['accepted_at']),
+        jobCreatedAt: _parseDate(r['created_at']),
       );
     }).toList();
 
-    conversations.sort((a, b) => b.sortKey.compareTo(a.sortKey));
+    // Active conversations first; within each group, most recent activity wins.
+    conversations.sort((a, b) {
+      if (a.isActive != b.isActive) return a.isActive ? -1 : 1;
+      return b.sortKey.compareTo(a.sortKey);
+    });
     return conversations;
+  }
+
+  static DateTime? _parseDate(Object? value) {
+    if (value == null) return null;
+    return DateTime.tryParse(value as String)?.toLocal();
   }
 
   Future<Map<String, Map<String, dynamic>>> _fetchProfiles(

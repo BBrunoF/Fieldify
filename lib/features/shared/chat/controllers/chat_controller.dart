@@ -40,9 +40,10 @@ class ChatController extends ChangeNotifier {
   bool lockChatContext() => !isJobActive;
   bool get isLocked => lockChatContext();
 
-  /// Whether the chat can be opened at all. History stays viewable even
-  /// when archived, so opening is always allowed once a pro is assigned.
-  bool openChat() => true;
+  /// Whether the chat can be opened at all. Requires the job to have moved
+  /// past the pending state (i.e. a professional has been assigned).
+  /// History stays viewable even when archived.
+  bool openChat() => jobStatus != 'pending';
 
   Future<void> loadChatHistory() async {
     _isLoading = true;

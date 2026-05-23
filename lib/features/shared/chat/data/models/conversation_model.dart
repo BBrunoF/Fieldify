@@ -12,6 +12,8 @@ class Conversation {
   final DateTime? lastMessageAt;
   final bool lastMessageFromMe;
   final int unreadCount;
+  final DateTime? jobAcceptedAt;
+  final DateTime? jobCreatedAt;
 
   const Conversation({
     required this.requestId,
@@ -24,13 +26,24 @@ class Conversation {
     required this.lastMessageAt,
     required this.lastMessageFromMe,
     required this.unreadCount,
+    this.jobAcceptedAt,
+    this.jobCreatedAt,
   });
 
   bool get isActive => _activeStatuses.contains(jobStatus);
 
-  /// Used to order the inbox: most recent activity first.
-  DateTime get sortKey =>
-      lastMessageAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+  /// Used to order the inbox: most recent activity first. Falls back to the
+  /// job's accepted/created timestamps so a brand new active conversation
+  /// (no messages yet) still bubbles up near the top.
+  DateTime get sortKey {
+    final candidates = <DateTime>[
+      ?lastMessageAt,
+      ?jobAcceptedAt,
+      ?jobCreatedAt,
+    ];
+    if (candidates.isEmpty) return DateTime.fromMillisecondsSinceEpoch(0);
+    return candidates.reduce((a, b) => a.isAfter(b) ? a : b);
+  }
 
   String get counterpartyInitials {
     final parts = counterpartyName.trim().split(RegExp(r'\s+'));
@@ -59,6 +72,8 @@ class Conversation {
       lastMessageAt: lastMessageAt ?? this.lastMessageAt,
       lastMessageFromMe: lastMessageFromMe ?? this.lastMessageFromMe,
       unreadCount: unreadCount ?? this.unreadCount,
+      jobAcceptedAt: jobAcceptedAt,
+      jobCreatedAt: jobCreatedAt,
     );
   }
 }

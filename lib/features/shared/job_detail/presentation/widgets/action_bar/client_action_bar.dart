@@ -121,7 +121,7 @@ class _ActionButton extends StatelessWidget {
         break;
       case _Kind.ghost:
         bg = Colors.transparent;
-        fg = FieldifyColors.ink3;
+        fg = FieldifyColors.g800;
         border = Border.all(color: const Color(0x21000000));
         break;
       case _Kind.danger:

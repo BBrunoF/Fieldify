@@ -9,6 +9,7 @@ jobs:
   build-android:
     name: Build Android APK
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -28,6 +29,13 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
+      # The ubuntu-latest runner has ~7 GB RAM, but android/gradle.properties
+      # requests 8 GB heap + 4 GB metaspace for local dexing. That overcommits
+      # the runner and the job gets killed (exit 143). Trim the heap for CI only;
+      # the committed file stays generous for local builds.
+      - name: Constrain Gradle memory for CI runner
+        run: sed -i 's/-Xmx8G -XX:MaxMetaspaceSize=4G/-Xmx5G -XX:MaxMetaspaceSize=1G/' android/gradle.properties
+
       - name: Build APK (release)
         run: flutter build apk --release
 
@@ -41,6 +49,7 @@ jobs:
   build-web:
     name: Build Web
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - name: Checkout
         uses: actions/checkout@v4

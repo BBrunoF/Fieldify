@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../../core/theme/app_colors.dart';
+import '../../../../shared/chat/presentation/screens/chat_screen.dart';
 import '../../../../shared/job_detail/data/models/job_detail_model.dart';
 import '../../../../shared/job_detail/presentation/screens/job_detail_screen.dart';
 import '../../data/models/job_history_model.dart';
@@ -17,6 +18,19 @@ class ClientJobCard extends StatelessWidget {
         builder: (_) => JobDetailScreen(
           jobId: job.id,
           viewerRole: ViewerRole.client,
+        ),
+      ),
+    );
+  }
+
+  void _openChat(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => ChatScreen(
+          requestId: job.id,
+          jobStatus: job.status,
+          counterpartyName: job.tradeName ?? 'Professional',
+          jobTitle: job.title.isEmpty ? 'Untitled request' : job.title,
         ),
       ),
     );
@@ -166,7 +180,7 @@ class ClientJobCard extends StatelessWidget {
                 const SizedBox(width: 8),
                 OutlinedButton(
                   key: Key('clientJobMessageButton_${job.id}'),
-                  onPressed: () => _openDetail(context),
+                  onPressed: () => _openChat(context),
                   style: OutlinedButton.styleFrom(
                     minimumSize: const Size(0, 36),
                     padding: const EdgeInsets.symmetric(horizontal: 14),

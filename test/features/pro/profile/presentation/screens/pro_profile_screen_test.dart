@@ -120,30 +120,30 @@ void main() {
       expect(field.controller?.text, 'Expert plumber');
     });
 
-    testWidgets('shows radius field', (tester) async {
+    testWidgets('shows radius slider', (tester) async {
       await pumpTestApp(
         tester,
         ProProfileScreen(controller: _controller(profile: _pending)),
       );
       await tester.pumpAndSettle();
 
-      expect(find.byKey(const Key('proProfileRadiusField')), findsOneWidget);
+      expect(find.byKey(const Key('proProfileRadiusSlider')), findsOneWidget);
     });
 
-    testWidgets('radius field is pre-filled with current value', (tester) async {
+    testWidgets('radius slider is pre-set with current value', (tester) async {
       await pumpTestApp(
         tester,
         ProProfileScreen(controller: _controller(profile: _pending)),
       );
       await tester.pumpAndSettle();
 
-      final field = tester.widget<TextFormField>(
-        find.byKey(const Key('proProfileRadiusField')),
+      final slider = tester.widget<Slider>(
+        find.byKey(const Key('proProfileRadiusSlider')),
       );
-      expect(field.controller?.text, '20');
+      expect(slider.value, 20.0);
     });
 
-    testWidgets('radius field is empty when serviceRadiusKm is null',
+    testWidgets('radius slider defaults to 25 when serviceRadiusKm is null',
         (tester) async {
       await pumpTestApp(
         tester,
@@ -151,10 +151,10 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      final field = tester.widget<TextFormField>(
-        find.byKey(const Key('proProfileRadiusField')),
+      final slider = tester.widget<Slider>(
+        find.byKey(const Key('proProfileRadiusSlider')),
       );
-      expect(field.controller?.text, '');
+      expect(slider.value, 25.0);
     });
 
     testWidgets(
@@ -306,16 +306,20 @@ void main() {
       expect(button.onPressed, isNotNull);
     });
 
-    testWidgets('save button is enabled after editing the radius', (tester) async {
+    testWidgets('save button is enabled after dragging the radius slider',
+        (tester) async {
       await pumpTestApp(
         tester,
         ProProfileScreen(controller: _controller(profile: _pending)),
       );
       await tester.pumpAndSettle();
 
-      await tester.enterText(
-        find.byKey(const Key('proProfileRadiusField')),
-        '50',
+      await tester.ensureVisible(
+          find.byKey(const Key('proProfileRadiusSlider')));
+      await tester.pumpAndSettle();
+      await tester.drag(
+        find.byKey(const Key('proProfileRadiusSlider')),
+        const Offset(100, 0),
       );
       await tester.pump();
 

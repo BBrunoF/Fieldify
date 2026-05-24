@@ -1,5 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../../core/supabase/supabase_client.dart';
+import '../../../../pro/work_settings/data/models/availability_schedule_model.dart';
 import '../models/incoming_job.dart';
 
 class JobAlreadyTakenException implements Exception {
@@ -25,7 +26,7 @@ class IncomingJobsService {
 
     final proProfile = await supabase
         .from('professional_profiles')
-        .select('trade_id')
+        .select('id, trade_id')
         .eq('profile_id', user.id)
         .maybeSingle();
 
@@ -33,6 +34,7 @@ class IncomingJobsService {
       throw const ProfessionalProfileMissingException();
     }
 
+    final proId = proProfile['id'] as String;
     final tradeId = proProfile['trade_id'] as int;
 
     final rejectedRows = await supabase
@@ -56,7 +58,7 @@ class IncomingJobsService {
 
     final result = await query.order('created_at', ascending: false);
 
-    return (result as List)
+    var jobs = (result as List)
         .map(
           (json) => IncomingJob.fromJson(
             json as Map<String, dynamic>,
@@ -64,6 +66,39 @@ class IncomingJobsService {
           ),
         )
         .toList();
+
+    // Filter by pro's availability schedule.
+    // Jobs with no scheduled_at (ASAP) are always shown.
+    // Jobs with a scheduled_at are only shown if they fall within a slot.
+    try {
+      final scheduleRows = await supabase
+          .from('availability_schedules')
+          .select()
+          .eq('pro_id', proId);
+
+      final slots = (scheduleRows as List)
+          .cast<Map<String, dynamic>>()
+          .map(AvailabilityScheduleModel.fromJson)
+          .toList();
+
+      if (slots.isNotEmpty) {
+        jobs = jobs.where((job) {
+          final scheduledAt = job.scheduledAt;
+          if (scheduledAt == null) return true;
+
+          final local = scheduledAt.toLocal();
+          final dayOfWeek = local.weekday - 1; // weekday 1=Mon → 0=Mon
+          final jobMinutes = local.hour * 60 + local.minute;
+
+          return slots.any((s) =>
+              s.dayOfWeek == dayOfWeek &&
+              jobMinutes >= s.startMinutes &&
+              jobMinutes < s.endMinutes);
+        }).toList();
+      }
+    } catch (_) {}
+
+    return jobs;
   }
 
   Future<void> acceptJob(String requestId) async {

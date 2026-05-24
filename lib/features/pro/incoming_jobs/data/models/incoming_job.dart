@@ -5,6 +5,7 @@ class IncomingJob {
   final String? addressText;
   final String status;
   final DateTime? createdAt;
+  final DateTime? scheduledAt;
   final String clientId;
   final bool isRejected;
 
@@ -15,6 +16,7 @@ class IncomingJob {
     required this.addressText,
     required this.status,
     required this.createdAt,
+    required this.scheduledAt,
     required this.clientId,
     this.isRejected = false,
   });
@@ -31,6 +33,9 @@ class IncomingJob {
       status: (json['status'] ?? '') as String,
       createdAt: json['created_at'] != null
           ? DateTime.tryParse(json['created_at'] as String)
+          : null,
+      scheduledAt: json['scheduled_at'] != null
+          ? DateTime.tryParse(json['scheduled_at'] as String)
           : null,
       clientId: (json['client_id'] ?? '') as String,
       isRejected: isRejected,

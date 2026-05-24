@@ -1,11 +1,16 @@
 {
   "permissions": {
+    "deny": [
+      "Bash(git commit*)"
+    ],
     "allow": [
       "Bash(flutter analyze *)",
       "Bash(flutter test *)",
       "Bash(flutter logs *)",
       "Bash(kill %1)",
-      "Bash(dart analyze *)"
+      "Bash(dart analyze *)",
+      "Bash(adb shell *)",
+      "Bash(emulator *)"
     ]
   }
 }

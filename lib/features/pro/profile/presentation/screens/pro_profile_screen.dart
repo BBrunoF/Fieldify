@@ -6,6 +6,8 @@ import 'package:image_picker/image_picker.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../auth/presentation/widgets/auth_shared.dart';
 import '../../controllers/pro_profile_controller.dart';
+import '../../../work_settings/controllers/work_settings_controller.dart';
+import '../../../work_settings/data/models/availability_schedule_model.dart';
 
 // ── Validation ─────────────────────────────────────────────────────────────────
 
@@ -22,6 +24,8 @@ String? _validateNif(String? v) {
   return null;
 }
 
+const _dayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
 // ── Screen ─────────────────────────────────────────────────────────────────────
 
 class ProProfileScreen extends StatefulWidget {
@@ -37,13 +41,28 @@ class _ProProfileScreenState extends State<ProProfileScreen> {
   late final ProProfileController _controller;
   late final bool _ownsController;
 
+  late final WorkSettingsController _workController;
+
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _firstCtrl;
   late final TextEditingController _lastCtrl;
   late final TextEditingController _nifCtrl;
   late final TextEditingController _bioCtrl;
-  late final TextEditingController _radiusCtrl;
   late List<String> _credentialUrls;
+
+  double _radiusSlider = 25;
+  late final TextEditingController _radiusCtrl;
+
+  // Work hours state
+  final Map<int, List<_TimeSlot>> _daySlots = {};
+  final Set<int> _enabledDays = {};
+  bool _workSettingsInitialized = false;
+
+  // Location state
+  late final TextEditingController _latCtrl;
+  late final TextEditingController _lngCtrl;
+
+  int _selectedDay = 0;
 
   bool _dirty = false;
   bool _profileInitialized = false;
@@ -56,6 +75,7 @@ class _ProProfileScreenState extends State<ProProfileScreen> {
     super.initState();
     _controller = widget.controller ?? ProProfileController();
     _ownsController = widget.controller == null;
+    _workController = WorkSettingsController();
 
     final p = _controller.profile;
     _profileInitialized = p != null;
@@ -63,11 +83,14 @@ class _ProProfileScreenState extends State<ProProfileScreen> {
     _lastCtrl = TextEditingController(text: p?.lastName ?? '');
     _nifCtrl = TextEditingController(text: p?.nif ?? '');
     _bioCtrl = TextEditingController(text: p?.bio ?? '');
-    _radiusCtrl = TextEditingController(
-        text: p?.serviceRadiusKm != null ? '${p!.serviceRadiusKm}' : '');
+    _radiusSlider = (p?.serviceRadiusKm ?? 25).toDouble().clamp(5, 150);
+    _radiusCtrl = TextEditingController(text: _radiusSlider.round().toString());
     _credentialUrls = List<String>.from(p?.credentialUrls ?? []);
+    _latCtrl = TextEditingController();
+    _lngCtrl = TextEditingController();
 
     _controller.addListener(_onChanged);
+    _workController.addListener(_onWorkChanged);
   }
 
   void _onChanged() {
@@ -84,8 +107,8 @@ class _ProProfileScreenState extends State<ProProfileScreen> {
       _lastCtrl.text = p.lastName;
       _nifCtrl.text = p.nif;
       _bioCtrl.text = p.bio;
-      _radiusCtrl.text =
-          p.serviceRadiusKm != null ? '${p.serviceRadiusKm}' : '';
+      _radiusSlider = (p.serviceRadiusKm ?? 25).toDouble().clamp(5, 150);
+      _radiusCtrl.text = _radiusSlider.round().toString();
       _credentialUrls = List<String>.from(p.credentialUrls);
       _initializing = false;
       setState(() => _dirty = false);
@@ -115,15 +138,51 @@ class _ProProfileScreenState extends State<ProProfileScreen> {
     }
   }
 
+  void _onWorkChanged() {
+    if (!mounted) return;
+
+    if (!_workSettingsInitialized && !_workController.isLoading) {
+      _workSettingsInitialized = true;
+      _applySchedules(_workController.schedules);
+    }
+
+    setState(() {});
+
+    if (_workController.error != null) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(content: Text(_workController.error!)));
+      _workController.clearError();
+    }
+
+    if (_workController.saved) {
+      _workController.clearSaved();
+    }
+  }
+
+  void _applySchedules(List<AvailabilityScheduleModel> schedules) {
+    _daySlots.clear();
+    _enabledDays.clear();
+    for (final s in schedules) {
+      _enabledDays.add(s.dayOfWeek);
+      _daySlots.putIfAbsent(s.dayOfWeek, () => []);
+      _daySlots[s.dayOfWeek]!.add(_TimeSlot(s.startTime, s.endTime));
+    }
+  }
+
   @override
   void dispose() {
     _controller.removeListener(_onChanged);
+    _workController.removeListener(_onWorkChanged);
     if (_ownsController) _controller.dispose();
+    _workController.dispose();
     _firstCtrl.dispose();
     _lastCtrl.dispose();
     _nifCtrl.dispose();
     _bioCtrl.dispose();
     _radiusCtrl.dispose();
+    _latCtrl.dispose();
+    _lngCtrl.dispose();
     super.dispose();
   }
 
@@ -139,17 +198,95 @@ class _ProProfileScreenState extends State<ProProfileScreen> {
       firstName: _firstCtrl.text,
       lastName: _lastCtrl.text,
       nif: _nifCtrl.text,
-      serviceRadiusKm: int.tryParse(_radiusCtrl.text.trim()),
+      serviceRadiusKm: _radiusSlider.round(),
       credentialUrls: _credentialUrls,
     );
+    await _saveWorkHours();
+    final latText = _latCtrl.text.trim();
+    final lngText = _lngCtrl.text.trim();
+    if (latText.isNotEmpty && lngText.isNotEmpty) {
+      await _saveLocation();
+    }
+  }
+
+  Future<void> _saveWorkHours() async {
+    final proId = '';
+    final schedules = <AvailabilityScheduleModel>[];
+    for (final day in _enabledDays) {
+      for (final slot in _daySlots[day] ?? []) {
+        schedules.add(AvailabilityScheduleModel(
+          id: '',
+          proId: proId,
+          dayOfWeek: day,
+          startTime: slot.start,
+          endTime: slot.end,
+        ));
+      }
+    }
+    await _workController.setWorkHours(schedules);
+  }
+
+  Future<void> _saveLocation() async {
+    final lat = double.tryParse(_latCtrl.text.trim());
+    final lng = double.tryParse(_lngCtrl.text.trim());
+    if (lat == null || lng == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Enter valid latitude and longitude')),
+      );
+      return;
+    }
+    await _workController.setLocation(latitude: lat, longitude: lng);
+  }
+
+  void _toggleDay(int day) {
+    setState(() {
+      if (_enabledDays.contains(day)) {
+        _enabledDays.remove(day);
+      } else {
+        _enabledDays.add(day);
+        if (_daySlots[day] == null || _daySlots[day]!.isEmpty) {
+          _daySlots[day] = [
+            _TimeSlot(const TimeOfDay(hour: 9, minute: 0),
+                const TimeOfDay(hour: 17, minute: 0))
+          ];
+        }
+      }
+    });
+    _markDirty();
+  }
+
+  void _addSlot(int day) {
+    setState(() {
+      _daySlots.putIfAbsent(day, () => []);
+      _daySlots[day]!.add(_TimeSlot(const TimeOfDay(hour: 9, minute: 0),
+          const TimeOfDay(hour: 17, minute: 0)));
+    });
+    _markDirty();
+  }
+
+  void _removeSlot(int day, int index) {
+    setState(() {
+      _daySlots[day]?.removeAt(index);
+      if (_daySlots[day]?.isEmpty == true) _enabledDays.remove(day);
+    });
+    _markDirty();
+  }
+
+  Future<void> _pickTime(int day, int slotIndex, bool isStart) async {
+    final slot = _daySlots[day]![slotIndex];
+    final picked = await showTimePicker(
+        context: context, initialTime: isStart ? slot.start : slot.end);
+    if (picked == null) return;
+    setState(() {
+      _daySlots[day]![slotIndex] =
+          isStart ? _TimeSlot(picked, slot.end) : _TimeSlot(slot.start, picked);
+    });
+    _markDirty();
   }
 
   Future<void> _pickAvatar(ImageSource source) async {
     final picked = await _picker.pickImage(
-      source: source,
-      maxWidth: 800,
-      imageQuality: 85,
-    );
+        source: source, maxWidth: 800, imageQuality: 85);
     if (picked == null) return;
     await _controller.uploadAvatar(File(picked.path));
   }
@@ -173,9 +310,8 @@ class _ProProfileScreenState extends State<ProProfileScreen> {
                   width: 36,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: FieldifyColors.ink4,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
+                      color: FieldifyColors.ink4,
+                      borderRadius: BorderRadius.circular(2)),
                 ),
               ),
               const SizedBox(height: 20),
@@ -220,7 +356,8 @@ class _ProProfileScreenState extends State<ProProfileScreen> {
                         key: _formKey,
                         onChanged: _markDirty,
                         child: SingleChildScrollView(
-                          padding: const EdgeInsets.fromLTRB(20, 24, 20, 40),
+                          padding:
+                              const EdgeInsets.fromLTRB(20, 24, 20, 40),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -238,7 +375,22 @@ class _ProProfileScreenState extends State<ProProfileScreen> {
                               const SizedBox(height: 20),
                               _buildSectionLabel('Service radius'),
                               const SizedBox(height: 10),
-                              _buildRadiusField(),
+                              _buildRadiusSlider(),
+                              const SizedBox(height: 20),
+                              _buildSectionLabel('Work hours'),
+                              const SizedBox(height: 10),
+                              _buildWorkHoursSection(),
+                              const SizedBox(height: 20),
+                              _buildSectionLabel('Base location'),
+                              const SizedBox(height: 4),
+                              Text(
+                                'Coordinates of your service area centre',
+                                style: GoogleFonts.dmSans(
+                                    fontSize: 12,
+                                    color: FieldifyColors.ink3),
+                              ),
+                              const SizedBox(height: 10),
+                              _buildLocationSection(),
                               const SizedBox(height: 20),
                               _buildSectionLabel('Credentials'),
                               const SizedBox(height: 10),
@@ -248,7 +400,7 @@ class _ProProfileScreenState extends State<ProProfileScreen> {
                               const SizedBox(height: 10),
                               _buildBioField(),
                               const SizedBox(height: 28),
-                              _controller.isSaving
+                              _controller.isSaving || _workController.isSaving
                                   ? const Center(
                                       child: CircularProgressIndicator())
                                   : ElevatedButton(
@@ -330,7 +482,8 @@ class _ProProfileScreenState extends State<ProProfileScreen> {
             child: Container(
               decoration: const BoxDecoration(
                 color: FieldifyColors.surface,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
+                borderRadius:
+                    BorderRadius.vertical(top: Radius.circular(18)),
               ),
             ),
           ),
@@ -370,7 +523,8 @@ class _ProProfileScreenState extends State<ProProfileScreen> {
                       ? Image.network(
                           _controller.avatarSignedUrl!,
                           fit: BoxFit.cover,
-                          errorBuilder: (ctx, e, s) => _AvatarInitials(initials),
+                          errorBuilder: (ctx, e, s) =>
+                              _AvatarInitials(initials),
                         )
                       : _AvatarInitials(initials),
             ),
@@ -380,14 +534,17 @@ class _ProProfileScreenState extends State<ProProfileScreen> {
             bottom: 0,
             child: GestureDetector(
               key: const Key('proProfileAvatarEditButton'),
-              onTap: _controller.isUploadingAvatar ? null : _showPhotoSourceSheet,
+              onTap: _controller.isUploadingAvatar
+                  ? null
+                  : _showPhotoSourceSheet,
               child: Container(
                 width: 28,
                 height: 28,
                 decoration: BoxDecoration(
                   color: FieldifyColors.g700,
                   shape: BoxShape.circle,
-                  border: Border.all(color: FieldifyColors.surface, width: 2),
+                  border:
+                      Border.all(color: FieldifyColors.surface, width: 2),
                 ),
                 child: const Icon(Icons.camera_alt,
                     size: 13, color: Colors.white),
@@ -424,17 +581,10 @@ class _ProProfileScreenState extends State<ProProfileScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
         decoration: BoxDecoration(
-          color: bg,
-          borderRadius: BorderRadius.circular(999),
-        ),
-        child: Text(
-          label,
-          style: GoogleFonts.dmSans(
-            fontSize: 12,
-            fontWeight: FontWeight.w500,
-            color: fg,
-          ),
-        ),
+            color: bg, borderRadius: BorderRadius.circular(999)),
+        child: Text(label,
+            style: GoogleFonts.dmSans(
+                fontSize: 12, fontWeight: FontWeight.w500, color: fg)),
       ),
     );
   }
@@ -462,7 +612,8 @@ class _ProProfileScreenState extends State<ProProfileScreen> {
               child: _LabeledField(
                 label: 'First name',
                 child: isApproved
-                    ? _LockedField(value: _controller.profile?.firstName ?? '')
+                    ? _LockedField(
+                        value: _controller.profile?.firstName ?? '')
                     : TextFormField(
                         key: const Key('proProfileFirstNameField'),
                         controller: _firstCtrl,
@@ -470,7 +621,8 @@ class _ProProfileScreenState extends State<ProProfileScreen> {
                         style: GoogleFonts.dmSans(
                             fontSize: 15, color: FieldifyColors.ink),
                         decoration: authInputDecoration(hint: 'Bruno'),
-                        validator: (v) => _validateRequired(v, 'First name'),
+                        validator: (v) =>
+                            _validateRequired(v, 'First name'),
                       ),
               ),
             ),
@@ -479,7 +631,8 @@ class _ProProfileScreenState extends State<ProProfileScreen> {
               child: _LabeledField(
                 label: 'Last name',
                 child: isApproved
-                    ? _LockedField(value: _controller.profile?.lastName ?? '')
+                    ? _LockedField(
+                        value: _controller.profile?.lastName ?? '')
                     : TextFormField(
                         key: const Key('proProfileLastNameField'),
                         controller: _lastCtrl,
@@ -487,7 +640,8 @@ class _ProProfileScreenState extends State<ProProfileScreen> {
                         style: GoogleFonts.dmSans(
                             fontSize: 15, color: FieldifyColors.ink),
                         decoration: authInputDecoration(hint: 'Silva'),
-                        validator: (v) => _validateRequired(v, 'Last name'),
+                        validator: (v) =>
+                            _validateRequired(v, 'Last name'),
                       ),
               ),
             ),
@@ -502,7 +656,9 @@ class _ProProfileScreenState extends State<ProProfileScreen> {
                   key: const Key('proProfileNifField'),
                   controller: _nifCtrl,
                   keyboardType: TextInputType.number,
-                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly
+                  ],
                   style: GoogleFonts.dmSans(
                       fontSize: 15, color: FieldifyColors.ink),
                   decoration: authInputDecoration(hint: '123456789'),
@@ -541,24 +697,299 @@ class _ProProfileScreenState extends State<ProProfileScreen> {
     );
   }
 
-  Widget _buildRadiusField() {
-    return TextFormField(
-      key: const Key('proProfileRadiusField'),
-      controller: _radiusCtrl,
-      keyboardType: TextInputType.number,
-      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-      style: GoogleFonts.dmSans(fontSize: 15, color: FieldifyColors.ink),
-      decoration: authInputDecoration(hint: '25').copyWith(
-        suffixText: 'km',
-        suffixStyle:
-            GoogleFonts.dmSans(fontSize: 15, color: FieldifyColors.ink3),
+  Widget _buildRadiusSlider() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: FieldifyColors.border),
       ),
-      validator: (v) {
-        if (v == null || v.trim().isEmpty) return null;
-        final n = int.tryParse(v.trim());
-        if (n == null || n <= 0) return 'Enter a valid radius';
-        return null;
-      },
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('Radius',
+                  style: GoogleFonts.dmSans(
+                      fontSize: 14, color: FieldifyColors.ink2)),
+              SizedBox(
+                width: 72,
+                child: TextFormField(
+                  key: const Key('proProfileRadiusField'),
+                  controller: _radiusCtrl,
+                  keyboardType: TextInputType.number,
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.dmSans(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: FieldifyColors.g700,
+                  ),
+                  decoration: InputDecoration(
+                    suffixText: 'km',
+                    suffixStyle: GoogleFonts.dmSans(
+                        fontSize: 12, color: FieldifyColors.g700),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide.none,
+                    ),
+                    filled: true,
+                    fillColor: FieldifyColors.g100,
+                    isDense: true,
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 8, vertical: 6),
+                  ),
+                  onChanged: (v) {
+                    final parsed = int.tryParse(v);
+                    if (parsed != null && parsed >= 5 && parsed <= 150) {
+                      setState(() => _radiusSlider = parsed.toDouble());
+                      _markDirty();
+                    }
+                  },
+                ),
+              ),
+            ],
+          ),
+          SliderTheme(
+            data: SliderTheme.of(context).copyWith(
+              activeTrackColor: FieldifyColors.g700,
+              thumbColor: FieldifyColors.g800,
+              inactiveTrackColor: FieldifyColors.g100,
+              overlayColor: FieldifyColors.g700.withAlpha(30),
+              trackHeight: 4,
+            ),
+            child: Slider(
+              key: const Key('proProfileRadiusSlider'),
+              value: _radiusSlider,
+              min: 5,
+              max: 150,
+              divisions: 29,
+              onChanged: (v) {
+                setState(() {
+                  _radiusSlider = v;
+                  _radiusCtrl.text = v.round().toString();
+                });
+                _markDirty();
+              },
+            ),
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('5 km',
+                  style: GoogleFonts.dmSans(
+                      fontSize: 11, color: FieldifyColors.ink4)),
+              Text('150 km',
+                  style: GoogleFonts.dmSans(
+                      fontSize: 11, color: FieldifyColors.ink4)),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildWorkHoursSection() {
+    final slots = _daySlots[_selectedDay] ?? [];
+    final enabled = _enabledDays.contains(_selectedDay);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          key: const Key('workHoursCalendarGrid'),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: FieldifyColors.border),
+          ),
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 7-day calendar grid row
+              Row(
+                children: [
+                  for (int day = 0; day < 7; day++)
+                    Expanded(
+                      child: GestureDetector(
+                        key: Key('proProfileDay_$day'),
+                        onTap: () => setState(() => _selectedDay = day),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 150),
+                          margin: const EdgeInsets.symmetric(horizontal: 2),
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          decoration: BoxDecoration(
+                            color: _selectedDay == day
+                                ? FieldifyColors.g800
+                                : _enabledDays.contains(day)
+                                    ? FieldifyColors.g100
+                                    : Colors.transparent,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Column(
+                            children: [
+                              Text(
+                                _dayLabels[day][0],
+                                textAlign: TextAlign.center,
+                                style: GoogleFonts.dmSans(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: _selectedDay == day
+                                      ? Colors.white
+                                      : _enabledDays.contains(day)
+                                          ? FieldifyColors.g800
+                                          : FieldifyColors.ink4,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Container(
+                                width: 5,
+                                height: 5,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: _enabledDays.contains(day)
+                                      ? (_selectedDay == day
+                                          ? Colors.white
+                                          : FieldifyColors.g700)
+                                      : Colors.transparent,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              const Divider(height: 1, color: Color(0x14000000)),
+              const SizedBox(height: 12),
+              // Selected day editor
+              Row(
+                children: [
+                  Text(
+                    _dayLabels[_selectedDay],
+                    style: GoogleFonts.dmSans(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: FieldifyColors.ink,
+                    ),
+                  ),
+                  const Spacer(),
+                  Switch(
+                    key: Key('proProfileDaySwitch_$_selectedDay'),
+                    value: enabled,
+                    onChanged: (_) => _toggleDay(_selectedDay),
+                    activeThumbColor: FieldifyColors.g700,
+                    activeTrackColor: FieldifyColors.g200,
+                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                ],
+              ),
+              if (enabled) ...[
+                const SizedBox(height: 8),
+                for (int i = 0; i < slots.length; i++)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: Row(
+                      children: [
+                        _TimeChip(
+                          label: slots[i].start.format(context),
+                          onTap: () => _pickTime(_selectedDay, i, true),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          child: Text('–',
+                              style: GoogleFonts.dmSans(
+                                  fontSize: 14, color: FieldifyColors.ink3)),
+                        ),
+                        _TimeChip(
+                          label: slots[i].end.format(context),
+                          onTap: () => _pickTime(_selectedDay, i, false),
+                        ),
+                        const Spacer(),
+                        GestureDetector(
+                          onTap: () => _removeSlot(_selectedDay, i),
+                          child: const Icon(Icons.remove_circle_outline,
+                              size: 18, color: FieldifyColors.ink4),
+                        ),
+                      ],
+                    ),
+                  ),
+                GestureDetector(
+                  onTap: () => _addSlot(_selectedDay),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.add, size: 16, color: FieldifyColors.g700),
+                      const SizedBox(width: 4),
+                      Text('Add slot',
+                          style: GoogleFonts.dmSans(
+                              fontSize: 13,
+                              color: FieldifyColors.g700,
+                              fontWeight: FontWeight.w500)),
+                    ],
+                  ),
+                ),
+              ] else
+                Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: Text(
+                    'Off — enable the switch to set hours',
+                    style: GoogleFonts.dmSans(
+                        fontSize: 13, color: FieldifyColors.ink4),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildLocationSection() {
+    return Row(
+      children: [
+        Expanded(
+          child: _LabeledField(
+            label: 'Latitude',
+            child: TextFormField(
+              key: const Key('proProfileLatField'),
+              controller: _latCtrl,
+              keyboardType: const TextInputType.numberWithOptions(
+                  signed: true, decimal: true),
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(
+                    RegExp(r'^-?\d{0,3}\.?\d*'))
+              ],
+              style: GoogleFonts.dmSans(
+                  fontSize: 15, color: FieldifyColors.ink),
+              decoration: authInputDecoration(hint: '41.157944'),
+              onChanged: (_) => _markDirty(),
+            ),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: _LabeledField(
+            label: 'Longitude',
+            child: TextFormField(
+              key: const Key('proProfileLngField'),
+              controller: _lngCtrl,
+              keyboardType: const TextInputType.numberWithOptions(
+                  signed: true, decimal: true),
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(
+                    RegExp(r'^-?\d{0,3}\.?\d*'))
+              ],
+              style: GoogleFonts.dmSans(
+                  fontSize: 15, color: FieldifyColors.ink),
+              decoration: authInputDecoration(hint: '-8.629105'),
+              onChanged: (_) => _markDirty(),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -594,12 +1025,11 @@ class _ProProfileScreenState extends State<ProProfileScreen> {
                               size: 16, color: FieldifyColors.ink3),
                           const SizedBox(width: 8),
                           Expanded(
-                            child: Text(
-                              _credentialUrls[i],
-                              style: GoogleFonts.dmSans(
-                                  fontSize: 13, color: FieldifyColors.ink3),
-                              overflow: TextOverflow.ellipsis,
-                            ),
+                            child: Text(_credentialUrls[i],
+                                style: GoogleFonts.dmSans(
+                                    fontSize: 13,
+                                    color: FieldifyColors.ink3),
+                                overflow: TextOverflow.ellipsis),
                           ),
                           const SizedBox(width: 8),
                           Container(
@@ -609,14 +1039,11 @@ class _ProProfileScreenState extends State<ProProfileScreen> {
                               color: FieldifyColors.g100,
                               borderRadius: BorderRadius.circular(6),
                             ),
-                            child: Text(
-                              'Cannot change',
-                              style: GoogleFonts.dmSans(
-                                fontSize: 10,
-                                fontWeight: FontWeight.w500,
-                                color: FieldifyColors.g700,
-                              ),
-                            ),
+                            child: Text('Cannot change',
+                                style: GoogleFonts.dmSans(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w500,
+                                    color: FieldifyColors.g700)),
                           ),
                         ],
                       ),
@@ -650,12 +1077,10 @@ class _ProProfileScreenState extends State<ProProfileScreen> {
                             size: 16, color: FieldifyColors.ink3),
                         const SizedBox(width: 8),
                         Expanded(
-                          child: Text(
-                            _credentialUrls[i],
-                            style: GoogleFonts.dmSans(
-                                fontSize: 13, color: FieldifyColors.ink),
-                            overflow: TextOverflow.ellipsis,
-                          ),
+                          child: Text(_credentialUrls[i],
+                              style: GoogleFonts.dmSans(
+                                  fontSize: 13, color: FieldifyColors.ink),
+                              overflow: TextOverflow.ellipsis),
                         ),
                         IconButton(
                           key: Key('proProfileRemoveCredential_$i'),
@@ -695,19 +1120,29 @@ class _ProProfileScreenState extends State<ProProfileScreen> {
       controller: _bioCtrl,
       maxLines: 5,
       maxLength: 500,
+      onChanged: (_) => _markDirty(),
       style: GoogleFonts.dmSans(fontSize: 15, color: FieldifyColors.ink),
       decoration: authInputDecoration(
         hint: 'Tell clients a bit about yourself…',
       ).copyWith(
         alignLabelWithHint: true,
-        counterStyle:
-            GoogleFonts.dmSans(fontSize: 11, color: FieldifyColors.ink3),
+        counterStyle: GoogleFonts.dmSans(
+            fontSize: 11, color: FieldifyColors.ink3),
       ),
     );
   }
+
 }
 
-// ── Small widgets ──────────────────────────────────────────────────────────────
+// ── Local state ────────────────────────────────────────────────────────────────
+
+class _TimeSlot {
+  final TimeOfDay start;
+  final TimeOfDay end;
+  const _TimeSlot(this.start, this.end);
+}
+
+// ── Widgets ───────────────────────────────────────────────────────────────────
 
 class _AvatarInitials extends StatelessWidget {
   final String initials;
@@ -716,14 +1151,11 @@ class _AvatarInitials extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: Text(
-        initials,
-        style: GoogleFonts.dmSans(
-          fontSize: 28,
-          fontWeight: FontWeight.w500,
-          color: FieldifyColors.g100,
-        ),
-      ),
+      child: Text(initials,
+          style: GoogleFonts.dmSans(
+              fontSize: 28,
+              fontWeight: FontWeight.w500,
+              color: FieldifyColors.g100)),
     );
   }
 }
@@ -737,11 +1169,7 @@ class _LabeledField extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        FieldLabel(label),
-        const SizedBox(height: 6),
-        child,
-      ],
+      children: [FieldLabel(label), const SizedBox(height: 6), child],
     );
   }
 }
@@ -762,27 +1190,21 @@ class _LockedField extends StatelessWidget {
       child: Row(
         children: [
           Expanded(
-            child: Text(
-              value.isEmpty ? '—' : value,
-              style: GoogleFonts.dmSans(
-                  fontSize: 15, color: FieldifyColors.ink3),
-            ),
+            child: Text(value.isEmpty ? '—' : value,
+                style: GoogleFonts.dmSans(
+                    fontSize: 15, color: FieldifyColors.ink3)),
           ),
           Container(
             padding:
                 const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
             decoration: BoxDecoration(
-              color: FieldifyColors.g100,
-              borderRadius: BorderRadius.circular(6),
-            ),
-            child: Text(
-              'Cannot change',
-              style: GoogleFonts.dmSans(
-                fontSize: 10,
-                fontWeight: FontWeight.w500,
-                color: FieldifyColors.g700,
-              ),
-            ),
+                color: FieldifyColors.g100,
+                borderRadius: BorderRadius.circular(6)),
+            child: Text('Cannot change',
+                style: GoogleFonts.dmSans(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w500,
+                    color: FieldifyColors.g700)),
           ),
         ],
       ),
@@ -811,6 +1233,32 @@ class _InfoRow extends StatelessWidget {
                   fontWeight: FontWeight.w500,
                   color: FieldifyColors.ink)),
         ],
+      ),
+    );
+  }
+}
+
+class _TimeChip extends StatelessWidget {
+  final String label;
+  final VoidCallback onTap;
+  const _TimeChip({required this.label, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: FieldifyColors.g100,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: FieldifyColors.g200),
+        ),
+        child: Text(label,
+            style: GoogleFonts.dmSans(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: FieldifyColors.g800)),
       ),
     );
   }
@@ -849,7 +1297,8 @@ class _AddCredentialRowState extends State<_AddCredentialRow> {
             key: const Key('proProfileAddCredentialField'),
             controller: _ctrl,
             keyboardType: TextInputType.url,
-            style: GoogleFonts.dmSans(fontSize: 15, color: FieldifyColors.ink),
+            style:
+                GoogleFonts.dmSans(fontSize: 15, color: FieldifyColors.ink),
             decoration: authInputDecoration(hint: 'Credential URL…'),
             onFieldSubmitted: (_) => _submit(),
           ),
@@ -865,8 +1314,7 @@ class _AddCredentialRowState extends State<_AddCredentialRow> {
               color: FieldifyColors.g800,
               borderRadius: BorderRadius.circular(12),
             ),
-            child:
-                const Icon(Icons.add, color: FieldifyColors.g100, size: 20),
+            child: const Icon(Icons.add, color: FieldifyColors.g100, size: 20),
           ),
         ),
       ],

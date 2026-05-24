@@ -1,5 +1,7 @@
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../../core/supabase/supabase_client.dart';
+import '../../../../pro/profile/data/models/availability_schedule_model.dart';
 import '../models/pro_job.dart';
 
 class JobAlreadyTakenException implements Exception {
@@ -36,7 +38,7 @@ class ProJobsService {
 
     final proProfile = await supabase
         .from('professional_profiles')
-        .select('trade_id')
+        .select('id, trade_id')
         .eq('profile_id', user.id)
         .maybeSingle();
 
@@ -44,6 +46,7 @@ class ProJobsService {
       throw const ProfessionalProfileMissingException();
     }
 
+    final proId = proProfile['id'] as String;
     final tradeId = proProfile['trade_id'] as int;
 
     final rejectedRows = await supabase
@@ -67,7 +70,7 @@ class ProJobsService {
 
     final result = await query.order('created_at', ascending: false);
 
-    return (result as List)
+    var jobs = (result as List)
         .map(
           (json) => ProJob.fromJson(
             json as Map<String, dynamic>,
@@ -75,6 +78,43 @@ class ProJobsService {
           ),
         )
         .toList();
+
+    // Filter by pro's availability schedule.
+    // Jobs with no scheduled_at (ASAP) are always shown.
+    // Jobs with a scheduled_at are only shown if they fall within a slot.
+    try {
+      final scheduleRows = await supabase
+          .from('availability_schedules')
+          .select()
+          .eq('pro_id', proId);
+
+      final slots = (scheduleRows as List)
+          .cast<Map<String, dynamic>>()
+          .map(AvailabilityScheduleModel.fromJson)
+          .toList();
+
+      if (slots.isNotEmpty) {
+        jobs = jobs.where((job) {
+          final scheduledAt = job.scheduledAt;
+          if (scheduledAt == null) return true;
+
+          final local = scheduledAt.toLocal();
+          final dayOfWeek = local.weekday - 1; // weekday 1=Mon → 0=Mon
+          final jobMinutes = local.hour * 60 + local.minute;
+
+          return slots.any((s) =>
+              s.dayOfWeek == dayOfWeek &&
+              jobMinutes >= s.startMinutes &&
+              jobMinutes < s.endMinutes);
+        }).toList();
+      }
+    } catch (e) {
+      // Availability filtering is best-effort; on failure show all jobs rather
+      // than hiding work, but surface the cause for debugging.
+      debugPrint('IncomingJobsService: availability filter failed: $e');
+    }
+
+    return jobs;
   }
 
   Future<List<ProJob>> fetchAcceptedJobs() async {

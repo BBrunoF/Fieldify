@@ -61,6 +61,33 @@ class ProProfileRepository {
     return await _service.getSignedAvatarUrl(path);
   }
 
+  Future<String> uploadCredential({
+    required File file,
+    required String filename,
+  }) async {
+    try {
+      return await _service.uploadCredential(file: file, filename: filename);
+    } on AuthException catch (e) {
+      throw ProProfileFailure(e.message);
+    } catch (e) {
+      throw ProProfileFailure(e.toString());
+    }
+  }
+
+  Future<void> deleteCredential(String path) async {
+    try {
+      await _service.deleteCredential(path);
+    } on AuthException catch (e) {
+      throw ProProfileFailure(e.message);
+    } catch (e) {
+      throw ProProfileFailure(e.toString());
+    }
+  }
+
+  Future<String?> getSignedCredentialUrl(String path) async {
+    return await _service.getSignedCredentialUrl(path);
+  }
+
   Future<List<ProReview>> fetchProviderReviews(String proId) async {
     try {
       return await _service.fetchProviderReviews(proId);

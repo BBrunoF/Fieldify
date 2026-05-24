@@ -19,6 +19,7 @@ import 'profile_test.dart' as profile_test;
 import 'request_test.dart' as request_test;
 import 'review_test.dart' as review_test;
 import 'smoke_test.dart' as smoke_test;
+import 'work_settings_test.dart' as work_settings_test;
 // END: GENERATED TEST IMPORTS
 
 Future<void> main() async {
@@ -91,6 +92,7 @@ Future<void> main() async {
   group('request_test', request_test.main);
   group('review_test', review_test.main);
   group('smoke_test', smoke_test.main);
+  group('work_settings_test', work_settings_test.main);
 // END: GENERATED TEST GROUPS
 
   final dartTestGroup = await testExplorationCompleter.future;

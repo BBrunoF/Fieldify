@@ -5,6 +5,7 @@ class ProJob {
   final String? addressText;
   final String status;
   final DateTime? createdAt;
+  final DateTime? scheduledAt;
   final DateTime? acceptedAt;
   final String clientId;
   final bool isRejected;
@@ -16,7 +17,8 @@ class ProJob {
     required this.addressText,
     required this.status,
     required this.createdAt,
-    required this.acceptedAt,
+    this.scheduledAt,
+    this.acceptedAt,
     required this.clientId,
     this.isRejected = false,
   });
@@ -33,6 +35,9 @@ class ProJob {
       status: (json['status'] ?? '') as String,
       createdAt: json['created_at'] != null
           ? DateTime.tryParse(json['created_at'] as String)
+          : null,
+      scheduledAt: json['scheduled_at'] != null
+          ? DateTime.tryParse(json['scheduled_at'] as String)
           : null,
       acceptedAt: json['accepted_at'] != null
           ? DateTime.tryParse(json['accepted_at'] as String)

@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -993,6 +994,52 @@ class _ProProfileScreenState extends State<ProProfileScreen> {
     );
   }
 
+  // Credential paths are stored as `{uid}/{uuid}_{filename}`. Show just the
+  // original filename to the user.
+  String _credentialName(String path) {
+    final segment = path.split('/').last;
+    return segment.replaceFirst(
+        RegExp(r'^[0-9a-fA-F-]{36}_'), '');
+  }
+
+  Future<void> _pickCredential() async {
+    FilePickerResult? result;
+    try {
+      result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: const ['pdf', 'jpg', 'jpeg', 'png', 'webp', 'heic'],
+        withData: false,
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+            SnackBar(content: Text('Could not open file picker: $e')));
+      return;
+    }
+
+    final picked = result?.files.single;
+    if (picked == null) return; // user cancelled
+    if (picked.path == null) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Could not read the selected file')),
+      );
+      return;
+    }
+
+    final path = await _controller.uploadCredential(
+      File(picked.path!),
+      filename: picked.name,
+    );
+    if (path == null) return; // upload error surfaced via controller listener
+    setState(() {
+      _credentialUrls.add(path);
+      _dirty = true;
+    });
+  }
+
   Widget _buildCredentialsField() {
     final isApproved = _controller.profile?.isApproved ?? false;
 
@@ -1025,7 +1072,7 @@ class _ProProfileScreenState extends State<ProProfileScreen> {
                               size: 16, color: FieldifyColors.ink3),
                           const SizedBox(width: 8),
                           Expanded(
-                            child: Text(_credentialUrls[i],
+                            child: Text(_credentialName(_credentialUrls[i]),
                                 style: GoogleFonts.dmSans(
                                     fontSize: 13,
                                     color: FieldifyColors.ink3),
@@ -1077,7 +1124,7 @@ class _ProProfileScreenState extends State<ProProfileScreen> {
                             size: 16, color: FieldifyColors.ink3),
                         const SizedBox(width: 8),
                         Expanded(
-                          child: Text(_credentialUrls[i],
+                          child: Text(_credentialName(_credentialUrls[i]),
                               style: GoogleFonts.dmSans(
                                   fontSize: 13, color: FieldifyColors.ink),
                               overflow: TextOverflow.ellipsis),
@@ -1089,10 +1136,12 @@ class _ProProfileScreenState extends State<ProProfileScreen> {
                           padding: EdgeInsets.zero,
                           constraints: const BoxConstraints(),
                           onPressed: () {
+                            final path = _credentialUrls[i];
                             setState(() {
                               _credentialUrls.removeAt(i);
                               _dirty = true;
                             });
+                            _controller.deleteCredential(path);
                           },
                         ),
                       ],
@@ -1102,13 +1151,41 @@ class _ProProfileScreenState extends State<ProProfileScreen> {
               ],
             ),
           ),
-        _AddCredentialRow(
-          onAdd: (url) {
-            setState(() {
-              _credentialUrls.add(url);
-              _dirty = true;
-            });
-          },
+        _controller.isUploadingCredential
+            ? const Padding(
+                padding: EdgeInsets.symmetric(vertical: 12),
+                child: Center(child: CircularProgressIndicator()),
+              )
+            : GestureDetector(
+                key: const Key('proProfileAddCredentialButton'),
+                onTap: _pickCredential,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: FieldifyColors.border),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.upload_file,
+                          size: 18, color: FieldifyColors.g700),
+                      const SizedBox(width: 8),
+                      Text('Upload document',
+                          style: GoogleFonts.dmSans(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              color: FieldifyColors.g700)),
+                    ],
+                  ),
+                ),
+              ),
+        const SizedBox(height: 6),
+        Text(
+          'PDF or image, up to 10 MB',
+          style: GoogleFonts.dmSans(
+              fontSize: 12, color: FieldifyColors.ink4),
         ),
       ],
     );
@@ -1260,64 +1337,6 @@ class _TimeChip extends StatelessWidget {
                 fontWeight: FontWeight.w500,
                 color: FieldifyColors.g800)),
       ),
-    );
-  }
-}
-
-class _AddCredentialRow extends StatefulWidget {
-  final void Function(String url) onAdd;
-  const _AddCredentialRow({required this.onAdd});
-
-  @override
-  State<_AddCredentialRow> createState() => _AddCredentialRowState();
-}
-
-class _AddCredentialRowState extends State<_AddCredentialRow> {
-  final _ctrl = TextEditingController();
-
-  @override
-  void dispose() {
-    _ctrl.dispose();
-    super.dispose();
-  }
-
-  void _submit() {
-    final url = _ctrl.text.trim();
-    if (url.isEmpty) return;
-    widget.onAdd(url);
-    _ctrl.clear();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: TextFormField(
-            key: const Key('proProfileAddCredentialField'),
-            controller: _ctrl,
-            keyboardType: TextInputType.url,
-            style:
-                GoogleFonts.dmSans(fontSize: 15, color: FieldifyColors.ink),
-            decoration: authInputDecoration(hint: 'Credential URL…'),
-            onFieldSubmitted: (_) => _submit(),
-          ),
-        ),
-        const SizedBox(width: 8),
-        GestureDetector(
-          key: const Key('proProfileAddCredentialButton'),
-          onTap: _submit,
-          child: Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: FieldifyColors.g800,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Icon(Icons.add, color: FieldifyColors.g100, size: 20),
-          ),
-        ),
-      ],
     );
   }
 }

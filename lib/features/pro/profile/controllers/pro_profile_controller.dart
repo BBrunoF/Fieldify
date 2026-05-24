@@ -16,6 +16,7 @@ class ProProfileController extends ChangeNotifier {
   bool _isLoading = true;
   bool _isSaving = false;
   bool _isUploadingAvatar = false;
+  bool _isUploadingCredential = false;
   String? _error;
   bool _saved = false;
 
@@ -24,6 +25,7 @@ class ProProfileController extends ChangeNotifier {
   bool get isLoading => _isLoading;
   bool get isSaving => _isSaving;
   bool get isUploadingAvatar => _isUploadingAvatar;
+  bool get isUploadingCredential => _isUploadingCredential;
   String? get error => _error;
   bool get saved => _saved;
 
@@ -90,6 +92,37 @@ class ProProfileController extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+  /// Uploads a credential file to storage and returns its path, or null on
+  /// failure (with [error] set). The caller adds the returned path to the
+  /// credential list and persists it via [saveProfile].
+  Future<String?> uploadCredential(File file, {required String filename}) async {
+    _isUploadingCredential = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      return await _repository.uploadCredential(file: file, filename: filename);
+    } catch (e) {
+      _error = e.toString();
+      return null;
+    } finally {
+      _isUploadingCredential = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> deleteCredential(String path) async {
+    try {
+      await _repository.deleteCredential(path);
+    } catch (e) {
+      _error = e.toString();
+      notifyListeners();
+    }
+  }
+
+  Future<String?> getSignedCredentialUrl(String path) =>
+      _repository.getSignedCredentialUrl(path);
 
   void clearError() {
     _error = null;

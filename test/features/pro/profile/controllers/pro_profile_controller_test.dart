@@ -9,11 +9,14 @@ class _FakeProProfileRepository extends ProProfileRepository {
     this.profile,
     this.onUpdate,
     this.uploadedPath = 'uid/avatar.jpg',
+    this.credentialPath = 'uid/uuid_doc.pdf',
   });
 
   ProProfileModel? profile;
   final Future<void> Function()? onUpdate;
   final String uploadedPath;
+  final String credentialPath;
+  final List<String> deletedCredentials = [];
 
   @override
   Future<ProProfileModel?> fetchCurrent() async => profile;
@@ -39,6 +42,17 @@ class _FakeProProfileRepository extends ProProfileRepository {
 
   @override
   Future<String?> getSignedAvatarUrl(String path) async => null;
+
+  @override
+  Future<String> uploadCredential({
+    required File file,
+    required String filename,
+  }) async =>
+      credentialPath;
+
+  @override
+  Future<void> deleteCredential(String path) async =>
+      deletedCredentials.add(path);
 }
 
 const _pendingProfile = ProProfileModel(
@@ -291,6 +305,51 @@ void main() {
       expect(controller.isUploadingAvatar, isFalse);
     });
 
+    test('uploadCredential returns the storage path on success', () async {
+      final controller = ProProfileController(
+        repository: _FakeProProfileRepository(
+          profile: _pendingProfile,
+          credentialPath: 'uid/uuid_license.pdf',
+        ),
+      );
+      await Future<void>.delayed(Duration.zero);
+
+      final path = await controller.uploadCredential(
+        File('license.pdf'),
+        filename: 'license.pdf',
+      );
+
+      expect(path, 'uid/uuid_license.pdf');
+      expect(controller.error, isNull);
+      expect(controller.isUploadingCredential, isFalse);
+    });
+
+    test('uploadCredential returns null and sets error on failure', () async {
+      final controller = ProProfileController(
+        repository: _ThrowingCredentialRepository(profile: _pendingProfile),
+      );
+      await Future<void>.delayed(Duration.zero);
+
+      final path = await controller.uploadCredential(
+        File('license.pdf'),
+        filename: 'license.pdf',
+      );
+
+      expect(path, isNull);
+      expect(controller.error, isNotNull);
+      expect(controller.isUploadingCredential, isFalse);
+    });
+
+    test('deleteCredential forwards the path to the repository', () async {
+      final repo = _FakeProProfileRepository(profile: _pendingProfile);
+      final controller = ProProfileController(repository: repo);
+      await Future<void>.delayed(Duration.zero);
+
+      await controller.deleteCredential('uid/uuid_old.pdf');
+
+      expect(repo.deletedCredentials, ['uid/uuid_old.pdf']);
+    });
+
     test('clearError resets the error state', () async {
       final controller = ProProfileController(
         repository: _FakeProProfileRepository(
@@ -411,6 +470,24 @@ class _ThrowingUploadRepository extends ProProfileRepository {
   @override
   Future<String> uploadAvatar({required File file}) async =>
       throw Exception('Upload failed');
+
+  @override
+  Future<String?> getSignedAvatarUrl(String path) async => null;
+}
+
+class _ThrowingCredentialRepository extends ProProfileRepository {
+  _ThrowingCredentialRepository({required this.profile});
+  final ProProfileModel? profile;
+
+  @override
+  Future<ProProfileModel?> fetchCurrent() async => profile;
+
+  @override
+  Future<String> uploadCredential({
+    required File file,
+    required String filename,
+  }) async =>
+      throw Exception('Credential upload failed');
 
   @override
   Future<String?> getSignedAvatarUrl(String path) async => null;

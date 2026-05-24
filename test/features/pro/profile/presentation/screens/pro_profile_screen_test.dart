@@ -210,24 +210,29 @@ void main() {
           find.byKey(const Key('proProfileAddCredentialButton')), findsNothing);
     });
 
-    testWidgets('adding a credential marks form as dirty', (tester) async {
+    testWidgets('shows credential filename, stripping the uuid path prefix',
+        (tester) async {
+      const profile = ProProfileModel(
+        fullName: 'Bruno Silva',
+        nif: '123456789',
+        bio: 'Expert plumber',
+        verificationStatus: 'pending',
+        avatarPath: null,
+        tradeName: 'Plumbing',
+        standardRate: 35,
+        credentialUrls: [
+          'abc12345-1111-2222-3333-444455556666/'
+              '0a1b2c3d-4e5f-6789-abcd-ef0123456789_license.pdf',
+        ],
+        serviceRadiusKm: 20,
+      );
       await pumpTestApp(
         tester,
-        ProProfileScreen(controller: _controller(profile: _pending)),
+        ProProfileScreen(controller: _controller(profile: profile)),
       );
       await tester.pumpAndSettle();
 
-      await tester.enterText(
-        find.byKey(const Key('proProfileAddCredentialField')),
-        'https://example.com/new.pdf',
-      );
-      await tester.tap(find.byKey(const Key('proProfileAddCredentialButton')));
-      await tester.pump();
-
-      final button = tester.widget<ElevatedButton>(
-        find.byKey(const Key('proProfileSaveButton')),
-      );
-      expect(button.onPressed, isNotNull);
+      expect(find.text('license.pdf'), findsOneWidget);
     });
 
     testWidgets('shows "Under review" badge for pending profile',

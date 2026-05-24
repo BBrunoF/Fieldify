@@ -1,9 +1,11 @@
 import 'dart:io';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:uuid/uuid.dart';
 import '../../../../../core/supabase/supabase_client.dart';
 import '../models/pro_profile_model.dart';
 
 const _avatarBucket = 'profile-photos';
+const _credentialsBucket = 'credentials';
 const _signedUrlTtl = 3600;
 
 class ProProfileService {
@@ -117,6 +119,39 @@ class ProProfileService {
     try {
       return await supabase.storage
           .from(_avatarBucket)
+          .createSignedUrl(path, _signedUrlTtl);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Uploads a credential document to the private `credentials` bucket and
+  /// returns its storage path. The path is `{user.id}/{uuid}_{filename}`, which
+  /// keeps the original name visible while staying unique and matching the
+  /// per-user RLS folder convention.
+  Future<String> uploadCredential({
+    required File file,
+    required String filename,
+  }) async {
+    final user = supabase.auth.currentUser;
+    if (user == null) throw const AuthException('Not authenticated');
+
+    final safeName = filename.replaceAll(RegExp(r'[^A-Za-z0-9._-]'), '_');
+    final path = '${user.id}/${const Uuid().v4()}_$safeName';
+
+    await supabase.storage.from(_credentialsBucket).upload(path, file);
+
+    return path;
+  }
+
+  Future<void> deleteCredential(String path) async {
+    await supabase.storage.from(_credentialsBucket).remove([path]);
+  }
+
+  Future<String?> getSignedCredentialUrl(String path) async {
+    try {
+      return await supabase.storage
+          .from(_credentialsBucket)
           .createSignedUrl(path, _signedUrlTtl);
     } catch (_) {
       return null;

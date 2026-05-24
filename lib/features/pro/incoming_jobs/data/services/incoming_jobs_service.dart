@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../../core/supabase/supabase_client.dart';
 import '../../../../pro/profile/data/models/availability_schedule_model.dart';
@@ -96,7 +97,11 @@ class IncomingJobsService {
               jobMinutes < s.endMinutes);
         }).toList();
       }
-    } catch (_) {}
+    } catch (e) {
+      // Availability filtering is best-effort; on failure show all jobs rather
+      // than hiding work, but surface the cause for debugging.
+      debugPrint('IncomingJobsService: availability filter failed: $e');
+    }
 
     return jobs;
   }

@@ -16,7 +16,7 @@ class IncomingJob {
     required this.addressText,
     required this.status,
     required this.createdAt,
-    required this.scheduledAt,
+    this.scheduledAt,
     required this.clientId,
     this.isRejected = false,
   });

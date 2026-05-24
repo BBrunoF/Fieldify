@@ -35,7 +35,9 @@ class WorkSettingsController extends ChangeNotifier {
       _schedules = await _repository.fetchSchedules();
       final radius = await _repository.fetchServiceRadius();
       if (radius != null) _radiusKm = radius;
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('WorkSettingsController: failed to load work settings: $e');
+    }
     _isLoading = false;
     notifyListeners();
   }

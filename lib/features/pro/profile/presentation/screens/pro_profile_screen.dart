@@ -31,8 +31,9 @@ const _dayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
 class ProProfileScreen extends StatefulWidget {
   final ProProfileController? controller;
+  final WorkSettingsController? workController;
 
-  const ProProfileScreen({super.key, this.controller});
+  const ProProfileScreen({super.key, this.controller, this.workController});
 
   @override
   State<ProProfileScreen> createState() => _ProProfileScreenState();
@@ -43,6 +44,7 @@ class _ProProfileScreenState extends State<ProProfileScreen> {
   late final bool _ownsController;
 
   late final WorkSettingsController _workController;
+  late final bool _ownsWorkController;
 
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _firstCtrl;
@@ -50,6 +52,10 @@ class _ProProfileScreenState extends State<ProProfileScreen> {
   late final TextEditingController _nifCtrl;
   late final TextEditingController _bioCtrl;
   late List<String> _credentialUrls;
+  // Credential storage paths removed in the UI but not yet deleted from
+  // storage — purged only after a successful save so the DB never references a
+  // missing file (and a cancelled edit leaves storage untouched).
+  final List<String> _pendingCredentialDeletions = [];
 
   double _radiusSlider = 25;
   late final TextEditingController _radiusCtrl;
@@ -76,7 +82,8 @@ class _ProProfileScreenState extends State<ProProfileScreen> {
     super.initState();
     _controller = widget.controller ?? ProProfileController();
     _ownsController = widget.controller == null;
-    _workController = WorkSettingsController();
+    _workController = widget.workController ?? WorkSettingsController();
+    _ownsWorkController = widget.workController == null;
 
     final p = _controller.profile;
     _profileInitialized = p != null;
@@ -176,7 +183,7 @@ class _ProProfileScreenState extends State<ProProfileScreen> {
     _controller.removeListener(_onChanged);
     _workController.removeListener(_onWorkChanged);
     if (_ownsController) _controller.dispose();
-    _workController.dispose();
+    if (_ownsWorkController) _workController.dispose();
     _firstCtrl.dispose();
     _lastCtrl.dispose();
     _nifCtrl.dispose();
@@ -202,22 +209,39 @@ class _ProProfileScreenState extends State<ProProfileScreen> {
       serviceRadiusKm: _radiusSlider.round(),
       credentialUrls: _credentialUrls,
     );
-    await _saveWorkHours();
+
+    // Only persist work hours once the schedule has loaded. Saving the empty
+    // in-memory state before load completes would wipe the pro's schedule.
+    if (_workSettingsInitialized) {
+      await _saveWorkHours();
+    }
+
     final latText = _latCtrl.text.trim();
     final lngText = _lngCtrl.text.trim();
     if (latText.isNotEmpty && lngText.isNotEmpty) {
       await _saveLocation();
     }
+
+    // The new credential list is now persisted, so it is safe to remove the
+    // underlying files for any credentials the user deleted.
+    if (_controller.error == null && _pendingCredentialDeletions.isNotEmpty) {
+      final toDelete = List<String>.from(_pendingCredentialDeletions);
+      _pendingCredentialDeletions.clear();
+      for (final path in toDelete) {
+        await _controller.deleteCredential(path);
+      }
+    }
   }
 
   Future<void> _saveWorkHours() async {
-    final proId = '';
     final schedules = <AvailabilityScheduleModel>[];
     for (final day in _enabledDays) {
       for (final slot in _daySlots[day] ?? []) {
+        // id and pro_id are assigned server-side on insert
+        // (see WorkSettingsService.saveSchedules).
         schedules.add(AvailabilityScheduleModel(
           id: '',
-          proId: proId,
+          proId: '',
           dayOfWeek: day,
           startTime: slot.start,
           endTime: slot.end,
@@ -1139,9 +1163,9 @@ class _ProProfileScreenState extends State<ProProfileScreen> {
                             final path = _credentialUrls[i];
                             setState(() {
                               _credentialUrls.removeAt(i);
+                              _pendingCredentialDeletions.add(path);
                               _dirty = true;
                             });
-                            _controller.deleteCredential(path);
                           },
                         ),
                       ],

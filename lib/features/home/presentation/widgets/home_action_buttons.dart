@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../../../core/supabase/supabase_client.dart';
 import '../../../../core/theme/app_colors.dart';
 
 class NotifButton extends StatelessWidget {
@@ -51,13 +50,7 @@ class LogoutButton extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: () async {
-          if (onLogout != null) {
-            await onLogout!();
-            return;
-          }
-          await supabase.auth.signOut();
-        },
+        onTap: onLogout == null ? null : () => onLogout!(),
         key: const Key('homeLogoutButton'),
         customBorder: const CircleBorder(),
         child: Container(

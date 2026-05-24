@@ -3,7 +3,7 @@ enum ViewerRole { client, pro }
 enum JobStatus {
   pending,
   accepted,
-  onTheWay,
+  onMyWay,
   inProgress,
   completed,
   cancelled;
@@ -14,8 +14,8 @@ enum JobStatus {
         return JobStatus.pending;
       case 'accepted':
         return JobStatus.accepted;
-      case 'on_the_way':
-        return JobStatus.onTheWay;
+      case 'on_my_way':
+        return JobStatus.onMyWay;
       case 'in_progress':
         return JobStatus.inProgress;
       case 'completed':
@@ -33,8 +33,8 @@ enum JobStatus {
         return 'pending';
       case JobStatus.accepted:
         return 'accepted';
-      case JobStatus.onTheWay:
-        return 'on_the_way';
+      case JobStatus.onMyWay:
+        return 'on_my_way';
       case JobStatus.inProgress:
         return 'in_progress';
       case JobStatus.completed:
@@ -158,6 +158,40 @@ class CounterpartyInfo {
   }
 }
 
+class ReviewSummary {
+  final String id;
+  final String requestId;
+  final String clientId;
+  final String proId;
+  final int rating;
+  final String? comment;
+  final DateTime createdAt;
+
+  const ReviewSummary({
+    required this.id,
+    required this.requestId,
+    required this.clientId,
+    required this.proId,
+    required this.rating,
+    required this.comment,
+    required this.createdAt,
+  });
+
+  factory ReviewSummary.fromJson(Map<String, dynamic> json) {
+    final created = DateTime.tryParse((json['created_at'] ?? '') as String) ??
+        DateTime.now();
+    return ReviewSummary(
+      id: json['id'] as String,
+      requestId: json['request_id'] as String,
+      clientId: json['client_id'] as String,
+      proId: json['pro_id'] as String,
+      rating: (json['rating'] as num).toInt(),
+      comment: json['comment'] as String?,
+      createdAt: created,
+    );
+  }
+}
+
 class JobDetail {
   final String id;
   final String title;
@@ -171,6 +205,7 @@ class JobDetail {
   final List<String> photoUrls;
   final CounterpartyInfo? counterparty;
   final ViewerRole viewerRole;
+  final ReviewSummary? review;
 
   const JobDetail({
     required this.id,
@@ -185,6 +220,7 @@ class JobDetail {
     required this.photoUrls,
     required this.counterparty,
     required this.viewerRole,
+    required this.review,
   });
 
   factory JobDetail.fromJson({
@@ -192,6 +228,7 @@ class JobDetail {
     required Map<String, dynamic>? counterpartyRow,
     required ViewerRole viewerRole,
     required List<String> photoUrls,
+    Map<String, dynamic>? reviewRow,
   }) {
     final tradeJson = jobRow['trades'] as Map<String, dynamic>? ?? const {};
     final trade = TradeInfo.fromJson({
@@ -219,6 +256,7 @@ class JobDetail {
               tradeName: trade.displayName,
             ),
       viewerRole: viewerRole,
+      review: reviewRow == null ? null : ReviewSummary.fromJson(reviewRow),
     );
   }
 }

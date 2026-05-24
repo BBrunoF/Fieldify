@@ -1,17 +1,17 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:project/features/pro/accepted_jobs/data/models/accepted_job.dart';
-import 'package:project/features/pro/accepted_jobs/data/repositories/accepted_jobs_repository.dart';
-import 'package:project/features/pro/accepted_jobs/data/services/accepted_jobs_service.dart';
+import 'package:project/features/pro/jobs/data/models/pro_job.dart';
+import 'package:project/features/pro/jobs/data/repositories/pro_jobs_repository.dart';
+import 'package:project/features/pro/jobs/data/services/pro_jobs_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-class _FakeAcceptedJobsService extends AcceptedJobsService {
-  _FakeAcceptedJobsService({this.onFetch, this.onReturn});
+class _FakeProJobsService extends ProJobsService {
+  _FakeProJobsService({this.onFetch, this.onReturn});
 
-  final Future<List<AcceptedJob>> Function()? onFetch;
+  final Future<List<ProJob>> Function()? onFetch;
   final Future<void> Function(String requestId)? onReturn;
 
   @override
-  Future<List<AcceptedJob>> fetchAcceptedJobs() async {
+  Future<List<ProJob>> fetchAcceptedJobs() async {
     return await onFetch?.call() ?? const [];
   }
 
@@ -21,31 +21,32 @@ class _FakeAcceptedJobsService extends AcceptedJobsService {
   }
 }
 
+const _job = ProJob(
+  id: 'job-1',
+  title: 'Pipe leak',
+  description: 'Water under the sink',
+  addressText: null,
+  status: 'in_progress',
+  createdAt: null,
+  acceptedAt: null,
+  clientId: 'client-1',
+);
+
 void main() {
-  group('AcceptedJobsRepository', () {
+  group('ProJobsRepository (accepted)', () {
     test('returns accepted jobs from the service', () async {
-      const job = AcceptedJob(
-        id: 'job-1',
-        title: 'Pipe leak',
-        description: 'Water under the sink',
-        addressText: null,
-        status: 'in_progress',
-        createdAt: null,
-        acceptedAt: null,
-        clientId: 'client-1',
-      );
-      final repository = AcceptedJobsRepository(
-        service: _FakeAcceptedJobsService(onFetch: () async => const [job]),
+      final repository = ProJobsRepository(
+        service: _FakeProJobsService(onFetch: () async => const [_job]),
       );
 
       final result = await repository.fetchAcceptedJobs();
 
-      expect(result, const [job]);
+      expect(result, const [_job]);
     });
 
-    test('maps Postgrest errors into AcceptedJobsFailure', () async {
-      final repository = AcceptedJobsRepository(
-        service: _FakeAcceptedJobsService(
+    test('maps Postgrest errors into ProJobsFailure', () async {
+      final repository = ProJobsRepository(
+        service: _FakeProJobsService(
           onFetch: () async {
             throw const PostgrestException(message: 'RLS blocked');
           },
@@ -55,7 +56,7 @@ void main() {
       expect(
         repository.fetchAcceptedJobs,
         throwsA(
-          isA<AcceptedJobsFailure>().having(
+          isA<ProJobsFailure>().having(
             (failure) => failure.message,
             'message',
             'RLS blocked',
@@ -64,11 +65,11 @@ void main() {
       );
     });
 
-    test('maps release failures into AcceptedJobsFailure', () async {
-      final repository = AcceptedJobsRepository(
-        service: _FakeAcceptedJobsService(
+    test('maps release failures into ProJobsFailure', () async {
+      final repository = ProJobsRepository(
+        service: _FakeProJobsService(
           onReturn: (_) async {
-            throw const AcceptedJobReleaseException();
+            throw const ProJobReleaseException();
           },
         ),
       );
@@ -76,7 +77,7 @@ void main() {
       expect(
         () => repository.returnJobToPending('job-1'),
         throwsA(
-          isA<AcceptedJobsFailure>().having(
+          isA<ProJobsFailure>().having(
             (failure) => failure.message,
             'message',
             'Could not return this job to incoming requests.',

@@ -1,19 +1,18 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:project/features/pro/incoming_jobs/data/models/incoming_job.dart';
-import 'package:project/features/pro/incoming_jobs/data/repositories/incoming_jobs_repository.dart';
-import 'package:project/features/pro/incoming_jobs/data/services/incoming_jobs_service.dart';
+import 'package:project/features/pro/jobs/data/models/pro_job.dart';
+import 'package:project/features/pro/jobs/data/repositories/pro_jobs_repository.dart';
+import 'package:project/features/pro/jobs/data/services/pro_jobs_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-class _FakeIncomingJobsService extends IncomingJobsService {
-  _FakeIncomingJobsService({this.onFetch, this.onAccept, this.onReject});
+class _FakeProJobsService extends ProJobsService {
+  _FakeProJobsService({this.onFetch, this.onAccept, this.onReject});
 
-  final Future<List<IncomingJob>> Function({required bool includeRejected})?
-  onFetch;
+  final Future<List<ProJob>> Function({required bool includeRejected})? onFetch;
   final Future<void> Function(String requestId)? onAccept;
   final Future<void> Function(String requestId)? onReject;
 
   @override
-  Future<List<IncomingJob>> fetchIncomingJobs({
+  Future<List<ProJob>> fetchIncomingJobs({
     bool includeRejected = false,
   }) async {
     return await onFetch?.call(includeRejected: includeRejected) ?? const [];
@@ -31,12 +30,12 @@ class _FakeIncomingJobsService extends IncomingJobsService {
 }
 
 void main() {
-  group('IncomingJobsRepository', () {
+  group('ProJobsRepository (incoming)', () {
     test(
-      'maps missing professional profile errors into IncomingJobsFailure',
+      'maps missing professional profile errors into ProJobsFailure',
       () async {
-        final repository = IncomingJobsRepository(
-          service: _FakeIncomingJobsService(
+        final repository = ProJobsRepository(
+          service: _FakeProJobsService(
             onFetch: ({required includeRejected}) async {
               throw const ProfessionalProfileMissingException();
             },
@@ -46,7 +45,7 @@ void main() {
         await expectLater(
           repository.fetchIncomingJobs,
           throwsA(
-            isA<IncomingJobsFailure>().having(
+            isA<ProJobsFailure>().having(
               (error) => error.message,
               'message',
               'Professional profile not set up.',
@@ -56,9 +55,9 @@ void main() {
       },
     );
 
-    test('maps already-taken errors into IncomingJobsFailure', () async {
-      final repository = IncomingJobsRepository(
-        service: _FakeIncomingJobsService(
+    test('maps already-taken errors into ProJobsFailure', () async {
+      final repository = ProJobsRepository(
+        service: _FakeProJobsService(
           onAccept: (requestId) async {
             throw const JobAlreadyTakenException();
           },
@@ -68,7 +67,7 @@ void main() {
       await expectLater(
         () => repository.acceptJob('job-1'),
         throwsA(
-          isA<IncomingJobsFailure>().having(
+          isA<ProJobsFailure>().having(
             (error) => error.message,
             'message',
             'Job already taken by another professional.',
@@ -77,28 +76,25 @@ void main() {
       );
     });
 
-    test(
-      'maps Postgrest errors from rejectJob into IncomingJobsFailure',
-      () async {
-        final repository = IncomingJobsRepository(
-          service: _FakeIncomingJobsService(
-            onReject: (requestId) async {
-              throw const PostgrestException(message: 'Permission denied');
-            },
-          ),
-        );
+    test('maps Postgrest errors from rejectJob into ProJobsFailure', () async {
+      final repository = ProJobsRepository(
+        service: _FakeProJobsService(
+          onReject: (requestId) async {
+            throw const PostgrestException(message: 'Permission denied');
+          },
+        ),
+      );
 
-        await expectLater(
-          () => repository.rejectJob('job-1'),
-          throwsA(
-            isA<IncomingJobsFailure>().having(
-              (error) => error.message,
-              'message',
-              'Permission denied',
-            ),
+      await expectLater(
+        () => repository.rejectJob('job-1'),
+        throwsA(
+          isA<ProJobsFailure>().having(
+            (error) => error.message,
+            'message',
+            'Permission denied',
           ),
-        );
-      },
-    );
+        ),
+      );
+    });
   });
 }

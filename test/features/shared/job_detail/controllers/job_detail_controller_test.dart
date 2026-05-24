@@ -6,23 +6,26 @@ import 'package:project/features/shared/job_detail/data/repositories/job_detail_
 class _FakeRepo extends JobDetailRepository {
   _FakeRepo({
     this.onFetch,
-    this.onMarkOnTheWay,
-    this.onMarkInProgress,
-    this.onMarkCompleted,
     this.onCancel,
+    this.onSubmitReview,
   });
 
   final Future<JobDetail> Function(String id, ViewerRole role)? onFetch;
-  final Future<void> Function(String id)? onMarkOnTheWay;
-  final Future<void> Function(String id)? onMarkInProgress;
-  final Future<void> Function(String id)? onMarkCompleted;
   final Future<void> Function(String id, String? reason)? onCancel;
+  final Future<void> Function(
+    String jobId,
+    String clientId,
+    String proId,
+    int rating,
+    String? comment,
+  )? onSubmitReview;
 
   int fetchCalls = 0;
   int onTheWayCalls = 0;
   int inProgressCalls = 0;
   int completedCalls = 0;
   int cancelCalls = 0;
+  int submitReviewCalls = 0;
 
   @override
   Future<JobDetail> fetchJobDetail(String jobId, ViewerRole viewerRole) {
@@ -34,19 +37,19 @@ class _FakeRepo extends JobDetailRepository {
   @override
   Future<void> markOnTheWay(String jobId) {
     onTheWayCalls++;
-    return onMarkOnTheWay?.call(jobId) ?? Future.value();
+    return Future.value();
   }
 
   @override
   Future<void> markInProgress(String jobId) {
     inProgressCalls++;
-    return onMarkInProgress?.call(jobId) ?? Future.value();
+    return Future.value();
   }
 
   @override
   Future<void> markCompleted(String jobId) {
     completedCalls++;
-    return onMarkCompleted?.call(jobId) ?? Future.value();
+    return Future.value();
   }
 
   @override
@@ -54,9 +57,27 @@ class _FakeRepo extends JobDetailRepository {
     cancelCalls++;
     return onCancel?.call(jobId, reason) ?? Future.value();
   }
+
+  @override
+  Future<void> submitReview({
+    required String jobId,
+    required String clientId,
+    required String proId,
+    required int rating,
+    String? comment,
+  }) {
+    submitReviewCalls++;
+    return onSubmitReview?.call(jobId, clientId, proId, rating, comment) ??
+        Future.value();
+  }
 }
 
-JobDetail _detail(String id, {String status = 'pending'}) =>
+JobDetail _detail(
+  String id, {
+  String status = 'pending',
+  String? proId,
+  Map<String, dynamic>? reviewRow,
+}) =>
     JobDetail.fromJson(
       jobRow: {
         'id': id,
@@ -65,7 +86,7 @@ JobDetail _detail(String id, {String status = 'pending'}) =>
         'address_text': '',
         'status': status,
         'client_id': 'c1',
-        'pro_id': null,
+        'pro_id': proId,
         'trade_id': 1,
         'trades': {'id': 1, 'display_name': 'General', 'standard_rate': 0},
         'created_at': '2026-04-10T09:00:00Z',
@@ -73,6 +94,7 @@ JobDetail _detail(String id, {String status = 'pending'}) =>
       counterpartyRow: null,
       viewerRole: ViewerRole.client,
       photoUrls: const [],
+      reviewRow: reviewRow,
     );
 
 void main() {
@@ -96,7 +118,7 @@ void main() {
         jobId: 'j1',
         viewerRole: ViewerRole.client,
         repo: _FakeRepo(
-          onFetch: (_, __) async => throw const JobDetailFailure('nope'),
+          onFetch: (_, _) async => throw const JobDetailFailure('nope'),
         ),
       );
 
@@ -109,7 +131,7 @@ void main() {
       final controller = JobDetailController(
         jobId: 'j1',
         viewerRole: ViewerRole.client,
-        repo: _FakeRepo(onFetch: (_, __) async => throw StateError('boom')),
+        repo: _FakeRepo(onFetch: (_, _) async => throw StateError('boom')),
       );
 
       await controller.load();
@@ -120,7 +142,7 @@ void main() {
   group('Pro-only transitions', () {
     test('markOnTheWay runs and refreshes when viewer is pro', () async {
       final repo = _FakeRepo(
-        onFetch: (id, _) async => _detail(id, status: 'on_the_way'),
+        onFetch: (id, _) async => _detail(id, status: 'on_my_way'),
       );
       final controller = JobDetailController(
         jobId: 'j1',
@@ -132,7 +154,7 @@ void main() {
 
       expect(repo.onTheWayCalls, 1);
       expect(repo.fetchCalls, 1); // refetch after mutation
-      expect(controller.detail?.status, JobStatus.onTheWay);
+      expect(controller.detail?.status, JobStatus.onMyWay);
     });
 
     test('pro-only methods are no-ops when viewer is client', () async {
@@ -186,7 +208,7 @@ void main() {
 
     test('exposes JobDetailFailure message on mutation error', () async {
       final repo = _FakeRepo(
-        onCancel: (_, __) async => throw const JobDetailFailure('rls blocked'),
+        onCancel: (_, _) async => throw const JobDetailFailure('rls blocked'),
       );
       final controller = JobDetailController(
         jobId: 'j1',
@@ -200,10 +222,151 @@ void main() {
     });
   });
 
+  group('Client submitReview', () {
+    Map<String, dynamic> reviewRow({int rating = 5, String? comment}) => {
+          'id': 'r1',
+          'request_id': 'j1',
+          'client_id': 'c1',
+          'pro_id': 'p1',
+          'rating': rating,
+          'comment': comment,
+          'created_at': '2026-04-11T09:00:00Z',
+        };
+
+    test('submits review and refetches when valid', () async {
+      var fetched = 0;
+      String? capturedComment;
+      int? capturedRating;
+
+      final repo = _FakeRepo(
+        onFetch: (id, _) async {
+          fetched++;
+          return _detail(
+            id,
+            status: 'completed',
+            proId: 'p1',
+            reviewRow: fetched == 1 ? null : reviewRow(comment: 'great'),
+          );
+        },
+        onSubmitReview: (_, _, _, rating, comment) async {
+          capturedRating = rating;
+          capturedComment = comment;
+        },
+      );
+
+      final controller = JobDetailController(
+        jobId: 'j1',
+        viewerRole: ViewerRole.client,
+        repo: repo,
+      );
+      await controller.load();
+
+      final ok = await controller.submitReview(rating: 5, comment: 'great');
+
+      expect(ok, isTrue);
+      expect(repo.submitReviewCalls, 1);
+      expect(capturedRating, 5);
+      expect(capturedComment, 'great');
+      expect(controller.detail?.review?.rating, 5);
+      expect(controller.detail?.review?.comment, 'great');
+    });
+
+    test('is a no-op when job is not completed', () async {
+      final repo = _FakeRepo(
+        onFetch: (id, _) async =>
+            _detail(id, status: 'in_progress', proId: 'p1'),
+      );
+      final controller = JobDetailController(
+        jobId: 'j1',
+        viewerRole: ViewerRole.client,
+        repo: repo,
+      );
+      await controller.load();
+
+      await controller.submitReview(rating: 4);
+      expect(repo.submitReviewCalls, 0);
+    });
+
+    test('is a no-op when viewer is pro', () async {
+      final repo = _FakeRepo(
+        onFetch: (id, _) async =>
+            _detail(id, status: 'completed', proId: 'p1'),
+      );
+      final controller = JobDetailController(
+        jobId: 'j1',
+        viewerRole: ViewerRole.pro,
+        repo: repo,
+      );
+      await controller.load();
+
+      await controller.submitReview(rating: 4);
+      expect(repo.submitReviewCalls, 0);
+    });
+
+    test('is a no-op when a review already exists', () async {
+      final repo = _FakeRepo(
+        onFetch: (id, _) async => _detail(
+          id,
+          status: 'completed',
+          proId: 'p1',
+          reviewRow: reviewRow(),
+        ),
+      );
+      final controller = JobDetailController(
+        jobId: 'j1',
+        viewerRole: ViewerRole.client,
+        repo: repo,
+      );
+      await controller.load();
+
+      await controller.submitReview(rating: 3);
+      expect(repo.submitReviewCalls, 0);
+    });
+
+    test('rejects ratings outside 1..5 without calling repo', () async {
+      final repo = _FakeRepo(
+        onFetch: (id, _) async =>
+            _detail(id, status: 'completed', proId: 'p1'),
+      );
+      final controller = JobDetailController(
+        jobId: 'j1',
+        viewerRole: ViewerRole.client,
+        repo: repo,
+      );
+      await controller.load();
+
+      await controller.submitReview(rating: 0);
+      expect(repo.submitReviewCalls, 0);
+      expect(controller.error, isNotNull);
+
+      await controller.submitReview(rating: 6);
+      expect(repo.submitReviewCalls, 0);
+    });
+
+    test('exposes a friendly message on submit error', () async {
+      final repo = _FakeRepo(
+        onFetch: (id, _) async =>
+            _detail(id, status: 'completed', proId: 'p1'),
+        onSubmitReview: (_, _, _, _, _) async =>
+            throw const JobDetailFailure('rls blocked'),
+      );
+      final controller = JobDetailController(
+        jobId: 'j1',
+        viewerRole: ViewerRole.client,
+        repo: repo,
+      );
+      await controller.load();
+
+      final ok = await controller.submitReview(rating: 5);
+      expect(ok, isFalse);
+      expect(controller.error, "Couldn't submit your review. Please try again.");
+    });
+  });
+
   test('re-entrant action calls are dropped', () async {
     var completed = 0;
     final repo = _FakeRepo(
-      onCancel: (_, __) async {
+      onCancel: (_, _) async {
         await Future<void>.delayed(const Duration(milliseconds: 30));
         completed++;
       },

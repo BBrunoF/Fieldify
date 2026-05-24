@@ -53,6 +53,9 @@ class _FakeProProfileRepository extends ProProfileRepository {
   @override
   Future<void> deleteCredential(String path) async =>
       deletedCredentials.add(path);
+
+  @override
+  Future<List<ProReview>> fetchCurrentReviews() async => const [];
 }
 
 const _pendingProfile = ProProfileModel(
@@ -390,6 +393,49 @@ void main() {
       expect(controller.saved, isFalse);
     });
 
+    test('loadReviews populates reviews and average rating', () async {
+      final repo = _ReviewingRepository(
+        profile: _pendingProfile,
+        reviews: [
+          ProReview(
+            id: 'r1',
+            rating: 5,
+            comment: 'Great',
+            clientName: 'João Silva',
+            createdAt: DateTime(2026, 4, 11),
+          ),
+          ProReview(
+            id: 'r2',
+            rating: 3,
+            comment: null,
+            clientName: 'Maria Pinto',
+            createdAt: DateTime(2026, 4, 12),
+          ),
+        ],
+      );
+
+      final controller = ProProfileController(repository: repo);
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+
+      expect(controller.reviews, hasLength(2));
+      expect(controller.ratingSummary.average, 4.0);
+      expect(controller.ratingSummary.count, 2);
+    });
+
+    test('loadReviews handles failure by leaving rating empty', () async {
+      final repo = _ReviewingRepository(
+        profile: _pendingProfile,
+        throwOnReviews: true,
+      );
+
+      final controller = ProProfileController(repository: repo);
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+
+      expect(controller.reviews, isEmpty);
+      expect(controller.ratingSummary.count, 0);
+      expect(controller.ratingSummary.average, 0);
+    });
+
     test('notifyListeners is called on saveProfile completion', () async {
       int notifyCount = 0;
 
@@ -449,6 +495,46 @@ class _CapturingRepository extends ProProfileRepository {
 
   @override
   Future<String?> getSignedAvatarUrl(String path) async => null;
+
+  @override
+  Future<List<ProReview>> fetchCurrentReviews() async => const [];
+}
+
+class _ReviewingRepository extends ProProfileRepository {
+  _ReviewingRepository({
+    required this.profile,
+    this.reviews = const [],
+    this.throwOnReviews = false,
+  });
+
+  final ProProfileModel profile;
+  final List<ProReview> reviews;
+  final bool throwOnReviews;
+
+  @override
+  Future<ProProfileModel?> fetchCurrent() async => profile;
+
+  @override
+  Future<void> updateProfile({
+    required String bio,
+    required int? serviceRadiusKm,
+    String? fullName,
+    String? nif,
+    List<String>? credentialUrls,
+  }) async {}
+
+  @override
+  Future<String> uploadAvatar({required File file}) async =>
+      'uid/avatar.jpg';
+
+  @override
+  Future<String?> getSignedAvatarUrl(String path) async => null;
+
+  @override
+  Future<List<ProReview>> fetchCurrentReviews() async {
+    if (throwOnReviews) throw const ProProfileFailure('boom');
+    return reviews;
+  }
 }
 
 class _ThrowingUploadRepository extends ProProfileRepository {
@@ -473,6 +559,9 @@ class _ThrowingUploadRepository extends ProProfileRepository {
 
   @override
   Future<String?> getSignedAvatarUrl(String path) async => null;
+
+  @override
+  Future<List<ProReview>> fetchCurrentReviews() async => const [];
 }
 
 class _ThrowingCredentialRepository extends ProProfileRepository {

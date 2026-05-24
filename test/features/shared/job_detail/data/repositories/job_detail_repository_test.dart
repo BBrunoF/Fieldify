@@ -8,16 +8,20 @@ class _FakeJobDetailService extends JobDetailService {
   _FakeJobDetailService({
     this.onFetch,
     this.onMarkOnTheWay,
-    this.onMarkInProgress,
-    this.onMarkCompleted,
     this.onCancel,
+    this.onSubmitReview,
   });
 
   final Future<JobDetail> Function(String id, ViewerRole role)? onFetch;
   final Future<void> Function(String id)? onMarkOnTheWay;
-  final Future<void> Function(String id)? onMarkInProgress;
-  final Future<void> Function(String id)? onMarkCompleted;
   final Future<void> Function(String id, String? reason)? onCancel;
+  final Future<void> Function(
+    String jobId,
+    String clientId,
+    String proId,
+    int rating,
+    String? comment,
+  )? onSubmitReview;
 
   @override
   Future<JobDetail> fetchJobDetail(String jobId, ViewerRole viewerRole) =>
@@ -29,16 +33,25 @@ class _FakeJobDetailService extends JobDetailService {
       onMarkOnTheWay?.call(jobId) ?? Future.value();
 
   @override
-  Future<void> markInProgress(String jobId) =>
-      onMarkInProgress?.call(jobId) ?? Future.value();
+  Future<void> markInProgress(String jobId) => Future.value();
 
   @override
-  Future<void> markCompleted(String jobId) =>
-      onMarkCompleted?.call(jobId) ?? Future.value();
+  Future<void> markCompleted(String jobId) => Future.value();
 
   @override
   Future<void> cancelJob(String jobId, {String? reason}) =>
       onCancel?.call(jobId, reason) ?? Future.value();
+
+  @override
+  Future<void> submitReview({
+    required String jobId,
+    required String clientId,
+    required String proId,
+    required int rating,
+    String? comment,
+  }) =>
+      onSubmitReview?.call(jobId, clientId, proId, rating, comment) ??
+      Future.value();
 }
 
 JobDetail _detail(String id) => JobDetail.fromJson(
@@ -76,7 +89,7 @@ void main() {
         () async {
       final repo = JobDetailRepository(
         service: _FakeJobDetailService(
-          onFetch: (_, __) async =>
+          onFetch: (_, _) async =>
               throw PostgrestException(message: 'db offline'),
         ),
       );
@@ -92,7 +105,7 @@ void main() {
         () async {
       final repo = JobDetailRepository(
         service: _FakeJobDetailService(
-          onFetch: (_, __) async =>
+          onFetch: (_, _) async =>
               throw const StorageException('signed-url failed'),
         ),
       );
@@ -116,6 +129,56 @@ void main() {
 
       await repo.cancelJob('j1', reason: 'changed my mind');
       expect(captured, 'changed my mind');
+    });
+
+    test('submitReview forwards arguments to the service', () async {
+      int? capturedRating;
+      String? capturedComment;
+      String? capturedProId;
+
+      final repo = JobDetailRepository(
+        service: _FakeJobDetailService(
+          onSubmitReview:
+              (jobId, clientId, proId, rating, comment) async {
+            capturedRating = rating;
+            capturedComment = comment;
+            capturedProId = proId;
+          },
+        ),
+      );
+
+      await repo.submitReview(
+        jobId: 'j1',
+        clientId: 'c1',
+        proId: 'p1',
+        rating: 4,
+        comment: 'thanks',
+      );
+
+      expect(capturedRating, 4);
+      expect(capturedComment, 'thanks');
+      expect(capturedProId, 'p1');
+    });
+
+    test('submitReview wraps PostgrestException into JobDetailFailure',
+        () async {
+      final repo = JobDetailRepository(
+        service: _FakeJobDetailService(
+          onSubmitReview: (_, _, _, _, _) async =>
+              throw PostgrestException(message: 'duplicate review'),
+        ),
+      );
+
+      await expectLater(
+        () => repo.submitReview(
+          jobId: 'j1',
+          clientId: 'c1',
+          proId: 'p1',
+          rating: 5,
+        ),
+        throwsA(isA<JobDetailFailure>()
+            .having((e) => e.message, 'message', 'duplicate review')),
+      );
     });
 
     test('status transitions wrap errors into JobDetailFailure', () async {

@@ -1,21 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:project/features/pro/incoming_jobs/controllers/incoming_jobs_controller.dart';
-import 'package:project/features/pro/incoming_jobs/data/models/incoming_job.dart';
-import 'package:project/features/pro/incoming_jobs/data/repositories/incoming_jobs_repository.dart';
-import 'package:project/features/pro/incoming_jobs/presentation/widgets/incoming_jobs_view.dart';
+import 'package:project/features/pro/jobs/controllers/pro_jobs_controller.dart';
+import 'package:project/features/pro/jobs/data/models/pro_job.dart';
+import 'package:project/features/pro/jobs/data/repositories/pro_jobs_repository.dart';
+import 'package:project/features/pro/jobs/presentation/widgets/incoming_jobs_view.dart';
 
 import '../../../../../test_helpers.dart';
 
-class _FakeIncomingJobsRepository extends IncomingJobsRepository {
-  _FakeIncomingJobsRepository({this.onFetch, this.onReject});
+class _FakeProJobsRepository extends ProJobsRepository {
+  _FakeProJobsRepository({this.onFetch, this.onReject});
 
-  final Future<List<IncomingJob>> Function({required bool includeRejected})?
-  onFetch;
+  final Future<List<ProJob>> Function({required bool includeRejected})? onFetch;
   final Future<void> Function(String requestId)? onReject;
 
   @override
-  Future<List<IncomingJob>> fetchIncomingJobs({
+  Future<List<ProJob>> fetchIncomingJobs({
     bool includeRejected = false,
   }) async {
     return await onFetch?.call(includeRejected: includeRejected) ?? const [];
@@ -27,14 +26,15 @@ class _FakeIncomingJobsRepository extends IncomingJobsRepository {
   }
 }
 
-IncomingJob _job({bool isRejected = false}) {
-  return IncomingJob(
+ProJob _job({bool isRejected = false}) {
+  return ProJob(
     id: 'job-1',
     title: 'Pipe leak',
     description: 'Water dripping under the sink',
     addressText: 'Rua das Flores 20',
     status: 'pending',
     createdAt: null,
+    acceptedAt: null,
     clientId: 'client-1',
     isRejected: isRejected,
   );
@@ -45,8 +45,8 @@ void main() {
     testWidgets('shows the empty state when no jobs are available', (
       tester,
     ) async {
-      final controller = IncomingJobsController(
-        repository: _FakeIncomingJobsRepository(
+      final controller = ProJobsController(
+        repository: _FakeProJobsRepository(
           onFetch: ({required includeRejected}) async => const [],
         ),
       );
@@ -62,8 +62,8 @@ void main() {
     });
 
     testWidgets('removes a job from the list after rejection', (tester) async {
-      final controller = IncomingJobsController(
-        repository: _FakeIncomingJobsRepository(
+      final controller = ProJobsController(
+        repository: _FakeProJobsRepository(
           onFetch: ({required includeRejected}) async => [_job()],
           onReject: (requestId) async {},
         ),
@@ -84,10 +84,10 @@ void main() {
     });
 
     testWidgets('shows a snackbar when loading fails', (tester) async {
-      final controller = IncomingJobsController(
-        repository: _FakeIncomingJobsRepository(
+      final controller = ProJobsController(
+        repository: _FakeProJobsRepository(
           onFetch: ({required includeRejected}) async {
-            throw const IncomingJobsFailure('Could not load jobs');
+            throw const ProJobsFailure('Could not load jobs');
           },
         ),
       );

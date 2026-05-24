@@ -1,20 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:project/features/pro/accepted_jobs/controllers/accepted_jobs_controller.dart';
-import 'package:project/features/pro/accepted_jobs/data/models/accepted_job.dart';
-import 'package:project/features/pro/accepted_jobs/data/repositories/accepted_jobs_repository.dart';
-import 'package:project/features/pro/accepted_jobs/presentation/widgets/accepted_jobs_view.dart';
+import 'package:project/features/pro/jobs/controllers/pro_jobs_controller.dart';
+import 'package:project/features/pro/jobs/data/models/pro_job.dart';
+import 'package:project/features/pro/jobs/data/repositories/pro_jobs_repository.dart';
+import 'package:project/features/pro/jobs/presentation/widgets/accepted_jobs_view.dart';
 
 import '../../../../../test_helpers.dart';
 
-class _FakeAcceptedJobsRepository extends AcceptedJobsRepository {
-  _FakeAcceptedJobsRepository({this.onFetch, this.onReturn});
+class _FakeProJobsRepository extends ProJobsRepository {
+  _FakeProJobsRepository({this.onFetch, this.onReturn});
 
-  final Future<List<AcceptedJob>> Function()? onFetch;
+  final Future<List<ProJob>> Function()? onFetch;
   final Future<void> Function(String requestId)? onReturn;
 
   @override
-  Future<List<AcceptedJob>> fetchAcceptedJobs() async {
+  Future<List<ProJob>> fetchAcceptedJobs() async {
     return await onFetch?.call() ?? const [];
   }
 
@@ -24,8 +24,8 @@ class _FakeAcceptedJobsRepository extends AcceptedJobsRepository {
   }
 }
 
-AcceptedJob _job() {
-  return AcceptedJob(
+ProJob _job() {
+  return ProJob(
     id: 'job-1',
     title: 'Pipe leak',
     description: 'Water dripping under the sink',
@@ -42,8 +42,8 @@ void main() {
     testWidgets('shows the empty state when no accepted jobs are available', (
       tester,
     ) async {
-      final controller = AcceptedJobsController(
-        repository: _FakeAcceptedJobsRepository(onFetch: () async => const []),
+      final controller = ProJobsController(
+        repository: _FakeProJobsRepository(onFetch: () async => const []),
       );
 
       await pumpTestApp(
@@ -59,8 +59,8 @@ void main() {
     testWidgets('renders accepted jobs without incoming job actions', (
       tester,
     ) async {
-      final controller = AcceptedJobsController(
-        repository: _FakeAcceptedJobsRepository(onFetch: () async => [_job()]),
+      final controller = ProJobsController(
+        repository: _FakeProJobsRepository(onFetch: () async => [_job()]),
       );
 
       await pumpTestApp(
@@ -81,8 +81,8 @@ void main() {
       tester,
     ) async {
       var callbackCalled = false;
-      final controller = AcceptedJobsController(
-        repository: _FakeAcceptedJobsRepository(
+      final controller = ProJobsController(
+        repository: _FakeProJobsRepository(
           onFetch: () async => [_job()],
           onReturn: (requestId) async {
             expect(requestId, 'job-1');

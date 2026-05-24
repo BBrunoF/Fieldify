@@ -87,4 +87,44 @@ class ProProfileRepository {
   Future<String?> getSignedCredentialUrl(String path) async {
     return await _service.getSignedCredentialUrl(path);
   }
+
+  Future<List<ProReview>> fetchProviderReviews(String proId) async {
+    try {
+      return await _service.fetchProviderReviews(proId);
+    } on PostgrestException catch (e) {
+      throw ProProfileFailure(e.message);
+    } catch (e) {
+      throw ProProfileFailure(e.toString());
+    }
+  }
+
+  Future<ProRatingSummary> getProviderRating(String proId) async {
+    try {
+      return await _service.getProviderRating(proId);
+    } on PostgrestException catch (e) {
+      throw ProProfileFailure(e.message);
+    } catch (e) {
+      throw ProProfileFailure(e.toString());
+    }
+  }
+
+  Future<List<ProReview>> fetchCurrentReviews() async {
+    try {
+      return await _service.fetchCurrentReviews();
+    } on PostgrestException catch (e) {
+      throw ProProfileFailure(e.message);
+    } catch (e) {
+      throw ProProfileFailure(e.toString());
+    }
+  }
+
+  Future<String> connectStripe() async {
+    try {
+      return await _service.createConnectAccount();
+    } on AuthException catch (e) {
+      throw ProProfileFailure(e.message);
+    } catch (e) {
+      throw ProProfileFailure(e.toString());
+    }
+  }
 }

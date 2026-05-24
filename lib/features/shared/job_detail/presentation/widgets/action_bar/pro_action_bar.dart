@@ -31,7 +31,7 @@ class ProActionBar extends StatelessWidget {
           _ghost('Message client', onMessage),
           _primary('Start heading over', onMarkOnTheWay),
         ]);
-      case JobStatus.onTheWay:
+      case JobStatus.onMyWay:
         return _Bar([
           _ghost('Message client', onMessage),
           _primary("I've arrived — start job", onMarkInProgress),
@@ -97,7 +97,7 @@ class _ActionButton extends StatelessWidget {
     final enabled = onTap != null && !busy;
     final isPrimary = kind == _Kind.primary;
     final bg = isPrimary ? FieldifyColors.g800 : Colors.transparent;
-    final fg = isPrimary ? FieldifyColors.g100 : FieldifyColors.ink3;
+    final fg = isPrimary ? FieldifyColors.g100 : FieldifyColors.g800;
     final border = isPrimary
         ? null
         : Border.all(color: const Color(0x21000000));

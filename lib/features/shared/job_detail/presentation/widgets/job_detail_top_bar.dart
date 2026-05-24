@@ -31,7 +31,7 @@ class JobDetailTopBar extends StatelessWidget {
               height: 34,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                border: Border.all(color: Colors.white.withOpacity(0.2), width: 1.5),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.2), width: 1.5),
               ),
               child: const Icon(Icons.chevron_left, color: FieldifyColors.g100, size: 20),
             ),

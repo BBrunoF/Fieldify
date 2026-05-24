@@ -27,11 +27,11 @@ class ClientActionBar extends StatelessWidget {
       case JobStatus.pending:
         return _Bar([_danger('Cancel request', onCancel)]);
       case JobStatus.accepted:
-      case JobStatus.onTheWay:
+      case JobStatus.onMyWay:
         return _Bar([
           _ghost('Message', onMessage),
           _danger(
-            detail.status == JobStatus.onTheWay
+            detail.status == JobStatus.onMyWay
                 ? 'Cancel — fee applies'
                 : 'Cancel job',
             onCancel,
@@ -40,14 +40,27 @@ class ClientActionBar extends StatelessWidget {
       case JobStatus.inProgress:
         return _Bar([_ghost('Message', onMessage)]);
       case JobStatus.completed:
-        return _Bar([_primary('Submit review', onSubmitReview)]);
+        final hasReview = detail.review != null;
+        return _Bar([
+          _primary(
+            hasReview ? 'Review submitted' : 'Submit review',
+            hasReview ? null : onSubmitReview,
+            key: const Key('clientActionBar.submitReviewButton'),
+          ),
+        ]);
       case JobStatus.cancelled:
         return _Bar([_primary('Submit a new request', onSubmitNewRequest)]);
     }
   }
 
-  Widget _primary(String label, VoidCallback? onTap) =>
-      _ActionButton(label: label, onTap: onTap, kind: _Kind.primary, busy: isBusy);
+  Widget _primary(String label, VoidCallback? onTap, {Key? key}) =>
+      _ActionButton(
+        key: key,
+        label: label,
+        onTap: onTap,
+        kind: _Kind.primary,
+        busy: isBusy,
+      );
   Widget _ghost(String label, VoidCallback? onTap) =>
       _ActionButton(label: label, onTap: onTap, kind: _Kind.ghost, busy: false);
   Widget _danger(String label, VoidCallback? onTap) =>
@@ -87,6 +100,7 @@ class _ActionButton extends StatelessWidget {
   final _Kind kind;
   final bool busy;
   const _ActionButton({
+    super.key,
     required this.label,
     required this.onTap,
     required this.kind,
@@ -107,7 +121,7 @@ class _ActionButton extends StatelessWidget {
         break;
       case _Kind.ghost:
         bg = Colors.transparent;
-        fg = FieldifyColors.ink3;
+        fg = FieldifyColors.g800;
         border = Border.all(color: const Color(0x21000000));
         break;
       case _Kind.danger:

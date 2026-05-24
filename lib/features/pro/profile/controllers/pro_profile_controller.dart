@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../data/models/pro_profile_model.dart';
 import '../data/repositories/pro_profile_repository.dart';
 
@@ -19,6 +20,10 @@ class ProProfileController extends ChangeNotifier {
   bool _isUploadingCredential = false;
   String? _error;
   bool _saved = false;
+  List<ProReview> _reviews = const [];
+  ProRatingSummary _ratingSummary = ProRatingSummary.empty;
+  bool _isLoadingReviews = false;
+  bool _isConnectingStripe = false;
 
   ProProfileModel? get profile => _profile;
   String? get avatarSignedUrl => _avatarSignedUrl;
@@ -28,6 +33,10 @@ class ProProfileController extends ChangeNotifier {
   bool get isUploadingCredential => _isUploadingCredential;
   String? get error => _error;
   bool get saved => _saved;
+  List<ProReview> get reviews => _reviews;
+  ProRatingSummary get ratingSummary => _ratingSummary;
+  bool get isLoadingReviews => _isLoadingReviews;
+  bool get isConnectingStripe => _isConnectingStripe;
 
   Future<void> _load() async {
     _isLoading = true;
@@ -41,6 +50,24 @@ class ProProfileController extends ChangeNotifier {
         _avatarSignedUrl = url;
         notifyListeners();
       }).ignore();
+    }
+    if (_profile != null) {
+      loadReviews().ignore();
+    }
+  }
+
+  Future<void> loadReviews() async {
+    _isLoadingReviews = true;
+    notifyListeners();
+    try {
+      _reviews = await _repository.fetchCurrentReviews();
+      _ratingSummary = ProRatingSummary.fromReviews(_reviews);
+    } catch (_) {
+      _reviews = const [];
+      _ratingSummary = ProRatingSummary.empty;
+    } finally {
+      _isLoadingReviews = false;
+      notifyListeners();
     }
   }
 
@@ -132,5 +159,34 @@ class ProProfileController extends ChangeNotifier {
   void clearSaved() {
     _saved = false;
     notifyListeners();
+  }
+
+  Future<void> connectStripe() async {
+    _isConnectingStripe = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      final url = await _repository.connectStripe();
+      final launched = await launchUrl(
+        Uri.parse(url),
+        mode: LaunchMode.externalApplication,
+      );
+      if (!launched) {
+        _error = 'Could not open Stripe onboarding page';
+      }
+    } catch (e) {
+      _error = e.toString();
+    } finally {
+      _isConnectingStripe = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> refreshProfile() async {
+    try {
+      _profile = await _repository.fetchCurrent();
+      notifyListeners();
+    } catch (_) {}
   }
 }

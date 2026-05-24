@@ -27,6 +27,10 @@ It is organised by the following activities:
   * [Sprint 2](#Sprint-2)
   * [Sprint 3](#Sprint-3)
   * [Final Release](#Final-Release)
+* [Documentation](#documentation)
+   * [Sprint Artifacts](#sprint-artifacts)
+   * [Development](#development)
+   * [Team](#Team)
 
 Contributions are expected to be made exclusively by the initial team, but we may open them to the community, after the course, in all areas and topics: requirements, technologies, development, experimentation, testing, etc.
 
@@ -345,8 +349,10 @@ You can find below information and references related with the project managemen
     * list of a few improvements to implement next Sprint;
 
 -->
+---
 
 ### Sprint 0
+---
 
 ### Sprint 1
 
@@ -364,6 +370,7 @@ You can find below information and references related with the project managemen
 <img width="1755" height="707" alt="image" src="https://github.com/user-attachments/assets/bb7fa582-49c3-44d1-becf-0e6b9b7b88da" />
 <img width="1776" height="479" alt="image" src="https://github.com/user-attachments/assets/618e9d66-6a0c-4f1d-871e-c6945de11952" />
 
+---
 
 ### Sprint 2
 
@@ -374,14 +381,43 @@ You can find below information and references related with the project managemen
 <img width="1773" height="225" alt="image" src="https://github.com/user-attachments/assets/171e3aa7-d61a-4877-8906-9b19aaf85296" />
 
 
+#### End
+
+<img width="1463" height="610" alt="image" src="https://github.com/user-attachments/assets/f9b0f756-05e2-47ef-85d7-4a52671f40bd" />
+<img width="1441" height="562" alt="image" src="https://github.com/user-attachments/assets/b6a5b0c9-31dc-423e-9205-60f64e4092f7" />
+<img width="1438" height="517" alt="image" src="https://github.com/user-attachments/assets/84f0d489-c54e-412b-b4ee-a85370aab2cf" />
+
+
+---
+
+### Sprint 3
+
+#### Start
+
+<img width="1436" height="570" alt="image" src="https://github.com/user-attachments/assets/ce5ded95-030d-4c0c-b66e-370bbaa24d66" />
+<img width="1428" height="580" alt="image" src="https://github.com/user-attachments/assets/f59a5ed4-561d-47c4-8d12-146fed333a4c" />
+<img width="1427" height="542" alt="image" src="https://github.com/user-attachments/assets/f0500a85-d2db-409e-abc2-83903edee176" />
+<img width="1417" height="195" alt="image" src="https://github.com/user-attachments/assets/5279405d-d326-4317-83bf-9c208c5acb3b" />
+
+
 
 
 #### End
 
-
-### Sprint 3
-
-### Sprint 4
-
 ### Final Release
 
+
+
+## Documentation
+
+### Sprint Artifacts
+- [Changelog](docs/CHANGELOG.md)
+- [Sprint Retrospective](docs/RETROSPECTIVE_SPRINT.md)
+- [Bug Tracking](docs/BUG_TRACKING.md)
+
+### Development
+- [Setup Guide](docs/SETUP.md)
+- [AI Usage](docs/AI_usage.md)
+
+### Team
+- [Happiness Meters](docs/HAPPINESS_METERS.md)

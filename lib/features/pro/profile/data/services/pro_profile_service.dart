@@ -17,7 +17,9 @@ class ProProfileService {
         .from('profiles')
         .select(
           'full_name, avatar_url, '
-          'professional_profiles(nif, bio, verification_status, service_radius_km, credential_urls, trades(display_name, standard_rate))',
+          'professional_profiles(nif, bio, verification_status, service_radius_km, credential_urls, '
+          'stripe_account_id, stripe_onboarding_complete, '
+          'trades(display_name, standard_rate))',
         )
         .eq('id', user.id)
         .maybeSingle();
@@ -51,7 +53,27 @@ class ProProfileService {
       standardRate: (tradeRow['standard_rate'] as num?)?.toInt() ?? 0,
       credentialUrls: credentialUrls,
       serviceRadiusKm: (proRow['service_radius_km'] as num?)?.toInt(),
+      stripeAccountId: proRow['stripe_account_id'] as String?,
+      stripeOnboardingComplete:
+          (proRow['stripe_onboarding_complete'] as bool?) ?? false,
     );
+  }
+
+  Future<String> createConnectAccount() async {
+    final response = await supabase.functions.invoke('create-connect-account');
+    if (response.status != 200) {
+      final data = response.data;
+      final message = data is Map<String, dynamic>
+          ? (data['error'] as String? ?? 'Failed to create Stripe account')
+          : 'Failed to create Stripe account';
+      throw AuthException(message);
+    }
+    final data = response.data as Map<String, dynamic>;
+    final url = data['onboarding_url'] as String?;
+    if (url == null || url.isEmpty) {
+      throw const AuthException('Stripe did not return an onboarding URL');
+    }
+    return url;
   }
 
   Future<void> updateProfile({
@@ -156,5 +178,28 @@ class ProProfileService {
     } catch (_) {
       return null;
     }
+  }
+
+  Future<List<ProReview>> fetchProviderReviews(String proId) async {
+    final rows = await supabase
+        .from('reviews')
+        .select('id, rating, comment, created_at, profiles!client_id(full_name)')
+        .eq('pro_id', proId)
+        .order('created_at', ascending: false);
+
+    return (rows as List)
+        .map((row) => ProReview.fromJson(row as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<ProRatingSummary> getProviderRating(String proId) async {
+    final reviews = await fetchProviderReviews(proId);
+    return ProRatingSummary.fromReviews(reviews);
+  }
+
+  Future<List<ProReview>> fetchCurrentReviews() async {
+    final user = supabase.auth.currentUser;
+    if (user == null) return const [];
+    return fetchProviderReviews(user.id);
   }
 }

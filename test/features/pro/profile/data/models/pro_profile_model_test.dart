@@ -192,4 +192,71 @@ void main() {
       });
     });
   });
+
+  group('ProRatingSummary.fromReviews', () {
+    ProReview r(int rating) => ProReview(
+          id: 'x',
+          rating: rating,
+          comment: null,
+          clientName: 'c',
+          createdAt: DateTime(2026, 4, 1),
+        );
+
+    test('returns empty when no reviews', () {
+      final s = ProRatingSummary.fromReviews(const []);
+      expect(s.count, 0);
+      expect(s.average, 0);
+    });
+
+    test('returns the rating itself when there is one review', () {
+      final s = ProRatingSummary.fromReviews([r(4)]);
+      expect(s.count, 1);
+      expect(s.average, 4);
+    });
+
+    test('computes a non-integer average over multiple reviews', () {
+      final s = ProRatingSummary.fromReviews([r(5), r(4)]);
+      expect(s.count, 2);
+      expect(s.average, 4.5);
+    });
+  });
+
+  group('ProReview.fromJson', () {
+    test('reads the client name from a joined profiles map', () {
+      final r = ProReview.fromJson({
+        'id': 'r1',
+        'rating': 5,
+        'comment': 'Great',
+        'created_at': '2026-04-11T09:00:00Z',
+        'profiles': {'full_name': 'João Silva'},
+      });
+      expect(r.clientName, 'João Silva');
+      expect(r.rating, 5);
+      expect(r.comment, 'Great');
+    });
+
+    test('reads the client name when profiles is returned as a list', () {
+      final r = ProReview.fromJson({
+        'id': 'r1',
+        'rating': 4,
+        'comment': null,
+        'created_at': '2026-04-11T09:00:00Z',
+        'profiles': [
+          {'full_name': 'Maria Pinto'},
+        ],
+      });
+      expect(r.clientName, 'Maria Pinto');
+      expect(r.comment, isNull);
+    });
+
+    test('falls back to empty client name when profiles is missing', () {
+      final r = ProReview.fromJson({
+        'id': 'r1',
+        'rating': 3,
+        'comment': null,
+        'created_at': '2026-04-11T09:00:00Z',
+      });
+      expect(r.clientName, '');
+    });
+  });
 }

@@ -152,7 +152,7 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
         add(StatusTimeline(detail: detail));
         break;
 
-      case JobStatus.onTheWay:
+      case JobStatus.onMyWay:
         if (detail.counterparty != null) add(CounterpartyCard(info: detail.counterparty!));
         add(const MapMiniCard(etaLabel: 'ETA coming soon'));
         add(const NoticeBanner(
@@ -187,7 +187,10 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
         add(JobDetailsCard(detail: detail));
         if (detail.photoUrls.isNotEmpty) add(PhotoGallery(urls: detail.photoUrls));
         if (detail.viewerRole == ViewerRole.client && detail.counterparty != null) {
-          add(ReviewCard(counterpartyName: detail.counterparty!.fullName));
+          add(ReviewCard(
+            counterpartyName: detail.counterparty!.fullName,
+            review: detail.review,
+          ));
         }
         add(StatusTimeline(detail: detail));
         break;

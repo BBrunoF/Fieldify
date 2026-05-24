@@ -9,6 +9,7 @@ import '../../../../auth/presentation/widgets/auth_shared.dart';
 import '../../controllers/pro_profile_controller.dart';
 import '../../controllers/work_settings_controller.dart';
 import '../../data/models/availability_schedule_model.dart';
+import '../widgets/pro_reviews_section.dart';
 
 // ── Validation ─────────────────────────────────────────────────────────────────
 
@@ -39,7 +40,8 @@ class ProProfileScreen extends StatefulWidget {
   State<ProProfileScreen> createState() => _ProProfileScreenState();
 }
 
-class _ProProfileScreenState extends State<ProProfileScreen> {
+class _ProProfileScreenState extends State<ProProfileScreen>
+    with WidgetsBindingObserver {
   late final ProProfileController _controller;
   late final bool _ownsController;
 
@@ -99,6 +101,17 @@ class _ProProfileScreenState extends State<ProProfileScreen> {
 
     _controller.addListener(_onChanged);
     _workController.addListener(_onWorkChanged);
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // When user returns from Stripe Connect onboarding in the browser,
+    // refetch the profile so the webhook-flipped `stripe_onboarding_complete`
+    // is picked up.
+    if (state == AppLifecycleState.resumed) {
+      _controller.refreshProfile();
+    }
   }
 
   void _onChanged() {
@@ -180,6 +193,7 @@ class _ProProfileScreenState extends State<ProProfileScreen> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _controller.removeListener(_onChanged);
     _workController.removeListener(_onWorkChanged);
     if (_ownsController) _controller.dispose();
@@ -390,6 +404,10 @@ class _ProProfileScreenState extends State<ProProfileScreen> {
                               const SizedBox(height: 16),
                               _buildStatusBadge(),
                               const SizedBox(height: 24),
+                              _buildSectionLabel('Payouts'),
+                              const SizedBox(height: 10),
+                              _buildStripeConnectCard(),
+                              const SizedBox(height: 20),
                               _buildSectionLabel('Personal details'),
                               const SizedBox(height: 10),
                               _buildPersonalFields(),
@@ -424,6 +442,14 @@ class _ProProfileScreenState extends State<ProProfileScreen> {
                               _buildSectionLabel('Bio'),
                               const SizedBox(height: 10),
                               _buildBioField(),
+                              const SizedBox(height: 20),
+                              _buildSectionLabel('Client reviews'),
+                              const SizedBox(height: 10),
+                              ProReviewsSection(
+                                summary: _controller.ratingSummary,
+                                reviews: _controller.reviews,
+                                isLoading: _controller.isLoadingReviews,
+                              ),
                               const SizedBox(height: 28),
                               _controller.isSaving || _workController.isSaving
                                   ? const Center(
@@ -610,6 +636,100 @@ class _ProProfileScreenState extends State<ProProfileScreen> {
         child: Text(label,
             style: GoogleFonts.dmSans(
                 fontSize: 12, fontWeight: FontWeight.w500, color: fg)),
+      ),
+    );
+  }
+
+  Widget _buildStripeConnectCard() {
+    final profile = _controller.profile;
+    final onboardingComplete = profile?.stripeOnboardingComplete ?? false;
+    final hasAccount = profile?.hasStripeAccount ?? false;
+    final isLoading = _controller.isConnectingStripe;
+
+    if (onboardingComplete) {
+      return Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: const Color(0xFFD6F5E3),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.check_circle, color: Color(0xFF1A6B3A), size: 20),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                'Payouts enabled',
+                style: GoogleFonts.dmSans(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: const Color(0xFF1A6B3A),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final buttonLabel = hasAccount ? 'Continue Stripe onboarding' : 'Connect Stripe';
+    final helperText = hasAccount
+        ? 'Finish the Stripe onboarding to start receiving payments.'
+        : 'Connect a Stripe account to receive payments from jobs.';
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: FieldifyColors.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: FieldifyColors.ink4, width: 1),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            helperText,
+            style: GoogleFonts.dmSans(
+              fontSize: 13,
+              color: FieldifyColors.ink2,
+            ),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              key: const Key('proProfileStripeConnectButton'),
+              onPressed: isLoading ? null : _controller.connectStripe,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: FieldifyColors.g800,
+                foregroundColor: FieldifyColors.g100,
+                disabledBackgroundColor: FieldifyColors.ink4,
+                minimumSize: const Size.fromHeight(44),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                elevation: 0,
+              ),
+              child: isLoading
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                        color: FieldifyColors.g100,
+                        strokeWidth: 2,
+                      ),
+                    )
+                  : Text(
+                      buttonLabel,
+                      style: GoogleFonts.dmSans(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: FieldifyColors.g100,
+                      ),
+                    ),
+            ),
+          ),
+        ],
       ),
     );
   }

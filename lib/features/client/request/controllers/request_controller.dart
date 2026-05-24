@@ -2,13 +2,12 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
-import '../../../../core/supabase/supabase_client.dart';
 import '../data/models/trade_model.dart';
 import '../data/repositories/request_repository.dart';
 
 class RequestController extends ChangeNotifier {
   final RequestRepository _repo;
-  final String? Function() _currentUserIdProvider;
+  final String? Function()? _currentUserIdOverride;
   final String Function() _requestIdGenerator;
 
   RequestController({
@@ -16,10 +15,14 @@ class RequestController extends ChangeNotifier {
     String? Function()? currentUserIdProvider,
     String Function()? requestIdGenerator,
   }) : _repo = repo ?? RequestRepository(),
-       _currentUserIdProvider =
-           currentUserIdProvider ?? (() => supabase.auth.currentUser?.id),
+       _currentUserIdOverride = currentUserIdProvider,
        _requestIdGenerator =
            requestIdGenerator ?? (() => const Uuid().v4());
+
+  String? get _currentUserId =>
+      _currentUserIdOverride != null
+          ? _currentUserIdOverride()
+          : _repo.getCurrentUserId();
 
   bool _loading = false;
   String? _error;
@@ -66,7 +69,7 @@ class RequestController extends ChangeNotifier {
     _error = null;
     notifyListeners();
 
-    final userId = _currentUserIdProvider();
+    final userId = _currentUserId;
     if (userId == null) {
       _loading = false;
       _error = 'No authenticated user.';

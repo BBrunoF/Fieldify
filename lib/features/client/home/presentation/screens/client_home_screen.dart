@@ -2,26 +2,29 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../../core/theme/app_colors.dart';
-import '../../../../../core/supabase/supabase_client.dart';
 import '../../../../../shared/widgets/bottom_nav.dart';
 import '../../../../../shared/widgets/fieldify_painters.dart';
 import '../../../../auth/presentation/widgets/auth_shared.dart';
 import '../../../../home/presentation/widgets/home_action_buttons.dart';
 import '../../../job_history/controllers/job_history_controller.dart';
 import '../../../job_history/presentation/widgets/job_history_view.dart';
-import '../../../request/presentation/screens/request_screen.dart';
+import '../../../profile/controllers/profile_controller.dart';
 import '../../../profile/presentation/screens/profile_screen.dart';
+import '../../../request/presentation/screens/request_screen.dart';
+import '../../../../shared/chat/presentation/screens/inbox_screen.dart';
 
 class ClientHomeScreen extends StatefulWidget {
   final Future<void> Function()? onLogout;
   final WidgetBuilder? requestScreenBuilder;
   final JobHistoryController? jobHistoryController;
+  final ProfileController? profileController;
 
   const ClientHomeScreen({
     super.key,
     this.onLogout,
     this.requestScreenBuilder,
     this.jobHistoryController,
+    this.profileController,
   });
 
   @override
@@ -31,37 +34,39 @@ class ClientHomeScreen extends StatefulWidget {
 class _ClientHomeScreenState extends State<ClientHomeScreen> {
   int _selectedCategory = 0;
   int _selectedNav = 0;
-  String _firstName = '';
+  late final ProfileController _profileController;
+  late final bool _ownsProfileController;
 
   @override
   void initState() {
     super.initState();
-    _loadName();
+    _profileController = widget.profileController ?? ProfileController();
+    _ownsProfileController = widget.profileController == null;
+    _profileController.addListener(_onProfileChanged);
   }
 
-  Future<void> _loadName() async {
-    try {
-      final user = supabase.auth.currentUser;
-      if (user == null) return;
-      final data = await supabase
-          .from('profiles')
-          .select('full_name')
-          .eq('id', user.id)
-          .maybeSingle();
-      if (!mounted) return;
-      final fullName = (data?['full_name'] as String? ?? '').trim();
-      final first = fullName.split(' ').first;
-      setState(() => _firstName = first.isNotEmpty ? first : 'there');
-    } catch (_) {
-      // Supabase not initialized (e.g. in tests) — leave name empty
-    }
+  void _onProfileChanged() {
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void dispose() {
+    _profileController.removeListener(_onProfileChanged);
+    if (_ownsProfileController) _profileController.dispose();
+    super.dispose();
   }
 
   void _onNavTap(int i) {
+    if (i == 2) {
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => const InboxScreen()),
+      );
+      return;
+    }
     if (i == 3) {
       Navigator.of(context)
           .push(MaterialPageRoute(builder: (_) => const ProfileScreen()))
-          .then((_) => _loadName());
+          .then((_) => _profileController.reload());
       return;
     }
     setState(() => _selectedNav = i);
@@ -213,7 +218,9 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
             ),
           ),
           Text(
-            _firstName.isEmpty ? 'there' : _firstName,
+            _profileController.profile?.firstName.isNotEmpty == true
+                ? _profileController.profile!.firstName
+                : 'there',
             key: const Key('homeUserNameText'),
             style: GoogleFonts.dmSans(
               fontSize: 24,

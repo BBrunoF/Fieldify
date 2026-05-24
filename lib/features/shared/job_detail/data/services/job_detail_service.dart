@@ -22,13 +22,23 @@ class JobDetailService {
     final counterpartyRow = await _fetchCounterparty(counterpartyId, viewerRole);
     final photoPaths = (jobRow['photo_urls'] as List?)?.cast<String>() ?? const [];
     final photoUrls = await _signedPhotoUrls(photoPaths);
+    final reviewRow = await _fetchReviewForRequest(jobId);
 
     return JobDetail.fromJson(
       jobRow: jobRow,
       counterpartyRow: counterpartyRow,
       viewerRole: viewerRole,
       photoUrls: photoUrls,
+      reviewRow: reviewRow,
     );
+  }
+
+  Future<Map<String, dynamic>?> _fetchReviewForRequest(String jobId) async {
+    return await supabase
+        .from('reviews')
+        .select('id, request_id, client_id, pro_id, rating, comment, created_at')
+        .eq('request_id', jobId)
+        .maybeSingle();
   }
 
   Future<Map<String, dynamic>?> _fetchCounterparty(
@@ -67,7 +77,7 @@ class JobDetailService {
     await supabase
         .from('service_requests')
         .update({
-          'status': JobStatus.onTheWay.dbValue,
+          'status': JobStatus.onMyWay.dbValue,
           'on_my_way_at': DateTime.now().toUtc().toIso8601String(),
         })
         .eq('id', jobId);
@@ -93,13 +103,30 @@ class JobDetailService {
         .eq('id', jobId);
   }
 
+  Future<void> submitReview({
+    required String jobId,
+    required String clientId,
+    required String proId,
+    required int rating,
+    String? comment,
+  }) async {
+    final trimmed = comment?.trim();
+    await supabase.from('reviews').insert({
+      'request_id': jobId,
+      'client_id': clientId,
+      'pro_id': proId,
+      'rating': rating,
+      'comment': (trimmed == null || trimmed.isEmpty) ? null : trimmed,
+    });
+  }
+
   Future<void> cancelJob(String jobId, {String? reason}) async {
     await supabase
         .from('service_requests')
         .update({
           'status': JobStatus.cancelled.dbValue,
           'cancelled_at': DateTime.now().toUtc().toIso8601String(),
-          if (reason != null) 'cancel_reason': reason,
+          'cancel_reason': ?reason,
         })
         .eq('id', jobId);
   }

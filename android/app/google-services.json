@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "104730973214",
+    "project_id": "fieldify-927aa",
+    "storage_bucket": "fieldify-927aa.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:104730973214:android:aff040a4158ed4a5024a0f",
+        "android_client_info": {
+          "package_name": "com.example.project"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDie_ifZMe3ycThbabQ-fLdFYt0LCgOL3Y"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

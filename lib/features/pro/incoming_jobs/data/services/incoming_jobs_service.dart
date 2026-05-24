@@ -1,6 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../../core/supabase/supabase_client.dart';
-import '../../../../pro/work_settings/data/models/availability_schedule_model.dart';
+import '../../../../pro/profile/data/models/availability_schedule_model.dart';
 import '../models/incoming_job.dart';
 
 class JobAlreadyTakenException implements Exception {

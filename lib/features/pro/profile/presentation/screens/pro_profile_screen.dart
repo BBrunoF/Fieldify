@@ -6,8 +6,8 @@ import 'package:image_picker/image_picker.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../auth/presentation/widgets/auth_shared.dart';
 import '../../controllers/pro_profile_controller.dart';
-import '../../../work_settings/controllers/work_settings_controller.dart';
-import '../../../work_settings/data/models/availability_schedule_model.dart';
+import '../../controllers/work_settings_controller.dart';
+import '../../data/models/availability_schedule_model.dart';
 
 // ── Validation ─────────────────────────────────────────────────────────────────
 

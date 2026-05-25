@@ -126,7 +126,7 @@ class ProJobsService {
         .select()
         .eq('pro_id', user.id)
         .inFilter('status', acceptedStatuses)
-        .order('accepted_at', ascending: true);
+        .order('accepted_at', ascending: false);
 
     return (result as List)
         .map((json) => ProJob.fromJson(json as Map<String, dynamic>))

@@ -8,15 +8,25 @@ class ProReviewsSection extends StatelessWidget {
   final List<ProReview> reviews;
   final bool isLoading;
 
+  /// Maximum number of review tiles to render. The newest [maxVisible] reviews
+  /// are shown (the list arrives newest-first); the header count/average still
+  /// reflect every review, not just the visible ones.
+  final int maxVisible;
+
   const ProReviewsSection({
     super.key,
     required this.summary,
     required this.reviews,
     required this.isLoading,
+    this.maxVisible = 5,
   });
 
   @override
   Widget build(BuildContext context) {
+    final visibleReviews =
+        reviews.length > maxVisible ? reviews.sublist(0, maxVisible) : reviews;
+    final hiddenCount = reviews.length - visibleReviews.length;
+
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -49,11 +59,25 @@ class ProReviewsSection extends StatelessWidget {
                 ),
               ),
             )
-          else
-            for (int i = 0; i < reviews.length; i++) ...[
+          else ...[
+            for (int i = 0; i < visibleReviews.length; i++) ...[
               const Divider(height: 1, color: Color(0x14000000)),
-              _ReviewTile(review: reviews[i]),
+              _ReviewTile(review: visibleReviews[i]),
             ],
+            if (hiddenCount > 0) ...[
+              const Divider(height: 1, color: Color(0x14000000)),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
+                child: Text(
+                  'Showing latest $maxVisible of ${reviews.length} reviews',
+                  style: GoogleFonts.dmSans(
+                    fontSize: 12,
+                    color: FieldifyColors.ink3,
+                  ),
+                ),
+              ),
+            ],
+          ],
         ],
       ),
     );

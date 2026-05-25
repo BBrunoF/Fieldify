@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:patrol/patrol.dart';
@@ -157,7 +159,30 @@ Future<void> _acceptIncomingRequest(
   } else {
     await $(find.text('Accept').first).tap();
   }
-  await $.pumpAndTrySettle(timeout: const Duration(seconds: 10));
+  // Accept is fire-and-forget (the tap handler's Future is not awaited by the
+  // framework), so pumpAndTrySettle alone returns before the Supabase update
+  // commits. Wait until the job leaves the Incoming list — the controller only
+  // removes it after acceptJob() completes — so the Accepted tab's first fetch
+  // is guaranteed to see the accepted row.
+  await _waitUntilGone($, find.text(title));
+}
+
+/// Polls until [finder] matches no widgets, pumping between checks. Patrol
+/// finders only ship waitUntilVisible, so this covers the "wait until gone"
+/// case needed after an async mutation removes an item from a list.
+Future<void> _waitUntilGone(
+  PatrolIntegrationTester $,
+  Finder finder, {
+  Duration timeout = const Duration(seconds: 30),
+}) async {
+  final deadline = DateTime.now().add(timeout);
+  while (DateTime.now().isBefore(deadline)) {
+    await $.pumpAndTrySettle(timeout: const Duration(seconds: 2));
+    if (finder.evaluate().isEmpty) return;
+  }
+  throw TimeoutException(
+    'Widget still present after ${timeout.inSeconds}s: $finder',
+  );
 }
 
 Future<void> _progressJobToCompleted(
@@ -165,6 +190,8 @@ Future<void> _progressJobToCompleted(
   String title,
 ) async {
   await _openAcceptedJobsTab($);
+  // fetchAcceptedJobs orders by accepted_at descending, so the job just
+  // accepted is at the top of the list and visible without scrolling.
   await $(title).waitUntilVisible(timeout: const Duration(seconds: 30));
   await $(find.text(title)).tap();
 

@@ -168,6 +168,9 @@ class ProProfileController extends ChangeNotifier {
 
     try {
       final url = await _repository.connectStripe();
+      // TEMP: copy this from the console and open in desktop Chrome to rule
+      // out emulator/browser flakiness during Stripe onboarding.
+      debugPrint('STRIPE ONBOARDING URL: $url');
       final launched = await launchUrl(
         Uri.parse(url),
         mode: LaunchMode.externalApplication,

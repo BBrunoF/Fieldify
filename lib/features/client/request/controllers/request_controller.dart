@@ -2,19 +2,24 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
+import '../../../shared/payments/data/models/payment_models.dart';
+import '../../../shared/payments/data/repositories/payment_repository.dart';
 import '../data/models/trade_model.dart';
 import '../data/repositories/request_repository.dart';
 
 class RequestController extends ChangeNotifier {
   final RequestRepository _repo;
+  final PaymentRepository _payments;
   final String? Function()? _currentUserIdOverride;
   final String Function() _requestIdGenerator;
 
   RequestController({
     RequestRepository? repo,
+    PaymentRepository? paymentRepository,
     String? Function()? currentUserIdProvider,
     String Function()? requestIdGenerator,
   }) : _repo = repo ?? RequestRepository(),
+       _payments = paymentRepository ?? PaymentRepository.resolve(),
        _currentUserIdOverride = currentUserIdProvider,
        _requestIdGenerator =
            requestIdGenerator ?? (() => const Uuid().v4());
@@ -77,6 +82,20 @@ class RequestController extends ChangeNotifier {
       return;
     }
 
+    // A card must be on file: the request authorises a hold up front.
+    String? cardId;
+    try {
+      cardId = await _payments.defaultCardId();
+    } catch (_) {
+      cardId = null;
+    }
+    if (cardId == null) {
+      _loading = false;
+      _error = 'Add a payment card before submitting your request.';
+      notifyListeners();
+      return;
+    }
+
     // Hardcoded Porto coords until Google Maps geocoding is wired up
     const lat = 41.1579;
     const lng = -8.6291;
@@ -103,9 +122,14 @@ class RequestController extends ChangeNotifier {
         'scheduled_at': scheduledAt?.toIso8601String(),
         'photo_urls': photoPaths,
       });
+
+      // Authorise the hold now that the request row exists.
+      await _payments.authorise(requestId: requestId, paymentMethodId: cardId);
       _submitted = true;
     } on RequestFailure catch (e) {
       _error = e.message;
+    } on PaymentException catch (e) {
+      _error = 'Request created but card authorisation failed: ${e.message}';
     } finally {
       _loading = false;
       notifyListeners();

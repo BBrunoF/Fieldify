@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../auth/presentation/widgets/auth_shared.dart';
+import '../../../../shared/payments/presentation/screens/payment_methods_screen.dart';
 import '../../controllers/profile_controller.dart';
 
 // ── Validation ────────────────────────────────────────────────────────────────
@@ -327,6 +328,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         const SizedBox(height: 10),
                         _buildEmailRow(),
                         const SizedBox(height: 20),
+                        _buildSectionLabel('Payment'),
+                        const SizedBox(height: 10),
+                        _buildPaymentRow(),
+                        const SizedBox(height: 20),
                         _buildAddressSection(),
                         const SizedBox(height: 28),
                         _controller.isSaving
@@ -558,6 +563,37 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildPaymentRow() {
+    return GestureDetector(
+      key: const Key('profilePaymentMethodsButton'),
+      onTap: () => Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => const PaymentMethodsScreen()),
+      ),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: FieldifyColors.border),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.credit_card_outlined,
+                size: 18, color: FieldifyColors.g700),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text('Payment methods',
+                  style: GoogleFonts.dmSans(
+                      fontSize: 15, color: FieldifyColors.ink)),
+            ),
+            const Icon(Icons.chevron_right,
+                size: 20, color: FieldifyColors.ink3),
+          ],
+        ),
       ),
     );
   }

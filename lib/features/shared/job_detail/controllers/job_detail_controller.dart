@@ -1,24 +1,39 @@
 import 'package:flutter/foundation.dart';
+import '../../payments/data/models/payment_models.dart';
+import '../../payments/data/repositories/payment_repository.dart';
 import '../data/models/job_detail_model.dart';
 import '../data/repositories/job_detail_repository.dart';
+
+/// Upper bound on a single job, mirrors MAX_JOB_HOURS in the edge functions —
+/// the authorisation covers `rate × this`.
+const _maxJobHours = 8;
+
+/// Minimum billable duration: every job is charged for at least 30 minutes,
+/// however short the actual time worked.
+const _minBillableHours = 0.5;
 
 class JobDetailController extends ChangeNotifier {
   final String jobId;
   final ViewerRole viewerRole;
   final JobDetailRepository _repo;
+  final PaymentRepository _payments;
 
   JobDetailController({
     required this.jobId,
     required this.viewerRole,
     JobDetailRepository? repo,
-  }) : _repo = repo ?? JobDetailRepository();
+    PaymentRepository? paymentRepository,
+  })  : _repo = repo ?? JobDetailRepository(),
+        _payments = paymentRepository ?? PaymentRepository.resolve();
 
   JobDetail? _detail;
+  PaymentInfo? _payment;
   bool _loading = false;
   bool _performingAction = false;
   String? _error;
 
   JobDetail? get detail => _detail;
+  PaymentInfo? get payment => _payment;
   bool get isLoading => _loading;
   bool get isPerformingAction => _performingAction;
   String? get error => _error;
@@ -30,6 +45,7 @@ class JobDetailController extends ChangeNotifier {
 
     try {
       _detail = await _repo.fetchJobDetail(jobId, viewerRole);
+      _payment = await _payments.fetchPaymentForRequest(jobId);
     } on JobDetailFailure catch (e) {
       _error = e.message;
     } catch (_) {
@@ -48,8 +64,44 @@ class JobDetailController extends ChangeNotifier {
   Future<void> markInProgress() =>
       _runProAction(() => _repo.markInProgress(jobId));
 
-  Future<void> markCompleted() =>
-      _runProAction(() => _repo.markCompleted(jobId));
+  /// Pro completes the job. If the client authorised a payment, capture the
+  /// actual amount (the capture function also flips the request to completed).
+  /// Otherwise fall back to a plain status update so the flow never dead-ends.
+  Future<void> markCompleted() => _runProAction(() async {
+        // Always attempt capture — the capture function looks the payment up by
+        // request_id with admin rights, so this works even when RLS hides the
+        // (still pro_id-null) payment row from the pro. Fall back to a plain
+        // completion only when there is genuinely no authorised payment.
+        try {
+          await _payments.capture(
+            requestId: jobId,
+            amountEuros: _computeCaptureAmount(),
+          );
+        } on PaymentException catch (e) {
+          final msg = e.message.toLowerCase();
+          if (msg.contains('no payment') || msg.contains('cannot capture')) {
+            await _repo.markCompleted(jobId);
+          } else {
+            rethrow;
+          }
+        }
+      });
+
+  /// Charge the worked hours at the trade rate, clamped to the authorised
+  /// ceiling (rate × max hours) which is what Stripe is holding.
+  double _computeCaptureAmount() {
+    final d = _detail;
+    if (d == null) return 0.01;
+    final rate = d.trade.standardRate;
+    final start = d.timeline.startedAt;
+    final hours = start == null
+        ? _minBillableHours
+        : DateTime.now().toUtc().difference(start).inSeconds / 3600.0;
+    final clampedHours = hours.clamp(_minBillableHours, _maxJobHours.toDouble());
+    final amount = double.parse((rate * clampedHours).toStringAsFixed(2));
+    final ceiling = _payment?.amountAuthorised ?? (rate * _maxJobHours);
+    return amount > ceiling ? ceiling : amount;
+  }
 
   Future<void> cancel({String? reason}) async {
     if (viewerRole != ViewerRole.client) return;
@@ -110,7 +162,10 @@ class JobDetailController extends ChangeNotifier {
     try {
       await action();
       _detail = await _repo.fetchJobDetail(jobId, viewerRole);
+      _payment = await _payments.fetchPaymentForRequest(jobId);
     } on JobDetailFailure catch (e) {
+      _error = e.message;
+    } on PaymentException catch (e) {
       _error = e.message;
     } catch (_) {
       _error = 'Action failed.';

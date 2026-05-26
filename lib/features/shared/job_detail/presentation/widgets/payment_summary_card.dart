@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../../core/theme/app_colors.dart';
+import '../../../payments/data/models/payment_models.dart';
 import '../../data/models/job_detail_model.dart';
 
 class PaymentSummaryCard extends StatelessWidget {
   final JobDetail detail;
-  const PaymentSummaryCard({super.key, required this.detail});
+  final PaymentInfo? payment;
+  const PaymentSummaryCard({super.key, required this.detail, this.payment});
 
   Duration? get _duration {
     final t = detail.timeline;
@@ -47,13 +49,41 @@ class PaymentSummaryCard extends StatelessWidget {
           ),
           _Row(label: 'Duration', value: d == null ? '—' : _fmtDuration(d)),
           _Row(label: 'Rate', value: '€${rate.toStringAsFixed(0)} / h'),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-            child: Text(
-              'Final total pending — payments coming soon.',
-              style: GoogleFonts.dmSans(fontSize: 11, color: FieldifyColors.ink3),
+          if (payment?.isCaptured == true && payment?.amountCharged != null) ...[
+            const Divider(height: 1, color: Color(0x14000000)),
+            _Row(
+              label: 'Charged',
+              value: '€${payment!.amountCharged!.toStringAsFixed(2)}',
+              emphasised: true,
             ),
-          ),
+            if (payment?.platformFee != null)
+              _Row(
+                label: 'Platform fee',
+                value: '€${payment!.platformFee!.toStringAsFixed(2)}',
+              ),
+          ] else if (payment?.isAuthorised == true) ...[
+            const Divider(height: 1, color: Color(0x14000000)),
+            _Row(
+              label: 'Authorised (hold)',
+              value: '€${payment!.amountAuthorised.toStringAsFixed(2)}',
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+              child: Text(
+                'Held on your card — charged when the job completes.',
+                style: GoogleFonts.dmSans(
+                    fontSize: 11, color: FieldifyColors.ink3),
+              ),
+            ),
+          ] else
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+              child: Text(
+                'No payment recorded for this job.',
+                style: GoogleFonts.dmSans(
+                    fontSize: 11, color: FieldifyColors.ink3),
+              ),
+            ),
         ],
       ),
     );
@@ -63,7 +93,12 @@ class PaymentSummaryCard extends StatelessWidget {
 class _Row extends StatelessWidget {
   final String label;
   final String value;
-  const _Row({required this.label, required this.value});
+  final bool emphasised;
+  const _Row({
+    required this.label,
+    required this.value,
+    this.emphasised = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -76,8 +111,8 @@ class _Row extends StatelessWidget {
           Text(
             value,
             style: GoogleFonts.dmMono(
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
+              fontSize: emphasised ? 15 : 13,
+              fontWeight: emphasised ? FontWeight.w700 : FontWeight.w500,
               color: FieldifyColors.ink,
             ),
           ),

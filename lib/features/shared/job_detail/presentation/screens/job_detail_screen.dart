@@ -183,7 +183,7 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
 
       case JobStatus.completed:
         if (detail.counterparty != null) add(CounterpartyCard(info: detail.counterparty!));
-        add(PaymentSummaryCard(detail: detail));
+        add(PaymentSummaryCard(detail: detail, payment: _controller.payment));
         add(JobDetailsCard(detail: detail));
         if (detail.photoUrls.isNotEmpty) add(PhotoGallery(urls: detail.photoUrls));
         if (detail.viewerRole == ViewerRole.client && detail.counterparty != null) {

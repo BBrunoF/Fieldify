@@ -7,6 +7,9 @@ import '../../../../../core/theme/app_colors.dart';
 import '../../../../../shared/utils/date_format_utils.dart';
 import '../../../../../shared/widgets/fieldify_painters.dart';
 import '../../../../auth/presentation/widgets/auth_shared.dart';
+import '../../../../shared/payments/data/models/payment_models.dart';
+import '../../../../shared/payments/data/repositories/payment_repository.dart';
+import '../../../../shared/payments/presentation/screens/payment_methods_screen.dart';
 import '../../controllers/request_controller.dart';
 import '../../data/models/trade_model.dart';
 import '../trade_icon_mapper.dart';
@@ -45,6 +48,10 @@ class _RequestScreenState extends State<RequestScreen> {
   late final RequestController _requestCtrl;
   late final bool _ownsController;
 
+  final _paymentRepo = PaymentRepository.resolve();
+  SavedCard? _defaultCard;
+  bool _loadingCard = true;
+
   DateTime _date = DateTime.now().add(const Duration(days: 1));
   TimeOfDay _time = const TimeOfDay(hour: 10, minute: 0);
 
@@ -55,6 +62,30 @@ class _RequestScreenState extends State<RequestScreen> {
     _ownsController = widget.controller == null;
     _requestCtrl.addListener(_onRequestChanged);
     _requestCtrl.loadTrades();
+    _loadDefaultCard();
+  }
+
+  Future<void> _loadDefaultCard() async {
+    try {
+      final cards = await _paymentRepo.fetchCards();
+      if (!mounted) return;
+      setState(() {
+        _defaultCard = cards.isEmpty
+            ? null
+            : cards.firstWhere((c) => c.isDefault, orElse: () => cards.first);
+        _loadingCard = false;
+      });
+    } catch (_) {
+      if (mounted) setState(() => _loadingCard = false);
+    }
+  }
+
+  Future<void> _openPaymentMethods() async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const PaymentMethodsScreen()),
+    );
+    setState(() => _loadingCard = true);
+    await _loadDefaultCard();
   }
 
   void _onRequestChanged() {
@@ -910,66 +941,120 @@ Future<void> _showPhotoSourceSheet() async {
                   size: 20,
                 ),
                 const SizedBox(width: 10),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Payment method',
-                      style: GoogleFonts.dmSans(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.white,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Payment method',
+                        style: GoogleFonts.dmSans(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.white,
+                        ),
                       ),
-                    ),
-                    Text(
-                      'Saved to your account',
-                      style: GoogleFonts.dmSans(
-                        fontSize: 11,
-                        color: FieldifyColors.g200,
+                      Text(
+                        _defaultCard == null
+                            ? 'Tap to add a card'
+                            : 'Saved to your account',
+                        style: GoogleFonts.dmSans(
+                          fontSize: 11,
+                          color: FieldifyColors.g200,
+                        ),
                       ),
+                    ],
+                  ),
+                ),
+                GestureDetector(
+                  key: const Key('requestPaymentManageButton'),
+                  onTap: _openPaymentMethods,
+                  child: Text(
+                    _defaultCard == null ? 'Add' : 'Change',
+                    style: GoogleFonts.dmSans(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: FieldifyColors.g100,
                     ),
-                  ],
+                  ),
                 ),
               ],
             ),
           ),
-          Container(
-            margin: const EdgeInsets.all(14),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            decoration: BoxDecoration(
-              color: const Color(0xFF173404),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Row(
-              children: [
-                Container(
-                  width: 28,
-                  height: 20,
-                  decoration: BoxDecoration(
-                    color: FieldifyColors.g200.withAlpha(179),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    '•••• •••• •••• 4821',
-                    style: GoogleFonts.dmMono(
-                      fontSize: 13,
-                      color: FieldifyColors.g200,
-                      letterSpacing: 1.6,
-                    ),
-                  ),
-                ),
-                Text(
-                  'VISA',
-                  style: GoogleFonts.dmSans(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w500,
-                    color: FieldifyColors.g200.withAlpha(153),
-                  ),
-                ),
-              ],
+          GestureDetector(
+            onTap: _defaultCard == null ? _openPaymentMethods : null,
+            child: Container(
+              margin: const EdgeInsets.all(14),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              decoration: BoxDecoration(
+                color: const Color(0xFF173404),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: _loadingCard
+                  ? Row(
+                      children: [
+                        const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor:
+                                AlwaysStoppedAnimation<Color>(FieldifyColors.g200),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Text(
+                          'Loading your card…',
+                          style: GoogleFonts.dmSans(
+                              fontSize: 13, color: FieldifyColors.g200),
+                        ),
+                      ],
+                    )
+                  : _defaultCard == null
+                      ? Row(
+                          children: [
+                            const Icon(Icons.add_card_outlined,
+                                size: 20, color: FieldifyColors.g200),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                'No card saved — add one to pay for jobs',
+                                style: GoogleFonts.dmSans(
+                                    fontSize: 13, color: FieldifyColors.g200),
+                              ),
+                            ),
+                          ],
+                        )
+                      : Row(
+                          children: [
+                            Container(
+                              width: 28,
+                              height: 20,
+                              decoration: BoxDecoration(
+                                color: FieldifyColors.g200.withAlpha(179),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                _defaultCard!.masked,
+                                style: GoogleFonts.dmMono(
+                                  fontSize: 13,
+                                  color: FieldifyColors.g200,
+                                  letterSpacing: 1.6,
+                                ),
+                              ),
+                            ),
+                            Text(
+                              _defaultCard!.brandLabel.toUpperCase(),
+                              style: GoogleFonts.dmSans(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w500,
+                                color: FieldifyColors.g200.withAlpha(153),
+                              ),
+                            ),
+                          ],
+                        ),
             ),
           ),
           Padding(

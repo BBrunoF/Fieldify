@@ -9,15 +9,19 @@ import '../../../jobs/controllers/pro_jobs_controller.dart';
 import '../../../jobs/presentation/widgets/pro_jobs_view.dart';
 import '../../../profile/presentation/screens/pro_profile_screen.dart';
 import '../../../../shared/chat/presentation/screens/inbox_screen.dart';
+import '../../controllers/pro_dashboard_controller.dart';
+import '../widgets/pro_dashboard_view.dart';
 
 class ProHomeScreen extends StatefulWidget {
   final Future<void> Function()? onLogout;
   final ProJobsController? jobsController;
+  final ProDashboardController? dashboardController;
 
   const ProHomeScreen({
     super.key,
     this.onLogout,
     this.jobsController,
+    this.dashboardController,
   });
 
   @override
@@ -26,6 +30,23 @@ class ProHomeScreen extends StatefulWidget {
 
 class _ProHomeScreenState extends State<ProHomeScreen> {
   int _selectedNav = 0;
+  late final ProDashboardController _dashboardController;
+
+  @override
+  void initState() {
+    super.initState();
+    _dashboardController =
+        widget.dashboardController ?? ProDashboardController();
+  }
+
+  @override
+  void dispose() {
+    // Only dispose a controller we created ourselves.
+    if (widget.dashboardController == null) {
+      _dashboardController.dispose();
+    }
+    super.dispose();
+  }
 
   void _onNavTap(int i) {
     if (i == 2) {
@@ -139,40 +160,7 @@ class _ProHomeScreenState extends State<ProHomeScreen> {
           ),
         ),
         Expanded(
-          child: Center(
-            child: Padding(
-              padding: const EdgeInsets.all(32),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.construction_outlined,
-                    size: 56,
-                    color: Colors.black.withAlpha(80),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Your pro dashboard is on the way.',
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.dmSans(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                      color: FieldifyColors.ink2,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Head to the Jobs tab to see incoming requests.',
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.dmSans(
-                      fontSize: 13,
-                      color: FieldifyColors.ink4,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
+          child: ProDashboardView(controller: _dashboardController),
         ),
       ],
     );

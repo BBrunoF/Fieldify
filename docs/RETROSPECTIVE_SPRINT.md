@@ -69,7 +69,7 @@ For stories carried over more than once ([US09], [US03]), a brief root cause ses
 Sprint 3 took place during May 2026 and represents the most productive sprint of the project. The team delivered a total of 61 story points across 10 user stories, including the long-standing carry-over items [US09] Automatic Payment Processing and [US03] Service Request Submission, which had been deferred across two consecutive sprints. Being the final sprint of the project, the team had to push hard to ensure everything was completed, with the added pressure of closing out unfinished work from the two previous sprints on top of an already demanding scope. Despite this, the sprint concluded with zero carry-overs and full delivery of all committed items.
 
 ## What Went Well
-- Successfully delivered all 10 planned user stories with no items carried over to a future sprint
+- Successfully delivered 8 planned user stories with no items carried over to a future sprint
 - Resolved [US09] Automatic Payment Processing and [US03] Service Request Submission, both of which had been carried over from Sprints 1 and 2
 - Achieved the highest sprint velocity of the project at 61 story points, nearly 3x the output of Sprint 2
 - All process policies defined in previous retrospectives were applied effectively: Carry-Over Prioritisation, Capacity-Aware Planning, and Root Cause Analysis

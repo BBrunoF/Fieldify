@@ -64,6 +64,7 @@
 - Log, track and verify defects
 - Sprint 3 review document
 - Hapinnes matters document
-
+- AI usage document
+  
 ### Not Completed 
 - all tasks completed

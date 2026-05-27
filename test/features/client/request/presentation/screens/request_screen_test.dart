@@ -4,6 +4,7 @@ import 'package:project/features/client/request/controllers/request_controller.d
 import 'package:project/features/client/request/data/models/trade_model.dart';
 import 'package:project/features/client/request/data/repositories/request_repository.dart';
 import 'package:project/features/client/request/presentation/screens/request_screen.dart';
+import 'package:project/features/shared/payments/data/repositories/payment_repository.dart';
 
 import '../../../../../test_helpers.dart';
 
@@ -29,6 +30,19 @@ class _FakeRequestRepository extends RequestRepository {
 
   @override
   Future<List<Trade>> getTrades() async => trades;
+}
+
+/// Stubs out the card lookup + authorisation so the submit flow can run in a
+/// widget test without a live Supabase/Stripe backend.
+class _FakePaymentRepository extends PaymentRepository {
+  @override
+  Future<String?> defaultCardId() async => 'card-1';
+
+  @override
+  Future<void> authorise({
+    required String requestId,
+    required String paymentMethodId,
+  }) async {}
 }
 
 void main() {
@@ -69,6 +83,7 @@ void main() {
             submittedData = data;
           },
         ),
+        paymentRepository: _FakePaymentRepository(),
         currentUserIdProvider: () => 'client-123',
       );
 

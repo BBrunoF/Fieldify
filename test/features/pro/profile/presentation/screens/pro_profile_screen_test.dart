@@ -86,6 +86,18 @@ class _FakeWorkSettingsRepository extends WorkSettingsRepository {
 WorkSettingsController _workController() =>
     WorkSettingsController(repository: _FakeWorkSettingsRepository());
 
+/// Builds the screen with a Supabase-free work controller by default, so tests
+/// that don't care about work settings never touch the uninitialized Supabase
+/// instance. Pass [workController] explicitly to override.
+ProProfileScreen _screen({
+  ProProfileController? controller,
+  WorkSettingsController? workController,
+}) =>
+    ProProfileScreen(
+      controller: controller,
+      workController: workController ?? _workController(),
+    );
+
 /// Work-settings repository whose load never completes, so the controller
 /// stays in the loading state and the screen never marks work settings as
 /// initialized. Records whether a save was (incorrectly) attempted.
@@ -155,7 +167,7 @@ void main() {
     testWidgets('shows My profile header title', (tester) async {
       await pumpTestApp(
         tester,
-        ProProfileScreen(controller: _controller(profile: _pending)),
+        _screen(controller: _controller(profile: _pending)),
       );
       await tester.pumpAndSettle();
 
@@ -165,7 +177,7 @@ void main() {
     testWidgets('shows bio field', (tester) async {
       await pumpTestApp(
         tester,
-        ProProfileScreen(controller: _controller(profile: _pending)),
+        _screen(controller: _controller(profile: _pending)),
       );
       await tester.pumpAndSettle();
 
@@ -175,7 +187,7 @@ void main() {
     testWidgets('bio field is pre-filled with current bio', (tester) async {
       await pumpTestApp(
         tester,
-        ProProfileScreen(controller: _controller(profile: _pending)),
+        _screen(controller: _controller(profile: _pending)),
       );
       await tester.pumpAndSettle();
 
@@ -188,7 +200,7 @@ void main() {
     testWidgets('shows radius slider', (tester) async {
       await pumpTestApp(
         tester,
-        ProProfileScreen(controller: _controller(profile: _pending)),
+        _screen(controller: _controller(profile: _pending)),
       );
       await tester.pumpAndSettle();
 
@@ -198,7 +210,7 @@ void main() {
     testWidgets('radius slider is pre-set with current value', (tester) async {
       await pumpTestApp(
         tester,
-        ProProfileScreen(controller: _controller(profile: _pending)),
+        _screen(controller: _controller(profile: _pending)),
       );
       await tester.pumpAndSettle();
 
@@ -212,7 +224,7 @@ void main() {
         (tester) async {
       await pumpTestApp(
         tester,
-        ProProfileScreen(controller: _controller(profile: _rejected)),
+        _screen(controller: _controller(profile: _rejected)),
       );
       await tester.pumpAndSettle();
 
@@ -227,7 +239,7 @@ void main() {
         (tester) async {
       await pumpTestApp(
         tester,
-        ProProfileScreen(controller: _controller(profile: _pending)),
+        _screen(controller: _controller(profile: _pending)),
       );
       await tester.pumpAndSettle();
 
@@ -242,7 +254,7 @@ void main() {
         (tester) async {
       await pumpTestApp(
         tester,
-        ProProfileScreen(controller: _controller(profile: _approved)),
+        _screen(controller: _controller(profile: _approved)),
       );
       await tester.pumpAndSettle();
 
@@ -255,7 +267,7 @@ void main() {
     testWidgets('shows add credential button when not approved', (tester) async {
       await pumpTestApp(
         tester,
-        ProProfileScreen(controller: _controller(profile: _pending)),
+        _screen(controller: _controller(profile: _pending)),
       );
       await tester.pumpAndSettle();
 
@@ -267,7 +279,7 @@ void main() {
         (tester) async {
       await pumpTestApp(
         tester,
-        ProProfileScreen(controller: _controller(profile: _approved)),
+        _screen(controller: _controller(profile: _approved)),
       );
       await tester.pumpAndSettle();
 
@@ -293,7 +305,7 @@ void main() {
       );
       await pumpTestApp(
         tester,
-        ProProfileScreen(controller: _controller(profile: profile)),
+        _screen(controller: _controller(profile: profile)),
       );
       await tester.pumpAndSettle();
 
@@ -307,7 +319,7 @@ void main() {
       final workRepo = _BlockingWorkSettingsRepository();
       await pumpTestApp(
         tester,
-        ProProfileScreen(
+        _screen(
           controller: _controller(profile: _pending, onUpdate: () async {}),
           workController: WorkSettingsController(repository: workRepo),
         ),
@@ -336,7 +348,7 @@ void main() {
       final controller = ProProfileController(repository: repo);
       await pumpTestApp(
         tester,
-        ProProfileScreen(
+        _screen(
           controller: controller,
           workController: _workController(),
         ),
@@ -361,7 +373,7 @@ void main() {
         (tester) async {
       await pumpTestApp(
         tester,
-        ProProfileScreen(controller: _controller(profile: _pending)),
+        _screen(controller: _controller(profile: _pending)),
       );
       await tester.pumpAndSettle();
 
@@ -371,7 +383,7 @@ void main() {
     testWidgets('shows "Verified" badge for approved profile', (tester) async {
       await pumpTestApp(
         tester,
-        ProProfileScreen(controller: _controller(profile: _approved)),
+        _screen(controller: _controller(profile: _approved)),
       );
       await tester.pumpAndSettle();
 
@@ -382,7 +394,7 @@ void main() {
         (tester) async {
       await pumpTestApp(
         tester,
-        ProProfileScreen(controller: _controller(profile: _rejected)),
+        _screen(controller: _controller(profile: _rejected)),
       );
       await tester.pumpAndSettle();
 
@@ -392,7 +404,7 @@ void main() {
     testWidgets('shows trade name and standard rate', (tester) async {
       await pumpTestApp(
         tester,
-        ProProfileScreen(controller: _controller(profile: _pending)),
+        _screen(controller: _controller(profile: _pending)),
       );
       await tester.pumpAndSettle();
 
@@ -404,7 +416,7 @@ void main() {
         (tester) async {
       await pumpTestApp(
         tester,
-        ProProfileScreen(controller: _controller(profile: _pending)),
+        _screen(controller: _controller(profile: _pending)),
       );
       await tester.pumpAndSettle();
 
@@ -417,7 +429,7 @@ void main() {
     testWidgets('save button is enabled after editing the bio', (tester) async {
       await pumpTestApp(
         tester,
-        ProProfileScreen(controller: _controller(profile: _pending)),
+        _screen(controller: _controller(profile: _pending)),
       );
       await tester.pumpAndSettle();
 
@@ -437,7 +449,7 @@ void main() {
         (tester) async {
       await pumpTestApp(
         tester,
-        ProProfileScreen(controller: _controller(profile: _pending)),
+        _screen(controller: _controller(profile: _pending)),
       );
       await tester.pumpAndSettle();
 
@@ -461,7 +473,7 @@ void main() {
         (tester) async {
       await pumpTestApp(
         tester,
-        ProProfileScreen(controller: _controller(profile: _pending)),
+        _screen(controller: _controller(profile: _pending)),
       );
       await tester.pumpAndSettle();
 
@@ -481,7 +493,7 @@ void main() {
         (tester) async {
       await pumpTestApp(
         tester,
-        ProProfileScreen(controller: _controller(profile: _pending)),
+        _screen(controller: _controller(profile: _pending)),
       );
       await tester.pumpAndSettle();
 
@@ -501,7 +513,7 @@ void main() {
         (tester) async {
       await pumpTestApp(
         tester,
-        ProProfileScreen(controller: _controller(profile: _pending)),
+        _screen(controller: _controller(profile: _pending)),
       );
       await tester.pumpAndSettle();
 
@@ -521,7 +533,7 @@ void main() {
         (tester) async {
       await pumpTestApp(
         tester,
-        ProProfileScreen(
+        _screen(
           controller: _controller(
             profile: _pending,
             onUpdate: () async {},
@@ -546,7 +558,7 @@ void main() {
     testWidgets('shows error snackbar when save fails', (tester) async {
       await pumpTestApp(
         tester,
-        ProProfileScreen(
+        _screen(
           controller: _controller(
             profile: _pending,
             onUpdate: () async => throw Exception('Network error'),
@@ -572,7 +584,7 @@ void main() {
         (tester) async {
       await pumpTestApp(
         tester,
-        ProProfileScreen(
+        _screen(
           controller: _controller(
             profile: _pending,
             onUpdate: () async {},
@@ -600,7 +612,7 @@ void main() {
     testWidgets('shows avatar edit button', (tester) async {
       await pumpTestApp(
         tester,
-        ProProfileScreen(controller: _controller(profile: _pending)),
+        _screen(controller: _controller(profile: _pending)),
       );
       await tester.pumpAndSettle();
 
@@ -613,7 +625,7 @@ void main() {
     testWidgets('shows initials in avatar when no photo', (tester) async {
       await pumpTestApp(
         tester,
-        ProProfileScreen(controller: _controller(profile: _pending)),
+        _screen(controller: _controller(profile: _pending)),
       );
       await tester.pumpAndSettle();
 
@@ -624,7 +636,7 @@ void main() {
         (tester) async {
       await pumpTestApp(
         tester,
-        ProProfileScreen(controller: _controller(profile: _pending)),
+        _screen(controller: _controller(profile: _pending)),
       );
       await tester.pumpAndSettle();
 
@@ -661,7 +673,7 @@ void main() {
 
       await pumpTestApp(
         tester,
-        ProProfileScreen(controller: controller),
+        _screen(controller: controller),
       );
       await tester.pumpAndSettle();
 

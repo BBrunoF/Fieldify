@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../shared/widgets/bottom_nav.dart';
-import '../../../../auth/presentation/widgets/auth_shared.dart';
 import '../../../../home/presentation/widgets/home_action_buttons.dart';
 import '../../../jobs/controllers/pro_jobs_controller.dart';
 import '../../../jobs/presentation/widgets/pro_jobs_view.dart';
@@ -108,10 +107,13 @@ class _ProHomeScreenState extends State<ProHomeScreen> {
                           color: FieldifyColors.g100,
                           borderRadius: BorderRadius.circular(9),
                         ),
-                        child: Center(
-                          child: CustomPaint(
-                            size: const Size(18, 18),
-                            painter: FieldifyMarkPainter(),
+                        child: Padding(
+                          padding: const EdgeInsets.all(5),
+                          child: Image.asset(
+                            'assets/icon/mark.png',
+                            color: FieldifyColors.g800,
+                            colorBlendMode: BlendMode.srcIn,
+                            filterQuality: FilterQuality.high,
                           ),
                         ),
                       ),

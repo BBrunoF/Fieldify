@@ -10,6 +10,12 @@ import '../../../../auth/presentation/widgets/auth_shared.dart';
 import '../../../../shared/payments/data/models/payment_models.dart';
 import '../../../../shared/payments/data/repositories/payment_repository.dart';
 import '../../../../shared/payments/presentation/screens/payment_methods_screen.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import '../../../../../core/location/location_constants.dart';
+import '../../../../shared/location/data/location_service.dart';
+import '../../../../shared/location/models/picked_location.dart';
+import '../../../../shared/location/presentation/location_picker_screen.dart';
+import '../../../../shared/location/presentation/static_map_view.dart';
 import '../../controllers/request_controller.dart';
 import '../../data/models/trade_model.dart';
 import '../trade_icon_mapper.dart';
@@ -45,6 +51,8 @@ class _RequestScreenState extends State<RequestScreen> {
   );
   final _addressCtrl = TextEditingController(text: 'Rua do Heroísmo 42, Porto');
   final _floorCtrl = TextEditingController();
+  final LocationService _locationService = GeolocatorLocationService();
+  LatLng _pickedLatLng = kDefaultLocation;
   late final RequestController _requestCtrl;
   late final bool _ownsController;
 
@@ -134,9 +142,27 @@ class _RequestScreenState extends State<RequestScreen> {
       title: _titleCtrl.text.trim(),
       description: _descCtrl.text.trim(),
       addressText: _addressCtrl.text.trim(),
+      latitude: _pickedLatLng.latitude,
+      longitude: _pickedLatLng.longitude,
       scheduledAt: scheduledAt,
       photos: _photos,
     );
+  }
+
+  Future<void> _openLocationPicker() async {
+    final result = await Navigator.of(context).push<PickedLocation>(
+      MaterialPageRoute(
+        builder: (_) => LocationPickerScreen(
+          locationService: _locationService,
+          initial: _pickedLatLng,
+        ),
+      ),
+    );
+    if (result == null) return;
+    setState(() {
+      _pickedLatLng = LatLng(result.lat, result.lng);
+      if (result.address.isNotEmpty) _addressCtrl.text = result.address;
+    });
   }
 
   Future<void> _pickPhoto(ImageSource source) async {
@@ -696,41 +722,12 @@ Future<void> _showPhotoSourceSheet() async {
           'Where is the job?',
           'We\'ll match you with professionals nearby.',
         ),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(14),
-          child: SizedBox(
-            height: 120,
-            child: Stack(
-              children: [
-                Positioned.fill(
-                  child: CustomPaint(painter: MapPainter(vw: 350, vh: 120)),
-                ),
-                const Center(child: MapPin(size: 24)),
-                Positioned(
-                  bottom: 8,
-                  right: 10,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 5,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: FieldifyColors.g200),
-                    ),
-                    child: Text(
-                      'Change',
-                      style: GoogleFonts.dmSans(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w500,
-                        color: FieldifyColors.g800,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
+        GestureDetector(
+          key: const Key('requestMapPreview'),
+          onTap: _openLocationPicker,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(14),
+            child: StaticMapView(position: _pickedLatLng, height: 120),
           ),
         ),
         const SizedBox(height: 14),

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../../../../core/theme/app_colors.dart';
+import '../../../location/presentation/static_map_view.dart';
 import '../../controllers/job_detail_controller.dart';
 import '../../data/models/job_detail_model.dart';
 import '../widgets/action_bar/job_detail_action_bar.dart';
@@ -154,7 +156,14 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
 
       case JobStatus.onMyWay:
         if (detail.counterparty != null) add(CounterpartyCard(info: detail.counterparty!));
-        add(const MapMiniCard(etaLabel: 'ETA coming soon'));
+        if (detail.lat != null && detail.lng != null) {
+          add(ClipRRect(
+            borderRadius: BorderRadius.circular(14),
+            child: StaticMapView(position: LatLng(detail.lat!, detail.lng!)),
+          ));
+        } else {
+          add(const MapMiniCard(etaLabel: 'Location unavailable'));
+        }
         add(const NoticeBanner(
           kind: NoticeKind.warn,
           text: 'Your card has been authorised. Cancelling now will incur a cancellation fee.',

@@ -47,3 +47,7 @@ app.*.map.json
 CLAUDE.md
 .claude/
 .superpowers/
+
+# Secrets (API keys injected at build time)
+.env
+/ios/Flutter/Secrets.xcconfig

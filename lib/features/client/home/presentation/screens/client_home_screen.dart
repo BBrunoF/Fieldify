@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import '../../../../../core/location/location_constants.dart';
 import '../../../../../core/theme/app_colors.dart';
+import '../../../../shared/location/data/location_service.dart';
+import '../../../../shared/location/presentation/static_map_view.dart';
 import '../../../../../shared/widgets/bottom_nav.dart';
 import '../../../../../shared/widgets/fieldify_painters.dart';
-import '../../../../auth/presentation/widgets/auth_shared.dart';
 import '../../../../home/presentation/widgets/home_action_buttons.dart';
 import '../../../job_history/controllers/job_history_controller.dart';
 import '../../../job_history/presentation/widgets/job_history_view.dart';
@@ -37,12 +40,18 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
   late final ProfileController _profileController;
   late final bool _ownsProfileController;
 
+  final LocationService _locationService = GeolocatorLocationService();
+  LatLng _center = kDefaultLocation;
+
   @override
   void initState() {
     super.initState();
     _profileController = widget.profileController ?? ProfileController();
     _ownsProfileController = widget.profileController == null;
     _profileController.addListener(_onProfileChanged);
+    _locationService.currentPosition().then((pos) {
+      if (pos != null && mounted) setState(() => _center = pos);
+    });
   }
 
   void _onProfileChanged() {
@@ -179,10 +188,13 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
                       color: FieldifyColors.g100,
                       borderRadius: BorderRadius.circular(9),
                     ),
-                    child: Center(
-                      child: CustomPaint(
-                        size: const Size(18, 18),
-                        painter: FieldifyMarkPainter(),
+                    child: Padding(
+                      padding: const EdgeInsets.all(5),
+                      child: Image.asset(
+                        'assets/icon/mark.png',
+                        color: FieldifyColors.g800,
+                        colorBlendMode: BlendMode.srcIn,
+                        filterQuality: FilterQuality.high,
                       ),
                     ),
                   ),
@@ -244,11 +256,9 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
           height: 160,
           child: Stack(
             children: [
-              Positioned.fill(child: CustomPaint(painter: MapPainter())),
-              const Positioned(top: 18, left: 45, child: _ProDot('MF')),
-              const Positioned(top: 62, right: 45, child: _ProDot('AC')),
-              const Positioned(bottom: 22, left: 70, child: _ProDot('JR')),
-              const Center(child: MapPin()),
+              Positioned.fill(
+                child: StaticMapView(position: _center, height: 160),
+              ),
               Positioned(
                 bottom: 0,
                 left: 0,
@@ -431,34 +441,6 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
           ),
           const SizedBox(height: 24),
         ],
-      ),
-    );
-  }
-}
-
-class _ProDot extends StatelessWidget {
-  final String initials;
-  const _ProDot(this.initials);
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 20,
-      height: 20,
-      decoration: BoxDecoration(
-        color: FieldifyColors.g700,
-        shape: BoxShape.circle,
-        border: Border.all(color: Colors.white, width: 2),
-      ),
-      child: Center(
-        child: Text(
-          initials,
-          style: GoogleFonts.dmSans(
-            fontSize: 6,
-            fontWeight: FontWeight.w500,
-            color: FieldifyColors.g100,
-          ),
-        ),
       ),
     );
   }

@@ -67,6 +67,8 @@ class RequestController extends ChangeNotifier {
     required String title,
     required String description,
     required String addressText,
+    required double latitude,
+    required double longitude,
     required DateTime? scheduledAt,
     List<File> photos = const [],
   }) async {
@@ -96,10 +98,6 @@ class RequestController extends ChangeNotifier {
       return;
     }
 
-    // Hardcoded Porto coords until Google Maps geocoding is wired up
-    const lat = 41.1579;
-    const lng = -8.6291;
-
     final requestId = _requestIdGenerator();
 
     try {
@@ -118,7 +116,7 @@ class RequestController extends ChangeNotifier {
         'title': title,
         'description': description,
         'address_text': addressText,
-        'location': 'POINT($lng $lat)',
+        'location': 'POINT($longitude $latitude)',
         'scheduled_at': scheduledAt?.toIso8601String(),
         'photo_urls': photoPaths,
       });

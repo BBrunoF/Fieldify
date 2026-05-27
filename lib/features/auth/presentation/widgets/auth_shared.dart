@@ -18,10 +18,13 @@ class FieldifyLogo extends StatelessWidget {
             color: FieldifyColors.g100,
             borderRadius: BorderRadius.circular(10),
           ),
-          child: Center(
-            child: CustomPaint(
-              size: const Size(20, 20),
-              painter: FieldifyMarkPainter(),
+          child: Padding(
+            padding: const EdgeInsets.all(6),
+            child: Image.asset(
+              'assets/icon/mark.png',
+              color: FieldifyColors.g800,
+              colorBlendMode: BlendMode.srcIn,
+              filterQuality: FilterQuality.high,
             ),
           ),
         ),
@@ -253,30 +256,6 @@ class OrDivider extends StatelessWidget {
 }
 
 // ── Custom painters ───────────────────────────────────────────────────────────
-
-class FieldifyMarkPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final p = Paint()
-      ..color = FieldifyColors.g800
-      ..strokeWidth = 2.2
-      ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.round
-      ..style = PaintingStyle.stroke;
-
-    canvas.drawPath(
-      Path()
-        ..moveTo(3, 16)
-        ..lineTo(10, 4)
-        ..lineTo(17, 16),
-      p,
-    );
-    canvas.drawLine(const Offset(6, 11.5), const Offset(14, 11.5), p);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter _) => false;
-}
 
 class GoogleLogoPainter extends CustomPainter {
   @override

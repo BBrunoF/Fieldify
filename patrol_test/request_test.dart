@@ -9,6 +9,8 @@ import 'package:project/features/pro/jobs/presentation/widgets/incoming_job_card
 import 'package:project/features/pro/jobs/presentation/widgets/incoming_jobs_view.dart';
 import 'package:project/main.dart' as app;
 
+import 'fake_payments.dart';
+
 const _clientEmail = 'client@client.com';
 const _clientPassword = 'clientclient';
 const _professionalEmail = 'test@test.com';
@@ -19,6 +21,7 @@ Future<void> _bootstrapSupabase() async {
 }
 
 Future<void> _signOutIfNeeded() async {
+  installFakePayments();
   await _bootstrapSupabase();
   final auth = Supabase.instance.client.auth;
   if (auth.currentSession != null) {

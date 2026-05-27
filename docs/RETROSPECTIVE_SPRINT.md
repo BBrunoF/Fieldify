@@ -63,6 +63,26 @@ Before committing to Sprint 3 scope, the team will explicitly account for existi
 ### Root Cause Analysis for Persistent Blockers
 For stories carried over more than once ([US09], [US03]), a brief root cause session will be held at the start of Sprint 3 to identify blockers and define a concrete resolution plan.
 
-
+---
 # Sprint Review - Sprint 3
+## Sprint Overview
+Sprint 3 took place during May 2026 and represents the most productive sprint of the project. The team delivered a total of 61 story points across 10 user stories, including the long-standing carry-over items [US09] Automatic Payment Processing and [US03] Service Request Submission, which had been deferred across two consecutive sprints. Being the final sprint of the project, the team had to push hard to ensure everything was completed, with the added pressure of closing out unfinished work from the two previous sprints on top of an already demanding scope. Despite this, the sprint concluded with zero carry-overs and full delivery of all committed items.
+
+## What Went Well
+- Successfully delivered all 10 planned user stories with no items carried over to a future sprint
+- Resolved [US09] Automatic Payment Processing and [US03] Service Request Submission, both of which had been carried over from Sprints 1 and 2
+- Achieved the highest sprint velocity of the project at 61 story points, nearly 3x the output of Sprint 2
+- All process policies defined in previous retrospectives were applied effectively: Carry-Over Prioritisation, Capacity-Aware Planning, and Root Cause Analysis
+-All quality assurance tasks completed: unit and integration tests, UAT, defect tracking, Sprint 3 review document, and Happiness Matters document
+
+## What Could Be Improved
+- **Workload Distribution:** With 61 story points concentrated in Sprint 3 versus 13 and 21 in previous sprints, the workload was heavily back-loaded across the project timeline. A more even distribution of high-complexity stories would reduce delivery risk.
+- **Last-Sprint Crunch:** As with Sprint 1, the team faced a significant push in the final days of the sprint to get everything across the line. This was compounded by the carry-over items from the two previous sprints ([US09], [US03]), which added pressure on top of an already large scope. While everything was delivered, this level of intensity is not sustainable and reflects a recurring pattern that should be addressed in future project planning.
+  
+## Strategy and Verifiable Action Points
+### Avoid Accumulating Carry-Over Debt
+Any story carried over more than once must trigger a mandatory root cause session at the start of the next sprint, with dedicated ownership assigned before any new stories begin. The Sprint 3 experience demonstrated that resolving this debt late in the project creates compounded pressure on the final sprint.
+
+
+
 

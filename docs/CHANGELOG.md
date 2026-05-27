@@ -46,7 +46,7 @@
 ---
 ## [Sprint 3] - May 2026
 
-### Added (61 points)
+### Added (54 points)
 - [US04] Push Notifications (Client)
 - [US07] Chat with Professional
 - [US09] Automatic Payment Processing
@@ -54,9 +54,7 @@
 - [US19] Chat with Clients
 - [US16] Rescheduling Logic
 - [US13] Availability & Area Setup
-- [US03] Service Request Submission ?
-- [US12] Verification Status Alert ?
-- [US11] Pro Registration & Verification?
+- [US03] Service Request Submission 
 
 ### Tasks Completed
 - Unit and integration tests
@@ -67,4 +65,5 @@
 - AI usage document
   
 ### Not Completed 
-- all tasks completed
+- [US12] Verification Status Alert 
+- [US11] Pro Registration & Verification

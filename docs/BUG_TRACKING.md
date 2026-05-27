@@ -11,6 +11,8 @@
 ---
 ## Sprint 2
 
-No bugs reported during this sprint.
+No bugs were  reported during this sprint.
 
 ## Sprint 3
+
+No bugs were reported during this sprint.

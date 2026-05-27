@@ -420,4 +420,4 @@ You can find below information and references related with the project managemen
 - [AI Usage](docs/AI_usage.md)
 
 ### Team
-- [Happiness Meters](docs/HAPPINESS_METERS.md)
+- [Happiness Meters](https://docs.google.com/spreadsheets/d/1E9BWX1s9wP3ozlXBnD-Zo8FKqtuoXSx8bENAtA6dPdo/edit?gid=1568708529#gid=1568708529)

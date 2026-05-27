@@ -13,7 +13,10 @@ import '../../../job_history/controllers/job_history_controller.dart';
 import '../../../job_history/presentation/widgets/job_history_view.dart';
 import '../../../profile/controllers/profile_controller.dart';
 import '../../../profile/presentation/screens/profile_screen.dart';
+import '../../../request/data/models/trade_model.dart';
+import '../../../request/data/repositories/request_repository.dart';
 import '../../../request/presentation/screens/request_screen.dart';
+import '../../../request/presentation/trade_icon_mapper.dart';
 import '../../../../shared/chat/presentation/screens/inbox_screen.dart';
 
 class ClientHomeScreen extends StatefulWidget {
@@ -21,6 +24,7 @@ class ClientHomeScreen extends StatefulWidget {
   final WidgetBuilder? requestScreenBuilder;
   final JobHistoryController? jobHistoryController;
   final ProfileController? profileController;
+  final RequestRepository? tradesRepository;
 
   const ClientHomeScreen({
     super.key,
@@ -28,6 +32,7 @@ class ClientHomeScreen extends StatefulWidget {
     this.requestScreenBuilder,
     this.jobHistoryController,
     this.profileController,
+    this.tradesRepository,
   });
 
   @override
@@ -35,13 +40,18 @@ class ClientHomeScreen extends StatefulWidget {
 }
 
 class _ClientHomeScreenState extends State<ClientHomeScreen> {
-  int _selectedCategory = 0;
   int _selectedNav = 0;
   late final ProfileController _profileController;
   late final bool _ownsProfileController;
 
+  late final RequestRepository _tradesRepo;
+  List<Trade> _trades = const [];
+  bool _loadingTrades = true;
+  String? _tradesError;
+
   final LocationService _locationService = GeolocatorLocationService();
   LatLng _center = kDefaultLocation;
+  String? _locationLabel;
 
   @override
   void initState() {
@@ -49,9 +59,34 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
     _profileController = widget.profileController ?? ProfileController();
     _ownsProfileController = widget.profileController == null;
     _profileController.addListener(_onProfileChanged);
-    _locationService.currentPosition().then((pos) {
-      if (pos != null && mounted) setState(() => _center = pos);
-    });
+    _tradesRepo = widget.tradesRepository ?? RequestRepository();
+    _loadTrades();
+    _loadLocation();
+  }
+
+  Future<void> _loadTrades() async {
+    try {
+      final trades = await _tradesRepo.getTrades();
+      if (!mounted) return;
+      setState(() {
+        _trades = trades;
+        _loadingTrades = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _tradesError = 'Could not load services.';
+        _loadingTrades = false;
+      });
+    }
+  }
+
+  Future<void> _loadLocation() async {
+    final pos = await _locationService.currentPosition();
+    if (pos == null || !mounted) return;
+    setState(() => _center = pos);
+    final label = await _locationService.addressFor(pos.latitude, pos.longitude);
+    if (label != null && mounted) setState(() => _locationLabel = label);
   }
 
   void _onProfileChanged() {
@@ -81,10 +116,11 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
     setState(() => _selectedNav = i);
   }
 
-  void _openRequestFlow() {
+  void _openRequestFlow([Trade? trade]) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: widget.requestScreenBuilder ?? (_) => const RequestScreen(),
+        builder: widget.requestScreenBuilder ??
+            (_) => RequestScreen(initialTradeId: trade?.id),
       ),
     );
   }
@@ -119,7 +155,7 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
           Container(
             color: FieldifyColors.g800,
             child: Column(
-              children: [_buildHeader(), _buildMap(), _buildSearchBar()],
+              children: [_buildHeader(), _buildMap()],
             ),
           ),
           Container(
@@ -265,309 +301,139 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
                 right: 0,
                 child: Padding(
                   padding: const EdgeInsets.all(10),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 11,
-                          vertical: 5,
-                        ),
-                        decoration: BoxDecoration(
-                          color: FieldifyColors.g800,
-                          borderRadius: BorderRadius.circular(999),
-                        ),
-                        child: Row(
-                          children: [
-                            Container(
-                              width: 6,
-                              height: 6,
-                              decoration: const BoxDecoration(
-                                color: FieldifyColors.g200,
-                                shape: BoxShape.circle,
-                              ),
+                  child: _locationLabel == null
+                      ? const SizedBox.shrink()
+                      : Align(
+                          alignment: Alignment.bottomLeft,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 11,
+                              vertical: 5,
                             ),
-                            const SizedBox(width: 5),
-                            Text(
-                              'Porto, Portugal',
-                              style: GoogleFonts.dmSans(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w500,
-                                color: FieldifyColors.g100,
-                              ),
+                            decoration: BoxDecoration(
+                              color: FieldifyColors.g800,
+                              borderRadius: BorderRadius.circular(999),
                             ),
-                          ],
-                        ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 11,
-                          vertical: 5,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(999),
-                          border: Border.all(color: FieldifyColors.g200),
-                        ),
-                        child: Text(
-                          '8 pros nearby',
-                          style: GoogleFonts.dmSans(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w500,
-                            color: FieldifyColors.g800,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Container(
+                                  width: 6,
+                                  height: 6,
+                                  decoration: const BoxDecoration(
+                                    color: FieldifyColors.g200,
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                                const SizedBox(width: 5),
+                                Flexible(
+                                  child: Text(
+                                    _locationLabel!,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: GoogleFonts.dmSans(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w500,
+                                      color: FieldifyColors.g100,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
                 ),
               ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSearchBar() {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: const Color(0x14000000)),
-        ),
-        child: Row(
-          children: [
-            const Icon(Icons.search, size: 16, color: FieldifyColors.ink3),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                'What do you need fixed?',
-                style: GoogleFonts.dmSans(
-                  fontSize: 14,
-                  color: FieldifyColors.ink3,
-                ),
-              ),
-            ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-              decoration: BoxDecoration(
-                color: FieldifyColors.g100,
-                borderRadius: BorderRadius.circular(7),
-              ),
-              child: Text(
-                'Filter',
-                style: GoogleFonts.dmSans(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w500,
-                  color: FieldifyColors.g800,
-                ),
-              ),
-            ),
-          ],
         ),
       ),
     );
   }
 
   Widget _buildContent() {
-    const categories = [
-      _CategoryData('Plumbing', ServiceIconType.plumbing),
-      _CategoryData('Electrical', ServiceIconType.electrical),
-      _CategoryData('Carpentry', ServiceIconType.carpentry),
-      _CategoryData('HVAC', ServiceIconType.hvac),
-    ];
-
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const _ActiveJobBanner(),
-          const SizedBox(height: 20),
-
-          _SectionHeader(title: 'Services', link: 'See all', onLink: () {}),
+          const _SectionHeader(title: 'What do you need fixed?'),
           const SizedBox(height: 12),
-          Row(
-            children: [
-              for (int i = 0; i < categories.length; i++) ...[
-                if (i > 0) const SizedBox(width: 12),
-                _CategoryPill(
-                  data: categories[i],
-                  active: _selectedCategory == i,
-                  onTap: () => setState(() => _selectedCategory = i),
-                ),
-              ],
-            ],
-          ),
-          const SizedBox(height: 20),
-
-          const _SectionHeader(title: 'Quick request'),
-          const SizedBox(height: 12),
-          _RequestCard(
-            key: const Key('quickRequestPlumbingCard'),
-            buttonKey: const Key('goToRequestButton'),
-            onTap: _openRequestFlow,
-            icon: ServiceIconType.plumbing,
-            title: 'Plumbing',
-            subtitle: 'Leaks, pipes, installations',
-            time: '~12 min',
-            price: 'from €30/h',
-            filled: true,
-          ),
-          const SizedBox(height: 10),
-          _RequestCard(
-            onTap: _openRequestFlow,
-            icon: ServiceIconType.electrical,
-            title: 'Electrical',
-            subtitle: 'Wiring, fuses, outlets',
-            time: '~25 min',
-            price: 'from €40/h',
-            filled: false,
-          ),
-          const SizedBox(height: 10),
-          _RequestCard(
-            onTap: _openRequestFlow,
-            icon: ServiceIconType.carpentry,
-            title: 'Carpentry',
-            subtitle: 'Furniture, doors, repairs',
-            time: '~40 min',
-            price: 'from €35/h',
-            filled: false,
+          _buildTrades(),
+          const SizedBox(height: 24),
+          ElevatedButton(
+            key: const Key('goToRequestButton'),
+            onPressed: _openRequestFlow,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: FieldifyColors.g800,
+              foregroundColor: FieldifyColors.g100,
+              minimumSize: const Size.fromHeight(50),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
+              elevation: 0,
+            ),
+            child: Text(
+              'Request a job',
+              style: GoogleFonts.dmSans(
+                fontSize: 15,
+                fontWeight: FontWeight.w500,
+                color: FieldifyColors.g100,
+              ),
+            ),
           ),
           const SizedBox(height: 24),
         ],
       ),
     );
   }
-}
 
-class _ActiveJobBanner extends StatelessWidget {
-  const _ActiveJobBanner();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: FieldifyColors.g800,
-        borderRadius: BorderRadius.circular(18),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 38,
-            height: 38,
-            decoration: BoxDecoration(
-              color: FieldifyColors.g700,
-              shape: BoxShape.circle,
-              border: Border.all(color: FieldifyColors.g200, width: 2),
-            ),
-            child: Center(
-              child: Text(
-                'MF',
-                style: GoogleFonts.dmSans(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                  color: FieldifyColors.g100,
-                ),
-              ),
+  Widget _buildTrades() {
+    if (_loadingTrades) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 20),
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
+    if (_tradesError != null || _trades.isEmpty) {
+      return Text(
+        _tradesError ?? 'No services available right now.',
+        style: GoogleFonts.dmSans(fontSize: 13, color: FieldifyColors.ink3),
+      );
+    }
+    return Wrap(
+      spacing: 12,
+      runSpacing: 14,
+      children: [
+        for (final trade in _trades)
+          KeyedSubtree(
+            key: Key('homeTradeTile_${trade.id}'),
+            child: _CategoryPill(
+              data: _CategoryData(trade.displayName, iconForTrade(trade.slug)),
+              active: false,
+              onTap: () => _openRequestFlow(trade),
             ),
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'ACTIVE JOB',
-                  style: GoogleFonts.dmSans(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w500,
-                    color: FieldifyColors.g200,
-                    letterSpacing: 0.4,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  'Pipe leak repair',
-                  style: GoogleFonts.dmSans(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.white,
-                  ),
-                ),
-                const SizedBox(height: 1),
-                Text(
-                  'Manuel F. · On the way · ~8 min',
-                  style: GoogleFonts.dmSans(
-                    fontSize: 11,
-                    color: FieldifyColors.g200,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: FieldifyColors.g200,
-              borderRadius: BorderRadius.circular(999),
-            ),
-            child: Text(
-              'LIVE',
-              style: GoogleFonts.dmSans(
-                fontSize: 9,
-                fontWeight: FontWeight.w500,
-                color: const Color(0xFF173404),
-                letterSpacing: 0.4,
-              ),
-            ),
-          ),
-        ],
-      ),
+      ],
     );
   }
 }
 
 class _SectionHeader extends StatelessWidget {
   final String title;
-  final String? link;
-  final VoidCallback? onLink;
 
-  const _SectionHeader({required this.title, this.link, this.onLink});
+  const _SectionHeader({required this.title});
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          title,
-          style: GoogleFonts.dmSans(
-            fontSize: 13,
-            fontWeight: FontWeight.w500,
-            color: FieldifyColors.ink2,
-            letterSpacing: -0.13,
-          ),
-        ),
-        if (link != null)
-          GestureDetector(
-            onTap: onLink,
-            child: Text(
-              link!,
-              style: GoogleFonts.dmSans(
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
-                color: FieldifyColors.g700,
-              ),
-            ),
-          ),
-      ],
+    return Text(
+      title,
+      style: GoogleFonts.dmSans(
+        fontSize: 13,
+        fontWeight: FontWeight.w500,
+        color: FieldifyColors.ink2,
+        letterSpacing: -0.13,
+      ),
     );
   }
 }
@@ -622,138 +488,6 @@ class _CategoryPill extends StatelessWidget {
               fontSize: 10,
               fontWeight: FontWeight.w500,
               color: active ? FieldifyColors.g800 : FieldifyColors.ink2,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _RequestCard extends StatelessWidget {
-  final ServiceIconType icon;
-  final String title;
-  final String subtitle;
-  final String time;
-  final String price;
-  final bool filled;
-  final Key? buttonKey;
-  final VoidCallback onTap;
-
-  const _RequestCard({
-    super.key,
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.time,
-    required this.price,
-    required this.filled,
-    required this.onTap,
-    this.buttonKey,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0x14000000)),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 46,
-            height: 46,
-            decoration: BoxDecoration(
-              color: FieldifyColors.g100,
-              borderRadius: BorderRadius.circular(13),
-            ),
-            child: Center(
-              child: CustomPaint(
-                size: const Size(24, 24),
-                painter: ServiceIconPainter(
-                  icon: icon,
-                  color: FieldifyColors.g800,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: GoogleFonts.dmSans(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: FieldifyColors.ink,
-                  ),
-                ),
-                const SizedBox(height: 3),
-                Text(
-                  subtitle,
-                  style: GoogleFonts.dmSans(
-                    fontSize: 12,
-                    color: FieldifyColors.ink3,
-                  ),
-                ),
-                const SizedBox(height: 5),
-                Row(
-                  children: [
-                    Text(
-                      time,
-                      style: GoogleFonts.dmMono(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w500,
-                        color: FieldifyColors.g700,
-                      ),
-                    ),
-                    Container(
-                      width: 3,
-                      height: 3,
-                      margin: const EdgeInsets.symmetric(horizontal: 6),
-                      decoration: const BoxDecoration(
-                        color: FieldifyColors.ink4,
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                    Text(
-                      price,
-                      style: GoogleFonts.dmSans(
-                        fontSize: 11,
-                        color: FieldifyColors.ink3,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 8),
-          GestureDetector(
-            key: buttonKey,
-            onTap: onTap,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-              decoration: BoxDecoration(
-                color: filled ? FieldifyColors.g800 : Colors.transparent,
-                borderRadius: BorderRadius.circular(10),
-                border: filled
-                    ? null
-                    : Border.all(color: FieldifyColors.g200, width: 1.5),
-              ),
-              child: Text(
-                'Request',
-                style: GoogleFonts.dmSans(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                  color: filled ? FieldifyColors.g100 : FieldifyColors.g800,
-                ),
-              ),
             ),
           ),
         ],

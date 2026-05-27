@@ -27,8 +27,9 @@ const _btnLabels = ['Continue', 'Continue', 'Continue', 'Submit request'];
 
 class RequestScreen extends StatefulWidget {
   final RequestController? controller;
+  final int? initialTradeId;
 
-  const RequestScreen({super.key, this.controller});
+  const RequestScreen({super.key, this.controller, this.initialTradeId});
 
   @override
   State<RequestScreen> createState() => _RequestScreenState();
@@ -42,14 +43,9 @@ class _RequestScreenState extends State<RequestScreen> {
   final _picker = ImagePicker();
   static const _maxPhotos = 3;
 
-  final _titleCtrl = TextEditingController(
-    text: 'Leaking pipe under kitchen sink',
-  );
-  final _descCtrl = TextEditingController(
-    text:
-        'Water dripping from pipe joint for 2 days. Slowly pooling in the cabinet below.',
-  );
-  final _addressCtrl = TextEditingController(text: 'Rua do Heroísmo 42, Porto');
+  final _titleCtrl = TextEditingController();
+  final _descCtrl = TextEditingController();
+  final _addressCtrl = TextEditingController();
   final _floorCtrl = TextEditingController();
   final LocationService _locationService = GeolocatorLocationService();
   LatLng _pickedLatLng = kDefaultLocation;
@@ -96,9 +92,25 @@ class _RequestScreenState extends State<RequestScreen> {
     await _loadDefaultCard();
   }
 
+  bool _appliedInitialTrade = false;
+
   void _onRequestChanged() {
     setState(() {
       if (_requestCtrl.isSubmitted) _step = 5;
+
+      // Deep-link: once trades load, preselect the requested trade and skip the
+      // Category step straight to Details. Applied once; back still works.
+      if (!_appliedInitialTrade &&
+          widget.initialTradeId != null &&
+          _requestCtrl.trades.isNotEmpty) {
+        final idx = _requestCtrl.trades
+            .indexWhere((t) => t.id == widget.initialTradeId);
+        if (idx >= 0) {
+          _cat = idx;
+          _step = 2;
+        }
+        _appliedInitialTrade = true;
+      }
     });
   }
 

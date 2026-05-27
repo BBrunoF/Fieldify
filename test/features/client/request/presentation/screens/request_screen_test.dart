@@ -73,6 +73,47 @@ void main() {
       expect(find.byKey(const Key('requestTimeButton')), findsOneWidget);
     });
 
+    testWidgets('initialTradeId preselects the trade and skips to Details', (
+      tester,
+    ) async {
+      final controller = RequestController(
+        repo: _FakeRequestRepository(),
+        currentUserIdProvider: () => 'client-123',
+      );
+
+      await pumpTestApp(
+        tester,
+        RequestScreen(controller: controller, initialTradeId: 4),
+      );
+      await tester.pumpAndSettle();
+
+      // Skipped the Category step straight to Details.
+      expect(find.byKey(const Key('requestTitleField')), findsOneWidget);
+      expect(find.byKey(const Key('requestCategoryCard_0')), findsNothing);
+
+      // Advance to the confirm step and verify the preselected trade (id 4).
+      await tester.enterText(
+        find.byKey(const Key('requestTitleField')),
+        'No cooling',
+      );
+      await tester.enterText(
+        find.byKey(const Key('requestDescriptionField')),
+        'AC stopped working.',
+      );
+      await tester.tap(find.byKey(const Key('requestPrimaryButton')));
+      await tester.pumpAndSettle();
+
+      await tester.enterText(
+        find.byKey(const Key('requestAddressField')),
+        'Rua de Cedofeita 25',
+      );
+      await tester.tap(find.byKey(const Key('requestPrimaryButton')));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Review & submit'), findsOneWidget);
+      expect(find.text('HVAC'), findsOneWidget);
+    });
+
     testWidgets('submits the flow and shows the success screen', (
       tester,
     ) async {

@@ -46,8 +46,24 @@
 ---
 ## [Sprint 3] - May 2026
 
-### Added 
+### Added (61 points)
+- [US04] Push Notifications (Client)
+- [US07] Chat with Professional
+- [US09] Automatic Payment Processing
+- [US18] Performance Dashboard
+- [US19] Chat with Clients
+- [US16] Rescheduling Logic
+- [US13] Availability & Area Setup
+- [US03] Service Request Submission ?
+- [US12] Verification Status Alert ?
+- [US11] Pro Registration & Verification?
 
 ### Tasks Completed
+- Unit and integration tests
+- User acceptance tests (UAT)
+- Log, track and verify defects
+- Sprint 3 review document
+- Hapinnes matters document
 
-### Not Completed (moved to Sprint 2)
+### Not Completed 
+- all tasks completed

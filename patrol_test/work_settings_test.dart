@@ -140,9 +140,17 @@ void main() {
     await _loginAsPro($);
     await _openProProfileScreen($);
 
-    await $(find.byKey(const Key('proProfileLatField'))).scrollTo();
-    await $(find.byKey(const Key('proProfileLatField'))).enterText('41.157944');
-    await $(find.byKey(const Key('proProfileLngField'))).enterText('-8.629105');
+    // Location is now picked via the map picker rather than raw lat/lng
+    // fields: tap the preview to open the picker, confirm whichever pin is
+    // centered (defaults to Porto when no base location is saved), then save.
+    await $(find.byKey(const Key('proProfileMapPreview'))).scrollTo();
+    await $(find.byKey(const Key('proProfileMapPreview'))).tap();
+    await $.pumpAndTrySettle();
+
+    await $(find.byKey(const Key('confirmLocationButton')))
+        .waitUntilVisible(timeout: const Duration(seconds: 15));
+    await $(find.byKey(const Key('confirmLocationButton'))).tap();
+    await $.pumpAndTrySettle();
 
     await $(find.byKey(const Key('proProfileSaveButton'))).scrollTo();
     await $(find.byKey(const Key('proProfileSaveButton'))).tap();

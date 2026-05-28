@@ -10,17 +10,20 @@ class _FakeWorkSettingsRepository extends WorkSettingsRepository {
   _FakeWorkSettingsRepository({
     List<AvailabilityScheduleModel>? schedules,
     int? radiusKm,
+    ({double lat, double lng})? location,
     Future<void> Function(List<AvailabilityScheduleModel>)? onSaveSchedules,
     Future<void> Function(int)? onSaveRadius,
     Future<void> Function(double, double)? onSaveLocation,
   })  : _schedules = schedules ?? const [],
         _radiusKm = radiusKm,
+        _location = location,
         _onSaveSchedules = onSaveSchedules,
         _onSaveRadius = onSaveRadius,
         _onSaveLocation = onSaveLocation;
 
   List<AvailabilityScheduleModel> _schedules;
   final int? _radiusKm;
+  final ({double lat, double lng})? _location;
   final Future<void> Function(List<AvailabilityScheduleModel>)? _onSaveSchedules;
   final Future<void> Function(int)? _onSaveRadius;
   final Future<void> Function(double, double)? _onSaveLocation;
@@ -30,6 +33,9 @@ class _FakeWorkSettingsRepository extends WorkSettingsRepository {
 
   @override
   Future<int?> fetchServiceRadius() async => _radiusKm;
+
+  @override
+  Future<({double lat, double lng})?> fetchLocation() async => _location;
 
   @override
   Future<void> saveSchedules(List<AvailabilityScheduleModel> schedules) async {

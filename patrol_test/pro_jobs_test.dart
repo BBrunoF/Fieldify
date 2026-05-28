@@ -349,9 +349,12 @@ void main() {
     expect(find.text('Accept'), findsNothing);
     expect(find.text('Reject'), findsNothing);
 
+    // Accepted jobs are sorted newest-first (see ProJobsService.fetchAcceptedJobs
+    // ordering by accepted_at desc), so the second-accepted title sits above
+    // the first one.
     final firstY = $.tester.getCenter(find.text(firstTitle)).dy;
     final secondY = $.tester.getCenter(find.text(secondTitle)).dy;
-    expect(firstY, lessThan(secondY));
+    expect(secondY, lessThan(firstY));
   });
 
   patrolTest('professional cancellation returns an accepted job to Incoming', (

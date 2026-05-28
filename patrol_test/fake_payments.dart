@@ -1,5 +1,7 @@
 import 'package:project/features/shared/payments/data/models/payment_models.dart';
 import 'package:project/features/shared/payments/data/repositories/payment_repository.dart';
+// PaymentException is re-exported from payment_models.dart above; no extra
+// import needed.
 
 /// A Stripe-free [PaymentRepository] for integration tests.
 ///
@@ -34,7 +36,14 @@ class FakePaymentRepository extends PaymentRepository {
   Future<void> capture({
     required String requestId,
     required double amountEuros,
-  }) async {}
+  }) async {
+    // The real capture Edge Function both charges Stripe AND flips the
+    // service_request row to "completed". Since we can't drive Stripe in
+    // tests, throw a "no payment" PaymentException — JobDetailController
+    // treats that as "fall back to plain markCompleted on the repo", which
+    // performs the same status flip via Supabase directly.
+    throw const PaymentException('no payment to capture in tests');
+  }
 
   @override
   Future<PaymentInfo?> fetchPaymentForRequest(String requestId) async => null;

@@ -71,6 +71,9 @@ class _FakeWorkSettingsRepository extends WorkSettingsRepository {
   Future<int?> fetchServiceRadius() async => null;
 
   @override
+  Future<({double lat, double lng})?> fetchLocation() async => null;
+
+  @override
   Future<void> saveSchedules(List<AvailabilityScheduleModel> schedules) async {}
 
   @override

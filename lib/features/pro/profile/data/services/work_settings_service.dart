@@ -73,6 +73,22 @@ class WorkSettingsService {
         .eq('profile_id', user.id);
   }
 
+  Future<({double lat, double lng})?> fetchLocation() async {
+    final user = supabase.auth.currentUser;
+    if (user == null) return null;
+
+    final row = await supabase
+        .from('professional_profiles')
+        .select('lat, lng')
+        .eq('profile_id', user.id)
+        .maybeSingle();
+
+    final lat = (row?['lat'] as num?)?.toDouble();
+    final lng = (row?['lng'] as num?)?.toDouble();
+    if (lat == null || lng == null) return null;
+    return (lat: lat, lng: lng);
+  }
+
   Future<void> saveLocation({
     required double latitude,
     required double longitude,

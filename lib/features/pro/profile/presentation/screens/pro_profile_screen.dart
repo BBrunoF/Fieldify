@@ -4,8 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../../../../core/theme/app_colors.dart';
+import '../../../../../core/location/location_constants.dart';
 import '../../../../auth/presentation/widgets/auth_shared.dart';
+import '../../../../shared/location/data/location_service.dart';
+import '../../../../shared/location/models/picked_location.dart';
+import '../../../../shared/location/presentation/location_picker_screen.dart';
+import '../../../../shared/location/presentation/static_map_view.dart';
 import '../../controllers/pro_profile_controller.dart';
 import '../../controllers/work_settings_controller.dart';
 import '../../data/models/availability_schedule_model.dart';
@@ -68,8 +74,8 @@ class _ProProfileScreenState extends State<ProProfileScreen>
   bool _workSettingsInitialized = false;
 
   // Location state
-  late final TextEditingController _latCtrl;
-  late final TextEditingController _lngCtrl;
+  final LocationService _locationService = GeolocatorLocationService();
+  LatLng? _pickedLatLng;
 
   int _selectedDay = 0;
 
@@ -96,8 +102,9 @@ class _ProProfileScreenState extends State<ProProfileScreen>
     _radiusSlider = (p?.serviceRadiusKm ?? 25).toDouble().clamp(5, 150);
     _radiusCtrl = TextEditingController(text: _radiusSlider.round().toString());
     _credentialUrls = List<String>.from(p?.credentialUrls ?? []);
-    _latCtrl = TextEditingController();
-    _lngCtrl = TextEditingController();
+    final lat = _workController.latitude;
+    final lng = _workController.longitude;
+    if (lat != null && lng != null) _pickedLatLng = LatLng(lat, lng);
 
     _controller.addListener(_onChanged);
     _workController.addListener(_onWorkChanged);
@@ -165,6 +172,11 @@ class _ProProfileScreenState extends State<ProProfileScreen>
     if (!_workSettingsInitialized && !_workController.isLoading) {
       _workSettingsInitialized = true;
       _applySchedules(_workController.schedules);
+      final lat = _workController.latitude;
+      final lng = _workController.longitude;
+      if (lat != null && lng != null && !_dirty) {
+        _pickedLatLng = LatLng(lat, lng);
+      }
     }
 
     setState(() {});
@@ -203,8 +215,6 @@ class _ProProfileScreenState extends State<ProProfileScreen>
     _nifCtrl.dispose();
     _bioCtrl.dispose();
     _radiusCtrl.dispose();
-    _latCtrl.dispose();
-    _lngCtrl.dispose();
     super.dispose();
   }
 
@@ -230,9 +240,7 @@ class _ProProfileScreenState extends State<ProProfileScreen>
       await _saveWorkHours();
     }
 
-    final latText = _latCtrl.text.trim();
-    final lngText = _lngCtrl.text.trim();
-    if (latText.isNotEmpty && lngText.isNotEmpty) {
+    if (_pickedLatLng != null) {
       await _saveLocation();
     }
 
@@ -266,15 +274,24 @@ class _ProProfileScreenState extends State<ProProfileScreen>
   }
 
   Future<void> _saveLocation() async {
-    final lat = double.tryParse(_latCtrl.text.trim());
-    final lng = double.tryParse(_lngCtrl.text.trim());
-    if (lat == null || lng == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Enter valid latitude and longitude')),
-      );
-      return;
-    }
-    await _workController.setLocation(latitude: lat, longitude: lng);
+    final loc = _pickedLatLng;
+    if (loc == null) return;
+    await _workController.setLocation(
+        latitude: loc.latitude, longitude: loc.longitude);
+  }
+
+  Future<void> _openLocationPicker() async {
+    final result = await Navigator.of(context).push<PickedLocation>(
+      MaterialPageRoute(
+        builder: (_) => LocationPickerScreen(
+          locationService: _locationService,
+          initial: _pickedLatLng,
+        ),
+      ),
+    );
+    if (result == null) return;
+    setState(() => _pickedLatLng = LatLng(result.lat, result.lng));
+    _markDirty();
   }
 
   void _toggleDay(int day) {
@@ -1093,48 +1110,20 @@ class _ProProfileScreenState extends State<ProProfileScreen>
   }
 
   Widget _buildLocationSection() {
-    return Row(
-      children: [
-        Expanded(
-          child: _LabeledField(
-            label: 'Latitude',
-            child: TextFormField(
-              key: const Key('proProfileLatField'),
-              controller: _latCtrl,
-              keyboardType: const TextInputType.numberWithOptions(
-                  signed: true, decimal: true),
-              inputFormatters: [
-                FilteringTextInputFormatter.allow(
-                    RegExp(r'^-?\d{0,3}\.?\d*'))
-              ],
-              style: GoogleFonts.dmSans(
-                  fontSize: 15, color: FieldifyColors.ink),
-              decoration: authInputDecoration(hint: '41.157944'),
-              onChanged: (_) => _markDirty(),
-            ),
-          ),
+    final center = _pickedLatLng ?? kDefaultLocation;
+    return GestureDetector(
+      key: const Key('proProfileMapPreview'),
+      onTap: _openLocationPicker,
+      // opaque + IgnorePointer: the GoogleMap (even in lite mode) swallows
+      // taps on Android, so we make its subtree non-hit-testable and have
+      // the GestureDetector itself catch the tap to open the picker.
+      behavior: HitTestBehavior.opaque,
+      child: IgnorePointer(
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(14),
+          child: StaticMapView(position: center, height: 140),
         ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: _LabeledField(
-            label: 'Longitude',
-            child: TextFormField(
-              key: const Key('proProfileLngField'),
-              controller: _lngCtrl,
-              keyboardType: const TextInputType.numberWithOptions(
-                  signed: true, decimal: true),
-              inputFormatters: [
-                FilteringTextInputFormatter.allow(
-                    RegExp(r'^-?\d{0,3}\.?\d*'))
-              ],
-              style: GoogleFonts.dmSans(
-                  fontSize: 15, color: FieldifyColors.ink),
-              decoration: authInputDecoration(hint: '-8.629105'),
-              onChanged: (_) => _markDirty(),
-            ),
-          ),
-        ),
-      ],
+      ),
     );
   }
 

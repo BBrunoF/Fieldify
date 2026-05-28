@@ -32,6 +32,7 @@ class RequestController extends ChangeNotifier {
   bool _loading = false;
   String? _error;
   bool _submitted = false;
+  String? _submittedRequestId;
 
   List<Trade> _trades = const [];
   bool _loadingTrades = false;
@@ -40,6 +41,9 @@ class RequestController extends ChangeNotifier {
   bool get isLoading => _loading;
   String? get error => _error;
   bool get isSubmitted => _submitted;
+  /// Id of the request created by the last successful [submit] — used by the
+  /// confirmation screen to deep-link to the job detail page.
+  String? get submittedRequestId => _submittedRequestId;
 
   List<Trade> get trades => _trades;
   bool get isLoadingTrades => _loadingTrades;
@@ -67,6 +71,8 @@ class RequestController extends ChangeNotifier {
     required String title,
     required String description,
     required String addressText,
+    required double latitude,
+    required double longitude,
     required DateTime? scheduledAt,
     List<File> photos = const [],
   }) async {
@@ -96,10 +102,6 @@ class RequestController extends ChangeNotifier {
       return;
     }
 
-    // Hardcoded Porto coords until Google Maps geocoding is wired up
-    const lat = 41.1579;
-    const lng = -8.6291;
-
     final requestId = _requestIdGenerator();
 
     try {
@@ -118,7 +120,7 @@ class RequestController extends ChangeNotifier {
         'title': title,
         'description': description,
         'address_text': addressText,
-        'location': 'POINT($lng $lat)',
+        'location': 'POINT($longitude $latitude)',
         'scheduled_at': scheduledAt?.toIso8601String(),
         'photo_urls': photoPaths,
       });
@@ -126,6 +128,7 @@ class RequestController extends ChangeNotifier {
       // Authorise the hold now that the request row exists.
       await _payments.authorise(requestId: requestId, paymentMethodId: cardId);
       _submitted = true;
+      _submittedRequestId = requestId;
     } on RequestFailure catch (e) {
       _error = e.message;
     } on PaymentException catch (e) {

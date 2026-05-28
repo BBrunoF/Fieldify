@@ -177,6 +177,14 @@ class _ChatScreenState extends State<ChatScreen> {
       );
     }
     final uid = _controller.currentUserId;
+
+    // Only the most recent reschedule request is shown; messages are
+    // oldest-first, so the last reschedule message is the latest one.
+    String? latestRescheduleId;
+    for (final m in messages) {
+      if (m.type == MessageType.reschedule) latestRescheduleId = m.id;
+    }
+
     return ListView.builder(
       controller: _scrollController,
       padding: const EdgeInsets.symmetric(vertical: 12),
@@ -185,6 +193,8 @@ class _ChatScreenState extends State<ChatScreen> {
         final m = messages[i];
         final isMine = m.senderId == uid;
         if (m.type == MessageType.reschedule) {
+          // Hide superseded reschedule cards; keep only the latest.
+          if (m.id != latestRescheduleId) return const SizedBox.shrink();
           return RescheduleCard(
             key: Key('rescheduleCard_${m.id}'),
             message: m,

@@ -1,0 +1,16 @@
+project_id = "fieldify"
+
+[functions.create-setup-intent]
+verify_jwt = true
+
+[functions.create-connect-account]
+verify_jwt = true
+
+[functions.create-payment-intent]
+verify_jwt = true
+
+[functions.capture-payment-intent]
+verify_jwt = true
+
+[functions.stripe-webhook]
+verify_jwt = false

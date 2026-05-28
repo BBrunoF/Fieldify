@@ -8,10 +8,13 @@ import 'package:project/features/home/presentation/screens/home_screen.dart';
 import 'package:project/features/shared/job_detail/presentation/screens/job_detail_screen.dart';
 import 'package:project/main.dart' as app;
 
+import 'fake_payments.dart';
+
 const _clientEmail = 'client@client.com';
 const _clientPassword = 'clientclient';
 
 Future<void> _signOutIfNeeded() async {
+  installFakePayments();
   await initializeSupabase();
   final auth = Supabase.instance.client.auth;
   if (auth.currentSession != null) {

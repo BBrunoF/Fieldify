@@ -2,6 +2,34 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:project/features/shared/job_detail/controllers/job_detail_controller.dart';
 import 'package:project/features/shared/job_detail/data/models/job_detail_model.dart';
 import 'package:project/features/shared/job_detail/data/repositories/job_detail_repository.dart';
+import 'package:project/features/shared/payments/data/models/payment_models.dart';
+import 'package:project/features/shared/payments/data/repositories/payment_repository.dart';
+
+class _FakePaymentRepository extends PaymentRepository {
+  _FakePaymentRepository({this.payment, this.onCapture});
+
+  final PaymentInfo? payment;
+  final Future<void> Function(String requestId, double amountEuros)? onCapture;
+
+  String? capturedRequestId;
+  double? capturedAmount;
+  int captureCalls = 0;
+
+  @override
+  Future<PaymentInfo?> fetchPaymentForRequest(String requestId) async =>
+      payment;
+
+  @override
+  Future<void> capture({
+    required String requestId,
+    required double amountEuros,
+  }) async {
+    captureCalls++;
+    capturedRequestId = requestId;
+    capturedAmount = amountEuros;
+    await onCapture?.call(requestId, amountEuros);
+  }
+}
 
 class _FakeRepo extends JobDetailRepository {
   _FakeRepo({
@@ -77,6 +105,9 @@ JobDetail _detail(
   String status = 'pending',
   String? proId,
   Map<String, dynamic>? reviewRow,
+  num rate = 0,
+  String? startedAt,
+  ViewerRole viewerRole = ViewerRole.client,
 }) =>
     JobDetail.fromJson(
       jobRow: {
@@ -88,11 +119,12 @@ JobDetail _detail(
         'client_id': 'c1',
         'pro_id': proId,
         'trade_id': 1,
-        'trades': {'id': 1, 'display_name': 'General', 'standard_rate': 0},
+        'trades': {'id': 1, 'display_name': 'General', 'standard_rate': rate},
         'created_at': '2026-04-10T09:00:00Z',
+        'started_at': startedAt,
       },
       counterpartyRow: null,
-      viewerRole: ViewerRole.client,
+      viewerRole: viewerRole,
       photoUrls: const [],
       reviewRow: reviewRow,
     );
@@ -360,6 +392,100 @@ void main() {
       final ok = await controller.submitReview(rating: 5);
       expect(ok, isFalse);
       expect(controller.error, "Couldn't submit your review. Please try again.");
+    });
+  });
+
+  group('Pro markCompleted capture', () {
+    test('captures the minimum 30-min charge for an instant job', () async {
+      // rate €35/h, no started_at -> floor of 0.5h -> €17.50.
+      final payments = _FakePaymentRepository(
+        payment: const PaymentInfo(
+          status: 'authorised',
+          amountAuthorised: 280,
+          amountCharged: null,
+          platformFee: null,
+        ),
+      );
+      final repo = _FakeRepo(
+        onFetch: (id, _) async => _detail(
+          id,
+          status: 'in_progress',
+          proId: 'p1',
+          rate: 35,
+          viewerRole: ViewerRole.pro,
+        ),
+      );
+      final controller = JobDetailController(
+        jobId: 'j1',
+        viewerRole: ViewerRole.pro,
+        repo: repo,
+        paymentRepository: payments,
+      );
+      await controller.load();
+
+      await controller.markCompleted();
+
+      expect(payments.captureCalls, 1);
+      expect(payments.capturedRequestId, 'j1');
+      expect(payments.capturedAmount, 17.5);
+      expect(controller.error, isNull);
+    });
+
+    test('falls back to a plain completion when there is no payment', () async {
+      final payments = _FakePaymentRepository(
+        onCapture: (_, _) async =>
+            throw const PaymentException('No payment for this request'),
+      );
+      final repo = _FakeRepo(
+        onFetch: (id, _) async => _detail(
+          id,
+          status: 'in_progress',
+          proId: 'p1',
+          rate: 35,
+          viewerRole: ViewerRole.pro,
+        ),
+      );
+      final controller = JobDetailController(
+        jobId: 'j1',
+        viewerRole: ViewerRole.pro,
+        repo: repo,
+        paymentRepository: payments,
+      );
+      await controller.load();
+
+      await controller.markCompleted();
+
+      expect(payments.captureCalls, 1);
+      expect(repo.completedCalls, 1); // fell back to status-only completion
+      expect(controller.error, isNull);
+    });
+
+    test('surfaces non-"no payment" capture errors', () async {
+      final payments = _FakePaymentRepository(
+        onCapture: (_, _) async =>
+            throw const PaymentException('Capture failed: card error'),
+      );
+      final repo = _FakeRepo(
+        onFetch: (id, _) async => _detail(
+          id,
+          status: 'in_progress',
+          proId: 'p1',
+          rate: 35,
+          viewerRole: ViewerRole.pro,
+        ),
+      );
+      final controller = JobDetailController(
+        jobId: 'j1',
+        viewerRole: ViewerRole.pro,
+        repo: repo,
+        paymentRepository: payments,
+      );
+      await controller.load();
+
+      await controller.markCompleted();
+
+      expect(repo.completedCalls, 0); // no fallback
+      expect(controller.error, contains('Capture failed'));
     });
   });
 

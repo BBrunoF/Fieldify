@@ -52,6 +52,14 @@ class WorkSettingsRepository {
     }
   }
 
+  Future<({double lat, double lng})?> fetchLocation() async {
+    try {
+      return await _service.fetchLocation();
+    } catch (e) {
+      throw WorkSettingsFailure(e.toString());
+    }
+  }
+
   Future<void> saveLocation({
     required double latitude,
     required double longitude,

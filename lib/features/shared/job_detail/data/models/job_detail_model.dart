@@ -197,6 +197,8 @@ class JobDetail {
   final String title;
   final String description;
   final String addressText;
+  final double? lat;
+  final double? lng;
   final JobStatus status;
   final String clientId;
   final String? proId;
@@ -212,6 +214,8 @@ class JobDetail {
     required this.title,
     required this.description,
     required this.addressText,
+    required this.lat,
+    required this.lng,
     required this.status,
     required this.clientId,
     required this.proId,
@@ -242,6 +246,8 @@ class JobDetail {
       title: (jobRow['title'] ?? '') as String,
       description: (jobRow['description'] ?? '') as String,
       addressText: (jobRow['address_text'] ?? '') as String,
+      lat: (jobRow['lat'] as num?)?.toDouble(),
+      lng: (jobRow['lng'] as num?)?.toDouble(),
       status: JobStatus.fromDb((jobRow['status'] ?? 'pending') as String),
       clientId: jobRow['client_id'] as String,
       proId: jobRow['pro_id'] as String?,

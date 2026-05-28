@@ -1,9 +1,20 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("kotlin-android")
     id("dev.flutter.flutter-gradle-plugin")
     id("com.google.gms.google-services")
 }
+
+// Load secrets from the project-root `.env` (gitignored). Falls back to an
+// environment variable so CI can inject the key without a file.
+val dotenv = Properties().apply {
+    val envFile = rootProject.file("../.env")
+    if (envFile.exists()) envFile.inputStream().use { load(it) }
+}
+val mapsApiKey: String =
+    dotenv.getProperty("MAPS_API_KEY") ?: System.getenv("MAPS_API_KEY") ?: ""
 
 android {
     namespace = "com.example.project"
@@ -29,6 +40,8 @@ android {
 
         testInstrumentationRunner = "pl.leancode.patrol.PatrolJUnitRunner"
         testInstrumentationRunnerArguments["clearPackageData"] = "true"
+
+        manifestPlaceholders["MAPS_API_KEY"] = mapsApiKey
     }
 
     testOptions {

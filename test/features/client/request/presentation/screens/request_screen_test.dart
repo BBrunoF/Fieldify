@@ -4,6 +4,7 @@ import 'package:project/features/client/request/controllers/request_controller.d
 import 'package:project/features/client/request/data/models/trade_model.dart';
 import 'package:project/features/client/request/data/repositories/request_repository.dart';
 import 'package:project/features/client/request/presentation/screens/request_screen.dart';
+import 'package:project/features/shared/payments/data/repositories/payment_repository.dart';
 
 import '../../../../../test_helpers.dart';
 
@@ -29,6 +30,19 @@ class _FakeRequestRepository extends RequestRepository {
 
   @override
   Future<List<Trade>> getTrades() async => trades;
+}
+
+/// Stubs out the card lookup + authorisation so the submit flow can run in a
+/// widget test without a live Supabase/Stripe backend.
+class _FakePaymentRepository extends PaymentRepository {
+  @override
+  Future<String?> defaultCardId() async => 'card-1';
+
+  @override
+  Future<void> authorise({
+    required String requestId,
+    required String paymentMethodId,
+  }) async {}
 }
 
 void main() {
@@ -59,6 +73,47 @@ void main() {
       expect(find.byKey(const Key('requestTimeButton')), findsOneWidget);
     });
 
+    testWidgets('initialTradeId preselects the trade and skips to Details', (
+      tester,
+    ) async {
+      final controller = RequestController(
+        repo: _FakeRequestRepository(),
+        currentUserIdProvider: () => 'client-123',
+      );
+
+      await pumpTestApp(
+        tester,
+        RequestScreen(controller: controller, initialTradeId: 4),
+      );
+      await tester.pumpAndSettle();
+
+      // Skipped the Category step straight to Details.
+      expect(find.byKey(const Key('requestTitleField')), findsOneWidget);
+      expect(find.byKey(const Key('requestCategoryCard_0')), findsNothing);
+
+      // Advance to the confirm step and verify the preselected trade (id 4).
+      await tester.enterText(
+        find.byKey(const Key('requestTitleField')),
+        'No cooling',
+      );
+      await tester.enterText(
+        find.byKey(const Key('requestDescriptionField')),
+        'AC stopped working.',
+      );
+      await tester.tap(find.byKey(const Key('requestPrimaryButton')));
+      await tester.pumpAndSettle();
+
+      await tester.enterText(
+        find.byKey(const Key('requestAddressField')),
+        'Rua de Cedofeita 25',
+      );
+      await tester.tap(find.byKey(const Key('requestPrimaryButton')));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Review & submit'), findsOneWidget);
+      expect(find.text('HVAC'), findsOneWidget);
+    });
+
     testWidgets('submits the flow and shows the success screen', (
       tester,
     ) async {
@@ -69,6 +124,7 @@ void main() {
             submittedData = data;
           },
         ),
+        paymentRepository: _FakePaymentRepository(),
         currentUserIdProvider: () => 'client-123',
       );
 

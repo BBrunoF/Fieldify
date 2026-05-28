@@ -10,6 +10,14 @@ import '../../../../auth/presentation/widgets/auth_shared.dart';
 import '../../../../shared/payments/data/models/payment_models.dart';
 import '../../../../shared/payments/data/repositories/payment_repository.dart';
 import '../../../../shared/payments/presentation/screens/payment_methods_screen.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import '../../../../../core/location/location_constants.dart';
+import '../../../../shared/location/data/location_service.dart';
+import '../../../../shared/location/models/picked_location.dart';
+import '../../../../shared/location/presentation/location_picker_screen.dart';
+import '../../../../shared/location/presentation/static_map_view.dart';
+import '../../../../shared/job_detail/data/models/job_detail_model.dart';
+import '../../../../shared/job_detail/presentation/screens/job_detail_screen.dart';
 import '../../controllers/request_controller.dart';
 import '../../data/models/trade_model.dart';
 import '../trade_icon_mapper.dart';
@@ -21,8 +29,9 @@ const _btnLabels = ['Continue', 'Continue', 'Continue', 'Submit request'];
 
 class RequestScreen extends StatefulWidget {
   final RequestController? controller;
+  final int? initialTradeId;
 
-  const RequestScreen({super.key, this.controller});
+  const RequestScreen({super.key, this.controller, this.initialTradeId});
 
   @override
   State<RequestScreen> createState() => _RequestScreenState();
@@ -36,15 +45,12 @@ class _RequestScreenState extends State<RequestScreen> {
   final _picker = ImagePicker();
   static const _maxPhotos = 3;
 
-  final _titleCtrl = TextEditingController(
-    text: 'Leaking pipe under kitchen sink',
-  );
-  final _descCtrl = TextEditingController(
-    text:
-        'Water dripping from pipe joint for 2 days. Slowly pooling in the cabinet below.',
-  );
-  final _addressCtrl = TextEditingController(text: 'Rua do Heroísmo 42, Porto');
+  final _titleCtrl = TextEditingController();
+  final _descCtrl = TextEditingController();
+  final _addressCtrl = TextEditingController();
   final _floorCtrl = TextEditingController();
+  final LocationService _locationService = GeolocatorLocationService();
+  LatLng _pickedLatLng = kDefaultLocation;
   late final RequestController _requestCtrl;
   late final bool _ownsController;
 
@@ -88,9 +94,25 @@ class _RequestScreenState extends State<RequestScreen> {
     await _loadDefaultCard();
   }
 
+  bool _appliedInitialTrade = false;
+
   void _onRequestChanged() {
     setState(() {
       if (_requestCtrl.isSubmitted) _step = 5;
+
+      // Deep-link: once trades load, preselect the requested trade and skip the
+      // Category step straight to Details. Applied once; back still works.
+      if (!_appliedInitialTrade &&
+          widget.initialTradeId != null &&
+          _requestCtrl.trades.isNotEmpty) {
+        final idx = _requestCtrl.trades
+            .indexWhere((t) => t.id == widget.initialTradeId);
+        if (idx >= 0) {
+          _cat = idx;
+          _step = 2;
+        }
+        _appliedInitialTrade = true;
+      }
     });
   }
 
@@ -134,9 +156,27 @@ class _RequestScreenState extends State<RequestScreen> {
       title: _titleCtrl.text.trim(),
       description: _descCtrl.text.trim(),
       addressText: _addressCtrl.text.trim(),
+      latitude: _pickedLatLng.latitude,
+      longitude: _pickedLatLng.longitude,
       scheduledAt: scheduledAt,
       photos: _photos,
     );
+  }
+
+  Future<void> _openLocationPicker() async {
+    final result = await Navigator.of(context).push<PickedLocation>(
+      MaterialPageRoute(
+        builder: (_) => LocationPickerScreen(
+          locationService: _locationService,
+          initial: _pickedLatLng,
+        ),
+      ),
+    );
+    if (result == null) return;
+    setState(() {
+      _pickedLatLng = LatLng(result.lat, result.lng);
+      if (result.address.isNotEmpty) _addressCtrl.text = result.address;
+    });
   }
 
   Future<void> _pickPhoto(ImageSource source) async {
@@ -696,40 +736,18 @@ Future<void> _showPhotoSourceSheet() async {
           'Where is the job?',
           'We\'ll match you with professionals nearby.',
         ),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(14),
-          child: SizedBox(
-            height: 120,
-            child: Stack(
-              children: [
-                Positioned.fill(
-                  child: CustomPaint(painter: MapPainter(vw: 350, vh: 120)),
-                ),
-                const Center(child: MapPin(size: 24)),
-                Positioned(
-                  bottom: 8,
-                  right: 10,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 5,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: FieldifyColors.g200),
-                    ),
-                    child: Text(
-                      'Change',
-                      style: GoogleFonts.dmSans(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w500,
-                        color: FieldifyColors.g800,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+        GestureDetector(
+          key: const Key('requestMapPreview'),
+          onTap: _openLocationPicker,
+          // IgnorePointer so the GoogleMap (even in lite mode) doesn't
+          // swallow the tap on Android — lets the parent GestureDetector
+          // open the picker. opaque hit-test so the detector itself is
+          // hittable even though its child ignores pointers.
+          behavior: HitTestBehavior.opaque,
+          child: IgnorePointer(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(14),
+              child: StaticMapView(position: _pickedLatLng, height: 120),
             ),
           ),
         ),
@@ -1219,7 +1237,23 @@ Future<void> _showPhotoSourceSheet() async {
               children: [
                 ElevatedButton(
                   key: const Key('trackJobButton'),
-                  onPressed: () => Navigator.of(context).pop(),
+                  onPressed: () {
+                    final id = _requestCtrl.submittedRequestId;
+                    if (id == null) {
+                      Navigator.of(context).pop();
+                      return;
+                    }
+                    // Replace the request flow with the job detail so back
+                    // from there returns to wherever the user started.
+                    Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(
+                        builder: (_) => JobDetailScreen(
+                          jobId: id,
+                          viewerRole: ViewerRole.client,
+                        ),
+                      ),
+                    );
+                  },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: FieldifyColors.g800,
                     foregroundColor: FieldifyColors.g100,

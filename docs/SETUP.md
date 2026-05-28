@@ -48,23 +48,40 @@ cd ios && pod install && cd ..
 
 ---
 
-## 3. Backend configuration (Supabase)
+## 3. Environment variables (`.env`)
 
-The app connects to a hosted Supabase project. Credentials live in `lib/core/supabase/supabase_client.dart`:
+Native build-time secrets (currently the Google Maps SDK key) live in a gitignored `.env` at the repo root. Copy the example and fill in your key:
 
-```dart
-const supabaseUrl = 'https://jdmnvmqkmthjllckzlmp.supabase.co';
-const supabaseAnonKey = 'sb_publishable_...';
+```bash
+cp .env.example .env
 ```
 
-The `anon` key is a public key safe to commit — access is enforced server-side via Row-Level Security policies. No `.env` file is required.
+Then edit `.env`:
+
+```dotenv
+MAPS_API_KEY=AIza...   # Google Maps SDK key — Maps SDK for Android + iOS enabled, key restricted
+```
+
+**How it's consumed:**
+
+- **Android** — [`android/app/build.gradle.kts`](../android/app/build.gradle.kts) reads `MAPS_API_KEY` from `.env` at configure time (falling back to the `MAPS_API_KEY` environment variable for CI) and injects it into [`AndroidManifest.xml`](../android/app/src/main/AndroidManifest.xml) via `manifestPlaceholders`.
+- **iOS** — Copy `ios/Flutter/Secrets.xcconfig.example` to `ios/Flutter/Secrets.xcconfig` (also gitignored) and put the same `MAPS_API_KEY=...` line there. `Debug.xcconfig`/`Release.xcconfig` `#include?` it, `Info.plist` reads `$(MAPS_API_KEY)`, and `AppDelegate.swift` passes it to `GMSServices.provideAPIKey(...)` at launch.
+
+Keep the iOS and root values in sync. Without a key, the app still launches but Google Maps tiles render blank.
+
+**Getting a key:** Google Cloud Console → APIs & Services → enable "Maps SDK for Android" and "Maps SDK for iOS" → Credentials → Create API key → restrict to your Android package name (`com.example.project`) + SHA-1 fingerprint and your iOS bundle ID.
+
+### Supabase
+
+The app connects to a hosted Supabase project. The URL and `anon` key live in `lib/core/supabase/supabase_client.dart` and are safe to commit — access is enforced server-side via Row-Level Security policies.
 
 If you want to run against your own Supabase project:
 
 1. Create a project at [supabase.com](https://supabase.com).
-2. Apply the schema (tables, triggers, RLS policies) — migration files are not yet tracked in the repo; coordinate with the team for the current SQL dump.
+2. Apply the schema (tables, triggers, RLS policies) and the migrations under `supabase/migrations/`.
 3. Update `supabaseUrl` and `supabaseAnonKey` in `lib/core/supabase/supabase_client.dart`.
 4. Create the `service-request-photos` storage bucket (private) with RLS policies scoped to `auth.uid()`.
+5. Deploy the Edge Functions under `supabase/functions/` (`create-setup-intent`, `create-connect-account`, `create-payment-intent`, `capture-payment-intent`, `stripe-webhook`, `send-push-notification`) and set their secrets (`STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, etc.) in the Supabase dashboard.
 
 ### Test accounts
 

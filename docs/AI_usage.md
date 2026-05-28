@@ -107,3 +107,51 @@
 ### Sprint 3
 
 ---
+
+#### US08 — Stripe Connect onboarding in Pro profile
+- **Tool:** Claude (Claude Code)
+- **Prompt:** "wire up the pro profile screen so a professional can connect their Stripe account from the app and see the connection status"
+- **Output:** Extended `ProProfileController` with Stripe Connect onboarding state and a `startStripeOnboarding` action that hits the `create-connect-account` Edge Function and opens the returned URL; added `stripeAccountId`/`stripeOnboardingComplete` fields to `ProProfileModel`; updated `ProProfileService`/`ProProfileRepository` to fetch and persist account status; added a "Payments" section to `pro_profile_screen.dart` with a connect-account CTA and a "Connected" badge once onboarding completes. Added `flutter_stripe` and `url_launcher` to `pubspec.yaml`.
+- **Commit:** [`56bdbb0`](https://github.com/LEIC-ES-2025-26-2LEIC02/T1/commit/56bdbb0) (merged via [PR #58](https://github.com/LEIC-ES-2025-26-2LEIC02/T1/pull/58))
+
+#### US13 — Work settings & availability scheduling
+- **Tool:** Claude (Claude Code)
+- **Prompt:** "build the work settings feature so pros can set their weekly availability and upload credential docs, follow the same controller/repository/service layering as the rest of the app"
+- **Output:** New `pro/work_settings/` feature pipeline: `AvailabilityScheduleModel` (per-weekday open/close + breaks, JSON round-trip), `WorkSettingsService` (Supabase read/write + Storage upload for credentials), `WorkSettingsRepository` (wraps service errors as `WorkSettingsFailure`), and `WorkSettingsController` exposing schedule edits, credential upload, and persist actions. Made `scheduledAt` optional on requests so pros without a fixed schedule still receive jobs; added 762-line test suite (`work_settings_controller_test.dart`, `availability_schedule_model_test.dart`, `work_settings_repository_test.dart`).
+- **Commit:** [`2786b70`](https://github.com/LEIC-ES-2025-26-2LEIC02/T1/commit/2786b70), [`e1d247e`](https://github.com/LEIC-ES-2025-26-2LEIC02/T1/commit/e1d247e), [`4be6ae2`](https://github.com/LEIC-ES-2025-26-2LEIC02/T1/commit/4be6ae2) (branch `US13`, merged via [PR #61](https://github.com/LEIC-ES-2025-26-2LEIC02/T1/pull/61))
+
+#### US09 — Stripe payments end-to-end (authorise → capture)
+- **Tool:** Claude (Claude Code)
+- **Prompt:** "implement the stripe payment design spec we wrote in sprint 2 — card on file at request submit, authorise on submit, capture when the pro marks complete"
+- **Output:** Created `features/payments/` feature with `PaymentService` (calls `create-payment-intent`, `capture-payment-intent`, lists saved cards), `PaymentRepository`, `PaymentMethodsController`, `PaymentMethodsScreen`, and `PaymentModels`. Wired the request flow: `RequestController.submit` now blocks unless a card is on file and authorises the PaymentIntent; `JobDetailController` fetches payment info and captures on completion; `PaymentSummaryCard` shows authorised/captured amounts on the job detail screen. Configured Android `MainActivity` → `FlutterFragmentActivity` and switched themes to AppCompat/MaterialComponents so `PaymentSheet` renders. Added `core/stripe/stripe_config.dart` and ProGuard rules for push provisioning.
+- **Commit:** [`5b2e368`](https://github.com/LEIC-ES-2025-26-2LEIC02/T1/commit/5b2e368), [`28a9375`](https://github.com/LEIC-ES-2025-26-2LEIC02/T1/commit/28a9375) (branch `payments`, merged via [PR #62](https://github.com/LEIC-ES-2025-26-2LEIC02/T1/pull/62))
+
+#### US09 — Supabase Edge Functions for Stripe
+- **Tool:** Claude (Claude Code)
+- **Prompt:** "now write the edge functions: create-setup-intent, create-connect-account, create-payment-intent, capture-payment-intent, stripe-webhook — share auth/cors helpers"
+- **Output:** Added 5 Deno Edge Functions under `supabase/functions/` plus shared helpers (`_shared/auth.ts`, `_shared/cors.ts`, `_shared/responses.ts`, `_shared/stripe.ts`, `_shared/supabase.ts`). `create-setup-intent` lazily creates the Stripe customer; `stripe-webhook` handles `setup_intent.succeeded` (upsert into `payment_methods`) and `payment_intent.*` events (update `payments.status` + `amount_charged`). Backed by request_controller test additions covering both "has card" and "no card" submission paths.
+- **Commit:** [`d62bbd5`](https://github.com/LEIC-ES-2025-26-2LEIC02/T1/commit/d62bbd5)
+
+#### Pro Dashboard
+- **Tool:** Claude (Claude Code)
+- **Prompt:** "design and build a pro dashboard — stats on active jobs, monthly earnings, average rating — same feature layering as the rest" (spec written first, then implementation)
+- **Output:** Wrote `docs/superpowers/specs/2026-05-26-pro-dashboard-design.md` then implemented `pro/home/` feature: `ProDashboardStats` model, `ProDashboardService` (aggregates from `service_requests`, `payments`, `reviews`), `ProDashboardRepository`, `ProDashboardController`, and `ProDashboardView` widget shown on `pro_home_screen.dart`. Added `pro_dashboard_controller_test.dart` and `pro_dashboard_view_test.dart`.
+- **Commit:** [`dbe4e2f`](https://github.com/LEIC-ES-2025-26-2LEIC02/T1/commit/dbe4e2f) (branch `pro-dashboard`, merged via [PR #63](https://github.com/LEIC-ES-2025-26-2LEIC02/T1/pull/63))
+
+#### US15 — Google Maps integration plan & location picker
+- **Tool:** Claude (Claude Code)
+- **Prompt:** "plan the full google maps integration — picker for request address, static map preview on job detail, lat/lng on professional_profiles, postgis migration" → then "now implement it"
+- **Output:** Wrote `docs/superpowers/plans/2026-05-27-google-maps-integration.md` (1047 lines) and corresponding design doc. Implemented: PostGIS migration `20260527000000_add_location_coords.sql` adding `latitude`/`longitude` to `service_requests` and `professional_profiles`; new `shared/location/` feature with `LocationService`, `PickedLocation` model, `LocationPickerScreen` (interactive map + reverse geocoding), and `StaticMapView` widget; updated `JobDetailModel` to parse coords and render a static map; updated `RequestScreen` step 2 to use the picker; registered the geolocator plugin on Windows/macOS. Added `location_picker_screen` tests, `picked_location_test.dart`, `fake_location_service.dart`, and `job_detail_location_test.dart`.
+- **Commit:** [`d62bbd5`](https://github.com/LEIC-ES-2025-26-2LEIC02/T1/commit/d62bbd5), [`a2493ad`](https://github.com/LEIC-ES-2025-26-2LEIC02/T1/commit/a2493ad), [`befa69e`](https://github.com/LEIC-ES-2025-26-2LEIC02/T1/commit/befa69e) (branch `maps`, merged via [PR #65](https://github.com/LEIC-ES-2025-26-2LEIC02/T1/pull/65))
+
+#### Client home redesign — trade tiles & deep-link to request
+- **Tool:** Claude (Claude Code)
+- **Prompt:** "redesign the client home — instead of a giant request button, show a grid of trade tiles, tapping a tile opens the request screen pre-selected on that trade"
+- **Output:** Wrote `docs/superpowers/specs/2026-05-27-client-home-request-entry-design.md`. Rewrote `client_home_screen.dart` (-410/+140 lines) into a trade-tile grid backed by the existing `TradesRepository`/`TradeIconMapper`; added a `preselectedTradeSlug` parameter to `RequestScreen` that skips step 1 when set; threaded the deep-link from tile tap. Added `client_home_tiles_test.dart` and request-screen tests for the preselection path.
+- **Commit:** [`528166b`](https://github.com/LEIC-ES-2025-26-2LEIC02/T1/commit/528166b), [`a2493ad`](https://github.com/LEIC-ES-2025-26-2LEIC02/T1/commit/a2493ad)
+
+#### Polish — job ordering, reviews truncation, CI timeouts
+- **Tool:** Claude (Claude Code)
+- **Prompt:** "newest jobs first in history" / "only show first 3 reviews with a 'see more' toggle" / "android+web ci jobs are hanging, add a timeout"
+- **Output:** Flipped `ProJobsService` and history queries to descending `created_at`; added `maxVisible` parameter to the reviews section on `job_detail_screen.dart` with an expand/collapse toggle; added `timeout-minutes` to the Android and Web build jobs in the GitHub Actions workflow.
+- **Commit:** [`be02e89`](https://github.com/LEIC-ES-2025-26-2LEIC02/T1/commit/be2e089), [`036d97b`](https://github.com/LEIC-ES-2025-26-2LEIC02/T1/commit/036d97b)

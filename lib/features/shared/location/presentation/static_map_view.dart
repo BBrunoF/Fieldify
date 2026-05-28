@@ -18,6 +18,10 @@ class StaticMapView extends StatelessWidget {
     return SizedBox(
       height: height,
       child: GoogleMap(
+        // initialCameraPosition is read once; re-key on position so an updated
+        // location (e.g. after geolocation resolves) rebuilds the map fresh
+        // instead of sticking on the first/fallback target.
+        key: ValueKey('${position.latitude},${position.longitude}'),
         initialCameraPosition: CameraPosition(target: position, zoom: zoom),
         markers: {
           Marker(markerId: const MarkerId('location'), position: position),

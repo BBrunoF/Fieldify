@@ -16,6 +16,8 @@ import '../../../../shared/location/data/location_service.dart';
 import '../../../../shared/location/models/picked_location.dart';
 import '../../../../shared/location/presentation/location_picker_screen.dart';
 import '../../../../shared/location/presentation/static_map_view.dart';
+import '../../../../shared/job_detail/data/models/job_detail_model.dart';
+import '../../../../shared/job_detail/presentation/screens/job_detail_screen.dart';
 import '../../controllers/request_controller.dart';
 import '../../data/models/trade_model.dart';
 import '../trade_icon_mapper.dart';
@@ -737,9 +739,16 @@ Future<void> _showPhotoSourceSheet() async {
         GestureDetector(
           key: const Key('requestMapPreview'),
           onTap: _openLocationPicker,
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(14),
-            child: StaticMapView(position: _pickedLatLng, height: 120),
+          // IgnorePointer so the GoogleMap (even in lite mode) doesn't
+          // swallow the tap on Android — lets the parent GestureDetector
+          // open the picker. opaque hit-test so the detector itself is
+          // hittable even though its child ignores pointers.
+          behavior: HitTestBehavior.opaque,
+          child: IgnorePointer(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(14),
+              child: StaticMapView(position: _pickedLatLng, height: 120),
+            ),
           ),
         ),
         const SizedBox(height: 14),
@@ -1228,7 +1237,23 @@ Future<void> _showPhotoSourceSheet() async {
               children: [
                 ElevatedButton(
                   key: const Key('trackJobButton'),
-                  onPressed: () => Navigator.of(context).pop(),
+                  onPressed: () {
+                    final id = _requestCtrl.submittedRequestId;
+                    if (id == null) {
+                      Navigator.of(context).pop();
+                      return;
+                    }
+                    // Replace the request flow with the job detail so back
+                    // from there returns to wherever the user started.
+                    Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(
+                        builder: (_) => JobDetailScreen(
+                          jobId: id,
+                          viewerRole: ViewerRole.client,
+                        ),
+                      ),
+                    );
+                  },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: FieldifyColors.g800,
                     foregroundColor: FieldifyColors.g100,

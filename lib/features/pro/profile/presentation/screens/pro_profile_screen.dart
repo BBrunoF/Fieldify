@@ -1114,9 +1114,15 @@ class _ProProfileScreenState extends State<ProProfileScreen>
     return GestureDetector(
       key: const Key('proProfileMapPreview'),
       onTap: _openLocationPicker,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(14),
-        child: StaticMapView(position: center, height: 140),
+      // opaque + IgnorePointer: the GoogleMap (even in lite mode) swallows
+      // taps on Android, so we make its subtree non-hit-testable and have
+      // the GestureDetector itself catch the tap to open the picker.
+      behavior: HitTestBehavior.opaque,
+      child: IgnorePointer(
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(14),
+          child: StaticMapView(position: center, height: 140),
+        ),
       ),
     );
   }

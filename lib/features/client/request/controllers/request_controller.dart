@@ -32,6 +32,7 @@ class RequestController extends ChangeNotifier {
   bool _loading = false;
   String? _error;
   bool _submitted = false;
+  String? _submittedRequestId;
 
   List<Trade> _trades = const [];
   bool _loadingTrades = false;
@@ -40,6 +41,9 @@ class RequestController extends ChangeNotifier {
   bool get isLoading => _loading;
   String? get error => _error;
   bool get isSubmitted => _submitted;
+  /// Id of the request created by the last successful [submit] — used by the
+  /// confirmation screen to deep-link to the job detail page.
+  String? get submittedRequestId => _submittedRequestId;
 
   List<Trade> get trades => _trades;
   bool get isLoadingTrades => _loadingTrades;
@@ -124,6 +128,7 @@ class RequestController extends ChangeNotifier {
       // Authorise the hold now that the request row exists.
       await _payments.authorise(requestId: requestId, paymentMethodId: cardId);
       _submitted = true;
+      _submittedRequestId = requestId;
     } on RequestFailure catch (e) {
       _error = e.message;
     } on PaymentException catch (e) {

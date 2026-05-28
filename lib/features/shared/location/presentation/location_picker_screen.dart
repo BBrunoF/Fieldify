@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../../../core/location/location_constants.dart';
@@ -29,6 +31,9 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
     super.initState();
     _center = widget.initial ?? kDefaultLocation;
     _resolveAddress();
+    // Trigger the location permission prompt up front so the blue
+    // my-location dot can appear without the user tapping the FAB first.
+    widget.locationService.currentPosition();
   }
 
   Future<void> _resolveAddress() async {
@@ -78,10 +83,18 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
           GoogleMap(
             initialCameraPosition: CameraPosition(target: _center, zoom: 15),
             onMapCreated: (c) => _controller = c,
+            myLocationEnabled: true,
             myLocationButtonEnabled: false,
             zoomControlsEnabled: false,
             onCameraMove: (pos) => _center = pos.target,
             onCameraIdle: _resolveAddress,
+            // Claim pan/zoom gestures eagerly so Android hybrid-composition
+            // doesn't lose them to ancestor gesture arenas.
+            gestureRecognizers: {
+              Factory<OneSequenceGestureRecognizer>(
+                () => EagerGestureRecognizer(),
+              ),
+            },
           ),
           const IgnorePointer(
             child: Icon(Icons.location_on, size: 44, color: Colors.red),

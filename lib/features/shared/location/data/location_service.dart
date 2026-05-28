@@ -26,8 +26,19 @@ class GeolocatorLocationService implements LocationService {
       return null;
     }
 
+    // A fresh high-accuracy fix can take a while (or never arrive indoors), so
+    // prefer the last known position for an instant result, then try for a
+    // fresh medium-accuracy fix with a timeout.
+    final last = await Geolocator.getLastKnownPosition();
+    if (last != null) return LatLng(last.latitude, last.longitude);
+
     try {
-      final pos = await Geolocator.getCurrentPosition();
+      final pos = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.medium,
+          timeLimit: Duration(seconds: 12),
+        ),
+      );
       return LatLng(pos.latitude, pos.longitude);
     } catch (_) {
       return null;

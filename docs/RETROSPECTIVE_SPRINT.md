@@ -71,7 +71,7 @@ Sprint 3 took place during May 2026 and represents the most productive sprint of
 ## What Went Well
 - Successfully delivered 8 planned user stories with no items carried over to a future sprint
 - Resolved [US09] Automatic Payment Processing and [US03] Service Request Submission, both of which had been carried over from Sprints 1 and 2
-- Achieved the highest sprint velocity of the project at 61 story points, nearly 3x the output of Sprint 2
+- Achieved the highest sprint velocity of the project at 54 story points, nearly 3x the output of Sprint 2
 - All process policies defined in previous retrospectives were applied effectively: Carry-Over Prioritisation, Capacity-Aware Planning, and Root Cause Analysis
 -All quality assurance tasks completed: unit and integration tests, UAT, defect tracking, Sprint 3 review document, and Happiness Matters document
 

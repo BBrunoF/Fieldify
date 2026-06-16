@@ -208,9 +208,9 @@ OneSignal is a dedicated omnichannel customer engagement platform supporting pus
 **Implementation pattern:**
 
 1. On app launch, the Flutter app requests an FCM device token via `firebase_messaging`.
-2. The token is stored in the `profiles` table in Supabase alongside the user's record.
+2. The token is stored in the `fcm_tokens` table in Supabase (one row per device; a single user can have multiple tokens for multiple devices).
 3. When a job state change occurs (e.g. a professional accepts a request), a Supabase database webhook triggers an Edge Function.
-4. The Edge Function reads the recipient's FCM token from the database and calls the FCM HTTP v1 API using a server-side Firebase service account key stored as a Supabase secret.
+4. The Edge Function queries `fcm_tokens` by `user_id`, then calls the FCM HTTP v1 API for each token using a server-side Firebase service account key stored as a Supabase secret.
 5. FCM delivers the notification to the device via Android's FCM infrastructure or iOS's APNs.
 
 **Important note for iOS:** APNs configuration requires uploading a valid `.p8` authentication key into the Firebase console. Without this, iOS devices will generate FCM tokens but silently never receive notifications. This must be configured before any iOS testing.

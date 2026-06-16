@@ -51,3 +51,10 @@ CLAUDE.md
 # Secrets (API keys injected at build time)
 .env
 /ios/Flutter/Secrets.xcconfig
+.supabase/
+
+# OS junk
+Thumbs.db
+__MACOSX/
+*.suo
+*.user

@@ -45,6 +45,45 @@ Thank you!
 * José Pedro Rocha da Costa : jprcosta06@gmail.com
 
 ---
+
+## Quick Start
+
+> Full setup instructions, including CI, testing, and platform-specific notes, are in [docs/SETUP.md](docs/SETUP.md).
+
+**Prerequisites:** Flutter SDK 3.11.0+, Android Studio (Android SDK 34+), Dart (ships with Flutter).
+
+```bash
+git clone https://github.com/LEIC-ES-2025-26-2LEIC02/T1.git
+cd T1
+flutter pub get
+```
+
+**Configure credentials** (three files, each with a `.example` counterpart — copy and fill in):
+
+| File | Purpose |
+|------|---------|
+| `.env` (from `.env.example`) | Google Maps SDK API key |
+| `android/app/google-services.json` (from `google-services.json.example`) | Firebase project config |
+| `lib/core/supabase/supabase_client.dart` | Supabase URL + anon key |
+
+```bash
+cp .env.example .env
+cp android/app/google-services.json.example android/app/google-services.json
+# Edit all three files with your credentials — see docs/SETUP.md §3 for details
+```
+
+**Run:**
+
+```bash
+flutter run        # Android emulator or physical device
+flutter test       # Unit & widget tests
+patrol test        # Integration (UAT) tests — requires a running emulator
+```
+
+**Academic context:** LEIC-ES-2025-26, 2LEIC02, Faculty of Engineering of the University of Porto (FEUP).
+
+---
+
 ## Business Modelling
 
 Business modeling in software development involves defining the product's vision, understanding market needs, aligning features with user expectations, and setting the groundwork for strategic planning and execution.

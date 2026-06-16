@@ -33,6 +33,7 @@ entity profiles {
   phone : text
   avatar_url : text
   stripe_customer_id : text
+  notifications_enabled : boolean
   * created_at : timestamptz
   * updated_at : timestamptz
 }
@@ -60,7 +61,11 @@ entity professional_profiles {
   * is_available : boolean
   * service_radius_km : integer
   base_location : geography(point,4326)
+  lat : float8 <<generated>>
+  lng : float8 <<generated>>
   verified_at : timestamptz
+  stripe_account_id : text
+  * stripe_onboarding_complete : boolean
   * created_at : timestamptz
   * updated_at : timestamptz
 }
@@ -86,6 +91,8 @@ entity service_requests {
   * description : text
   * photo_urls : text[]
   * location : geography(point,4326)
+  lat : float8 <<generated>>
+  lng : float8 <<generated>>
   * address_text : text
   * status : text
   scheduled_at : timestamptz
@@ -123,7 +130,7 @@ entity payments {
   --
   * request_id : uuid <<FK>>
   * client_id : uuid <<FK>>
-  * pro_id : uuid <<FK>>
+  pro_id : uuid <<FK>>
   * payment_method_id : uuid <<FK>>
   * stripe_payment_intent_id : text
   * amount_authorised : numeric(8,2)
@@ -156,8 +163,21 @@ entity messages {
   * request_id : uuid <<FK>>
   * sender_id : uuid <<FK>>
   * content : text
+  * type : text
+  reschedule_proposed_at : timestamptz
+  reschedule_status : text
+  reschedule_responded_at : timestamptz
   read_at : timestamptz
   * created_at : timestamptz
+}
+
+' ─── Push notifications ───────────────────────────────────────
+entity fcm_tokens {
+  * id : uuid <<PK>>
+  --
+  * user_id : uuid <<FK>>
+  * token : text
+  created_at : timestamptz
 }
 
 ' ─── Layout hints ────────────────────────────────────────────
@@ -179,6 +199,10 @@ together {
 together {
   entity reviews
   entity messages
+}
+
+together {
+  entity fcm_tokens
 }
 
 ' ─── Relationships ───────────────────────────────────────────
@@ -204,5 +228,8 @@ service_requests        ||--o|   payments               : "billed via"
 service_requests        ||--o|   reviews                : "reviewed in"
 service_requests        ||--o{   messages               : "has"
 profiles                ||--o{   messages               : "sends"
+
+' Push notification layer
+profiles                ||--o{   fcm_tokens             : "has"
 
 @enduml

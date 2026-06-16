@@ -48,9 +48,11 @@ cd ios && pod install && cd ..
 
 ---
 
-## 3. Environment variables (`.env`)
+## 3. Credentials & environment variables
 
-Native build-time secrets (currently the Google Maps SDK key) live in a gitignored `.env` at the repo root. Copy the example and fill in your key:
+### Google Maps (`.env`)
+
+The Google Maps SDK key lives in a gitignored `.env` at the repo root. Copy the example and fill in your key:
 
 ```bash
 cp .env.example .env
@@ -71,17 +73,36 @@ Keep the iOS and root values in sync. Without a key, the app still launches but 
 
 **Getting a key:** Google Cloud Console → APIs & Services → enable "Maps SDK for Android" and "Maps SDK for iOS" → Credentials → Create API key → restrict to your Android package name (`com.example.project`) + SHA-1 fingerprint and your iOS bundle ID.
 
+### Firebase (`google-services.json`)
+
+`android/app/google-services.json` is gitignored. Copy the example and fill in your Firebase project values:
+
+```bash
+cp android/app/google-services.json.example android/app/google-services.json
+```
+
+Edit `google-services.json` with your Firebase project's `project_number`, `project_id`, `mobilesdk_app_id`, and Android API key. These are available in the Firebase console under **Project Settings → Your apps → Android app → google-services.json** (download the real file from there). Contact the team if you need the values for the shared project.
+
 ### Supabase
 
-The app connects to a hosted Supabase project. The URL and `anon` key live in `lib/core/supabase/supabase_client.dart` and are safe to commit — access is enforced server-side via Row-Level Security policies.
+`lib/core/supabase/supabase_client.dart` contains two placeholder values that you must fill in before the app can reach the backend:
 
-If you want to run against your own Supabase project:
+```dart
+const supabaseUrl = 'YOUR_SUPABASE_URL_HERE';
+const supabaseAnonKey = 'YOUR_SUPABASE_ANON_KEY_HERE';
+```
+
+To run against the project's Supabase instance, contact the team for the real URL and anon key.
+
+To run against your own Supabase project:
 
 1. Create a project at [supabase.com](https://supabase.com).
-2. Apply the schema (tables, triggers, RLS policies) and the migrations under `supabase/migrations/`.
-3. Update `supabaseUrl` and `supabaseAnonKey` in `lib/core/supabase/supabase_client.dart`.
-4. Create the `service-request-photos` storage bucket (private) with RLS policies scoped to `auth.uid()`.
-5. Deploy the Edge Functions under `supabase/functions/` (`create-setup-intent`, `create-connect-account`, `create-payment-intent`, `capture-payment-intent`, `stripe-webhook`, `send-push-notification`) and set their secrets (`STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, etc.) in the Supabase dashboard.
+2. In the Supabase SQL Editor, run `supabase/migrations/20260616000000_initial_schema.sql` — this creates all tables, triggers, the `pro_ratings` view, and enables PostGIS.
+3. Run `supabase/seed.sql` to populate the `trades` table and read the storage bucket / test account instructions.
+4. Update `supabaseUrl` and `supabaseAnonKey` in `lib/core/supabase/supabase_client.dart`.
+5. Add RLS policies for every table (see Supabase dashboard → Authentication → Policies). Without policies, all queries are denied by default.
+6. Create storage buckets (`service-request-photos`, `credential-documents`, `avatars`) — instructions are in `seed.sql`.
+7. Deploy the Edge Functions under `supabase/functions/` (`create-setup-intent`, `create-connect-account`, `create-payment-intent`, `capture-payment-intent`, `stripe-webhook`, `send-push-notification`) and set their secrets (`STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, etc.) in the Supabase dashboard.
 
 ### Test accounts
 

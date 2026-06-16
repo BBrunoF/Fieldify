@@ -12,3 +12,6 @@ GeneratedPluginRegistrant.java
 key.properties
 **/*.keystore
 **/*.jks
+
+# Firebase config — copy google-services.json.example → google-services.json and fill in real values
+app/google-services.json

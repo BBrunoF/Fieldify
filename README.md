@@ -89,50 +89,31 @@ patrol test        # Integration (UAT) tests — requires a running emulator
 Business modeling in software development involves defining the product's vision, understanding market needs, aligning features with user expectations, and setting the groundwork for strategic planning and execution.
 
 ### Product Vision
-Fieldify is a mobile app that allows clients to find and request service professionals, while helping freelancers and service companies receive jobs, manage work, and coordinate technicians in one simple and organized system.
-<!-- 
-Start by defining a clear and concise product vision for your app, to help members of the team, contributors, and users into focusing their often disparate views into a concise, visual, and short textual form. 
-
-The vision should provide a "high concept" of the product for marketers, developers, and managers.
-
-A product vision describes the essential of the product and sets the direction to where a product is headed, and what the product will deliver in the future. 
-
-**We favor a catchy and concise statement, ideally one sentence.**
-
-We suggest you use the product vision template described in the following link:
-* [How To Create A Convincing Product Vision To Guide Your Team, by uxstudioteam.com](https://uxstudioteam.com/ux-blog/product-vision/)
-
-To learn more about how to write a good product vision, please read:
-* [Vision, by scrumbook.org](http://scrumbook.org/value-stream/vision.html)
-* [Product Management: Product Vision, by ProductPlan](https://www.productplan.com/glossary/product-vision/)
-* [20 Inspiring Vision Statement Examples (2019 Updated), by lifehack.org](https://www.lifehack.org/articles/work/20-sample-vision-statement-for-the-new-startup.html)
--->
-
+Fieldify is a mobile app that connects clients who need a trade service with verified independent professionals — letting clients submit a job request in seconds and giving professionals a structured workflow to accept, manage, and complete that job from start to payment.
 
 ### Features and Assumptions
-#### High-Level Features
+#### Implemented Features
 
-* Service Request Submission – Clients can submit service requests with description, location, photos, and preferred time window.
-* Professional Discovery – Clients can find available freelancers or service companies by category and location.
-* Job Assignment & Acceptance – Jobs can be automatically routed or manually assigned and accepted by technicians.
-* Job Lifecycle Management – Structured job states from request to completion.
-* Scheduling & Availability Management – Calendar view with defined working hours and service areas.
-* Technician Management – Company admins can manage multiple technicians and assign roles.
-* Client Management – Storage of client information, job history, and internal notes.
-* Real-Time Notifications – Alerts for new requests, assignments, status changes, and completion.
-* Attachments & Documentation – Photo uploads, notes, and job-related files.
-* Ratings & Feedback – Clients can rate completed services.
-* Multi-Tenant Workspaces – Separate isolated environments for each freelancer or company.
-* Analytics Dashboard – Overview of job volume, completion rates, and performance metrics.
-
+* **Service Request Submission** – Clients submit requests via a 4-step form: trade category, description with photos, map-based location, and a preferred time window.
+* **Job Matching & Acceptance** – Open requests are broadcast to verified professionals with a matching trade and overlapping service area. The first professional to accept claims the job.
+* **Job Lifecycle Management** – Structured status flow: `pending → accepted → on my way → in progress → completed`, with `cancelled` reachable at most stages. Each transition is timestamped and triggers a push notification.
+* **Job-Scoped Messaging** – Clients and professionals can chat within the context of each job. Either party can send a reschedule proposal that the other must accept or reject before it takes effect.
+* **Real-Time Notifications** – Push notifications via Firebase Cloud Messaging for every status change and new message, delivered even when the app is closed.
+* **Photo Uploads** – Clients attach photos when submitting a request; all images are stored in Supabase Storage with per-user access control.
+* **Ratings & Reviews** – Clients rate and optionally comment on completed jobs. Professional ratings are aggregated across all their reviews.
+* **Availability Scheduling** – Professionals configure working hours per day of the week and toggle a live availability switch; both must be active for a job to be routed to them.
+* **Professional Verification** – Professionals upload credential documents during onboarding; verification status (`pending`, `approved`, `rejected`) is managed by the platform before they can receive jobs.
+* **Maps Integration** – Google Maps renders job location during submission and on the job detail screen.
+* **Payments (Stripe)** – Authorize-and-capture model: the client's card is authorised when the professional starts the job and captured on completion. Stripe Connect Express handles professional payouts. *(Integration complete; pending final QA.)*
+* **Profile Management** – Both clients and professionals can update their profile, photo, and contact details.
 
 #### Initial Assumptions
 
 * Users have access to smartphones with internet connectivity.
-* Location services are available for address validation and service area filtering.
-* Push notifications are supported by the device operating system.
-* Payment processing (if implemented) will rely on third-party providers.
-* The platform initially targets small to medium service providers rather than large enterprises.
+* Location services are enabled on the device for map-based address input and service area matching.
+* Push notifications are supported and permitted by the device operating system.
+* Payment processing is handled by Stripe; both clients and professionals must accept Stripe's terms.
+* The platform targets individual freelance tradespeople, not multi-technician companies or enterprise teams.
 
 <!-- 
 Indicate an  initial/tentative list of high-level features - high-level capabilities or desired services of the system that are necessary to deliver benefits to the users.
